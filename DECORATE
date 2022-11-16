@@ -68,6 +68,7 @@
 #include "Actors/Weapons/FireBrand.txt"
 #include "Actors/Weapons/Hoser.txt"
 #include "Actors/Weapons/SpikeGatling.txt"
+#include "Actors/Weapons/FireballBuster.txt"
 
 #include "Actors/Classes/Megaman/MegamanClass.txt"
 #include "Actors/Classes/Megaman/Rushcall.txt"
