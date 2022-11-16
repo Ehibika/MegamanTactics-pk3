@@ -1,0 +1,228 @@
+//=======|weapon Constants|==========
+const int Aim_OverHead = 35;
+const int Aim_ArcOverHead = 15;
+const int Aim_ArcScale = 20;
+
+const int Aim_ArcUnderhand = 25;
+const int Aim_ArcUnderhandScale = 45;
+
+const int Aim_WepHor = 0;
+const int Aim_WepHei = 2;
+
+const float Aim_GoodSpread = 0.3;
+
+const int BlastThrust = 64;
+const int BlastThrustRad = 250;
+
+const int TossSieldReturnArea = 64;
+
+const int FlashRang = 2500;
+
+Const int FVM = 65536; //Fixed Value Multiple
+Const float FVMF = 65536.0;
+
+Const int WRF_ALLOWINPUTS = WRF_ALLOWRELOAD|WRF_ALLOWZOOM;
+Const int WRF_ALLOWONLYINPUTS = WRF_NOPRIMARY|WRF_ALLOWRELOAD|WRF_ALLOWZOOM;
+Const int WRF_RELOADING = WRF_ALLOWZOOM|WRF_NOPRIMARY|WRF_NOBOB;
+Const int WRF_PRERELOADING = WRF_ALLOWZOOM|WRF_NOPRIMARY;
+Const int WRF_STARTRELOADING = WRF_NOSECONDARY|WRF_NOPRIMARY|WRF_NOBOB;
+Const int WRF_CYCLERELOADING = WRF_ALLOWZOOM|WRF_NOBOB;
+Const int WRF_FIRING = WRF_NOSWITCH|WRF_NOPRIMARY|WRF_ALLOWZOOM;
+//====|MoveSpeedModifiers|====
+const float Buster_MSPD = 0.8;
+const float Sprayer_MSPD = 0.8;
+const float Rifle_MSPD = 0.8;
+const float Melee_MSPD = 1.0;
+const float Launcher_MSPD = 0.6;
+
+const float LightWep_MSPD = 0.9;
+const float HeavyWep_MSPD = 0.5;
+
+const float HRifle_MSPD = 0.7;
+//====|TracerTargeter Angles|====
+const float TTA_Default = 0.005;
+const float TTA_Precise = 0.0005;
+const float TTA_SuperPrecise = 0.00005;
+
+//====|ActorClassifier Flags|====
+Const int ACF_NONE = 0;
+Const int ACF_WORLD = 1;
+Const int ACF_PLAYER = 2;
+Const int ACF_BOT = 3;
+Const int ACF_VOODOODOLL = 4;
+Const int ACF_MONSTER = 5;
+Const int ACF_ALIVE = 6;
+Const int ACF_DEAD = 7;
+Const int ACF_MISSILE = 8;
+Const int ACF_GENERIC = 9;
+
+//====|Range Constants|====
+Const int SprayerRange = 25;
+
+//====|Damage falloff range constants|====
+Const int Range1 = 275; //close quarters
+Const int Range2 = 450; // mid range
+Const int Range3 = 950; // long range
+
+//====|Mendingtool heal rates|====
+Const int HealRate2_B = 6;
+Const int HealRate2_A = 13;
+Const int HealRate2_Max = 20;
+
+//====|Primary Weapon Stats|====
+//==|Blaster|==
+const float BST_SPD = 1.3; 
+
+//==|HiPE Gun|==
+//==|HiPER Beam|==
+const int RifleRange = 2500;
+const int RifleSightRange = RifleRange/25;
+ const int HR_DAM1 = 25;
+ const int HR_DAM2 = 125;
+//==|SLAM Cannon|==
+//==|MediBuster|==
+//==|CrossBow|==
+//==|VoltSpear|==
+Const int VS_Min = 3;
+Const int VS_Mod = 7;
+
+const int VSR1 = 550; 
+const int VSR2 = 275; 
+//==|FlameTongue|==
+//==|Basher|==
+const float BasherSpread = 2.3;
+
+//==|TagMissile|==
+
+//====|Secondary Weapon Stats|====
+//==|Bustergun|==
+Const int BGUN_A = 30; //Base damage
+Const int BGUN_B = 10; // Modified damage
+Const int BGUN_C = 6; //Damage decay rate
+
+const float BGUN_S = 0.6; //spread
+
+//==|Bustergun|==
+//==|Blitzer|==
+Const float SRev = 360;
+
+Const float S_SprAng = 2.8;
+Const float S_SprAngRev = SRev-S_SprAng;
+
+Const float S_SprD_Ang = S_SprAng/1.5;
+Const float S_SprD_AngRev = SRev-(S_SprAng/1.5);
+//==|Repidifier|==
+const float RP_SPD = 1.4; 
+
+//==|ThriceGun|==
+//==|MendingTool|==
+//==|SubWich|==
+//==|PointBuster|==
+//==|Crisperizer|==
+//==|HotShot|==
+//==|Stinger|==
+const float ST_SPD = 2.6; 
+
+//==|MineLauncher|==
+//==|Protector|==
+
+//====|SubWeapon Stats|====
+//==|MiniBomb|==
+//==|TopGrenade|==
+Const int GrenTopSpeed = 10;
+Const int GrenTopTurning = 25;
+Const int GrenTopDamage = 30;
+//==|LightScreen|==
+//==|PowerDart|==
+//==|Grappling Hook|==
+//==|HealPatch|==
+const int HLP_RAD = 200;
+
+
+//====|Suit Ability Stats|====
+//==|BoosterPack|==
+//==|Health Generator|==
+//==|Rotary Shell|==
+//==|Buddy Sentry|==
+const int BSEN_SPD = 90; //multiplied by 10
+const int BSEN_Warm = 25;
+const int BSEN_DetectRange = 750;
+const int BSEN_ForgetRange = 800;
+//==|MannTurret|==
+const float MT_SPD = 2.0;
+//==|MannTurret|==
+const float QC_SPD = 45.0;
+const float QC_SPD2 = 3.0;
+const float QC_SPD3 = 2.6;
+
+//====|Leftover|====
+
+//megablitzer
+Const float MB_SPD = 5.0;
+
+//CureSprayRadius
+Const int SH_RAD = 260;
+Const int SH_RAD2 = SH_RAD/2;
+
+
+
+//[+]================|Sripts|===================[+]
+
+const int  GetTotalHPPerc = 726;
+const int  GetValueHPPerc = 727;
+const int  WepBloomStat = 728;
+//const int  DamageRate = 729;
+const int  RadiusGive = 730;
+const int  JumpToggle = 731;
+const int  MedivisionScript = 732;
+const int  RadiusHeal = 733;
+const int  DotDamager = 734;
+const int  GrapplingHookPull = 735;
+const int  TargPitch = 736;
+const int  BlastKnockback = 737;
+const int  CountTID = 738;
+const int  ObjectTally = 739;
+const int  ObjectDeathTally = 740;
+const int  GetTargValueHPPerc = 741;
+const int  HealRamp = 743;
+
+//[+]================|Buttons|===================[+]
+const int BT_ATTACK	= 1;
+const int BT_USE = 2;
+const int BT_JUMP = 4;
+const int BT_CROUCH	= 8;
+const int BT_TURN180 = 16;
+const int BT_ALTATTACK = 32;
+const int BT_RELOAD	= 64;
+const int BT_ZOOM = 128;
+const int BT_SPEED = 256;
+const int BT_STRAFE	= 512;
+const int BT_MOVERIGHT = 1024;
+const int BT_MOVELEFT = 2048;
+const int BT_BACK = 4096;
+const int BT_FORWARD = 8192;
+const int BT_RIGHT = 16384;
+const int BT_LEFT = 32768;
+const int BT_LOOKUP	= 65536;
+const int BT_LOOKDOWN = 131072;
+const int BT_MOVEUP	= 262144;
+const int BT_MOVEDOWN = 524288;
+const int BT_SHOWSCORES	= 1048576;
+const int BT_USER1 = 2097152;
+const int BT_USER2 = 4194304;
+const int BT_USER3 = 8388608;
+const int BT_USER4 = 16777216;
+//=======|RadiusGive Constants|==========
+const int RG_SELF = 1;
+const int RG_TEAM = 2;
+const int RG_ENEMY = 4;
+const int RG_LOS = 8;
+//=======|Targeting Constants|==========
+const int TG_TEAM = 1;
+const int TG_ENEMY = 2;
+//=======|StatusGuard Constants|==========
+const int STATUS_MINOR = 1;
+const int STATUS_MAJOR = 2;
+const int STATUS_SPECIALTY = 4;
+const int STATUS_STATS = 8;
+const int STATUS_TAUNT = 16;

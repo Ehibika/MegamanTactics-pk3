@@ -1,0 +1,173 @@
+//=================================
+//_________|Weapon Database|_______
+//=================================
+OptionMenu "WepDataMenu"
+{
+    Title "Weapon Database"
+	StaticText "Entry Name"
+	Option "Name", "WepADataBase", "WepOptionsB"
+	StaticText ""
+		Option "Class", "WepADataBase", "WepInto_Class"
+		Option "Capacity", "WepADataBase", "WepInto_Capacity"
+		Option "Power", "WepADataBase", "WepInto_Damage"
+		Option "Rate", "WepADataBase", "WepInto_Rate"
+		Option "-", "WepADataBase", "WepInfo_Desc"
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+}
+OptionValue WepInto_Class
+{
+0, "\cf:Buster::\cjSemi-Auto\cf:"
+1, "\cf:Buster::\cjautomatic\cf:"
+2, "\cf:Buster::\cjSpread Shot\cf:"
+3, "\cf:Buster::\cjSemi-Auto\cf:"
+
+4, "\cf:Machine Gun::\cjSpread Shot\cf:"
+5, "\cf:Buster::\cjSniper\cf:"
+6, "\cf:Machine Gun::\cjBurst Shot\cf:"
+7, "\cf:Machine Gun::\cjautomatic\cf:"
+
+8, "\cf:Machine Gun::\cjautomatic\cf:"
+9, "\cf:Machine Gun::\cjautomatic\cf:"
+10, "\cf:Buster::\cjSniper\cf:"
+
+11, "\cf:Machine Gun::\cjautomatic\cf:"
+12, "\cf:Machine Gun::\cjBurst Shot\cf:"
+13, "\cf:Machine Gun::\cjautomatic\cf:"
+14, "\cf:Machine Gun::\cjHeavy\cf:"
+}
+
+OptionValue WepInto_Capacity
+{
+0, "\cf 10 \cjRounds\cf:"
+1, "\cf 8 \cjRounds\cf:"
+2, "\cf 2 \cjRounds\cf:"
+3, "\cf 5 \cjRounds\cf:"
+
+4, "\cf 4 \cjRounds\cf:"
+5, "\c[grey]:----:"
+6, "\cf 15 \cjRounds\cf:"
+7, "\cf 20 \cjRounds\cf:"
+
+8, "\cf 40 \cjRounds\cf:"
+9, "\cf 20 \cjRounds\cf:"
+10, "\c[grey]:----:"
+
+11, "\cf 25 \cjRounds\cf:"
+12, "\cf 25 \cjRounds\cf:"
+13, "\cf 8 \cjRounds\cf:"
+14, "\cf ~50 \cjRounds\cf:"
+}
+
+OptionValue WepInto_Damage
+{
+0, "\cf 20 \cjPer shot\cf:"
+1, "\cf 18 \cjPer shot\cf:"
+2, "\cf 18 \cjPer shot\cf:"
+3, "\cf 23 \cjPer shot\cf:"
+
+4, "\cf 13 \cjPer shot\cf:"
+5, "\cf 30-50 \cjPer shot\cf:"
+6, "\cf 32 \cjPer shot\cf:"
+7, "\cf 11 \cjPer shot\cf:"
+
+8, "\cf 24 \cjPer shot\cf:"
+9, "\cf 20 \cjPer shot\cf:"
+10, "\cf 100 \cjPer shot\cf:"
+
+11, "\cf 32 \cjPer shot\cf:"
+12, "\cf 26 \cjPer shot\cf:"
+13, "\cf 18 \cjPer shot\cf:"
+14, "\cf 16 \cjPer shot\cf:"
+}
+
+OptionValue WepInto_Rate
+{
+0, "\cf 5 \cjRounds Per Second\cf:"
+1, "\cf 7 \cjRounds Per Second\cf:"
+2, "\cf 6 \cjRounds, \cf ~4 \cjShots per Second\cf:"
+3, "\cf 5 \cjRounds Per Second\cf:"
+
+6, "\cf 3 \cjRounds, \cf 5 \cjShots per Second\cf:"
+5, "\cf 0.35 \cjSecond charge\cf:"
+4, "\cf 6 \cjRounds, \cf ~2 \cjShots per Second\cf:"
+7, "\cf ~11 \cjRounds Per Second\cf:"
+
+8, "\cf ~11 \cjRounds Per Second\cf:"
+9, "\cf ~11 \cjRounds Per Second\cf:"
+10, "\cf 1 \cjSecond charge\cf:"	
+
+11, "\cf ~9 \cjRounds Per Second\cf:"
+12, "\cf ~11 \cjRounds Per Second\cf:"
+13, "\cf 6 \cjRounds, \cf ~3 \cjShots per Second\cf:"
+14, "\cf ~11 \cjRounds Per Second\cf:"
+}
+
+OptionValue WepInfo_Desc
+{
+//-1, "--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n---------------------------"
+0, "Standard issue arm cannon that \nevery robot starts with, a \nserviceable, semi-auto weapon \nthat can put up a decent \nfight."
+1, "Arm cannon capable of launching \na volley of wind tunnels at \nopponents, while not great \nin terms of power, it's light \nweight and allows for quick \nmovement."
+2, "Arm cannon that fires a condensed \nsplash of heavy water, \nable to do tremendous damage \nunder the right conditions."
+3, "Military grade arm cannon that \nboasts a stronger damage \nprofile than the starting arm \ncannon, it's higher energy \nuse means less ammo however."
+
+4, "Rifle class weapon that fires \nseveral rounds in a single \nspread, it's lightweight and \ncapable of heavy damage \nfrom up close."
+5, "Sniper grade arm cannon that \ncan charge up to fire long \nreaching energy beams, it grows \nin power with each successfull \nhit and comes with a 2.5x \nzoom feature on the reload command."
+6, "Rifle class weapon With a lightweight \nbuild, capable of firing \naccurate, 3 shot bursts of \nround, it's potent in precise \nhands but ammo capacity is low."
+7, "Rifle class weapon with a lightweight \nprofile, capable of fast \nmovement without heavy \naccuracy loss, but it's power \nis low and not terribly precise."
+
+8, "A Formidable Rifle class weapon \nthat bosts great power, \naccuracy, and ammo capacity."
+9, "A potent Rifle class weapon that \nfires Bolts of electricity. \nthough it's fire rate is \nslow for a rifle, it boasts \nstable accuracy"
+10, "Sniper grade arm cannon that can \ncharge up to fire long \nreaching electrical blasts. \nit charges slowly but it's shots \nare devastating, and sports \na 3.5x zoom feature on the \nreload command."
+
+11, "A Formidable Semi-auto Rifle class \nweapon that fires deadly \nicicle rounds at increadible \nprecision."
+12, "A Formidable Rifle Class Weapon with \ngreat movement and handling \nfor aggressive play, all \nwhile still Bosting Ferocious \nfirepower."
+13, "Rifle Class weapon that fires intense \nspread shots of water at a \nsteady, automatic rate. \nit's on the heavy side but can \ndo great damage up close."
+14, "A Heavy Machine gun that can fire an \nendless barrage of needles, \nit runs on a heat system \nand must cooldown if it \noverheats."
+}
+
+//=================================
+//______|Class Database|_______
+//=================================
+OptionMenu "ClassDatabase"
+{
+    Title "Class Database"
+	StaticText "===============================================================",1
+	Option "-", "DB_Class", "ClassNames"
+	StaticText ""
+	StaticText ""
+	StaticText ""
+		Option "Altfire", "DB_Class", "Class_Altfire"
+		Option " ", "DB_Class", "Class_AltfireInfo"
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+
+		Option "Altfire", "DB_Class", "Class_Ability"
+		Option " ", "DB_Class", "Class_AbilityInfo"	
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	
+
+}

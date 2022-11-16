@@ -1,0 +1,433 @@
+
+actor StandardSaberWep : WepMasterBase
+{
+Tag "Standard Saber"
+Weapon.AmmoUse 1
+Weapon.AmmoGive 10
+
+Obituary "$OB_STANDARDSABER"
+inventory.icon "SSABI"
+scale 2.0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "MeleeAmmo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
++WEAPON.MELEEWEAPON
+Var int User_Spread;
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+Ready.Wep:
+DW18 A 1 A_WeaponReady
+"####" "#" 0 A_Jump(256,"Ready.Core")
+Goto Ready.Core
+
+//===============
+Deselect:
+TNT1 A 0 A_TakeInventory("NoClipBar",9)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" A 1 A_Lower
+Loop
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,Melee_MSPD*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" A 1 A_Raise
+Loop
+Fire:
+"####" C 1 
+"####" A 0 A_PlaySoundEx("weapon/ChargeKick","Soundslot6")
+"####" A 0 A_SpawnItemEx("SS_BladeWatcher", cos(-pitch)*16, 0, 32+(sin(-pitch)*16), 0, 0, 0, 0, SXF_TRANSFERPITCH)
+"####" A 0 A_SpawnItemEx("SS_BladeVisualWatcher", cos(-pitch)*16, 0, 32+(sin(-pitch)*16), 0, 0, 0, 0, SXF_TRANSFERPITCH)
+"####" A 0 //A_SpawnItemEx("SS_BladeSlashFX1", 0, 0, 0, cos(pitch), 0, sin(-pitch), 0, SXF_MULTIPLYSPEED|SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+
+"####" C 1 OffSet(-43,36)//A_FireCustomMissile("AxeMelee2",0,0,8,0)
+"####" D 1 OffSet(1,33)
+"####" D 1 OffSet(-48,33)
+"####" E 1 OffSet(1,31)
+"####" E 1 OffSet(-43,43)
+"####" E 1 OffSet(-102,53)
+"####" A 0 //A_GiveInventory("MeleeSwingBuffer")
+TNT1 A 14
+DW18 A 2 OffSet(8,112)
+"####" A 2 OffSet(7,102)
+"####" A 2 OffSet(6,92)
+"####" A 2 OffSet(5,82)
+"####" A 2 OffSet(4,72)
+"####" A 2 OffSet(3,62)
+"####" A 2 OffSet(2,52)
+"####" A 2 OffSet(1,42)
+"####" A 2 A_WeaponReady(WRF_NOPRIMARY|WRF_ALLOWRELOAD)
+goto Ready.Wep
+
+NoAmmo:
+Reload:
+"####" A 1 
+goto Ready.Wep
+Flash:
+TNT1 A 5 
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}
+
+actor StandardSaberWep2 : StandardSaberWep
+{Weapon.slotnumber 2}
+//[+]========================================================================[+]
+//--------------------------------|Ammo & inventory|---------------------------
+//[+]========================================================================[+]
+actor MeleeAmmo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 1
+}
+
+
+actor StandardSaberEdgeProtect : PowerProtection
+{
+Powerup.Duration 10
+damagefactor "Normal", 1.0
+damagefactor "StandardSaberTip", 0.0
+damagefactor "StandardSaberEdge", 0.0
+}
+
+actor StandardSaberTipProtect : PowerProtection
+{
+Powerup.Duration 10
+damagefactor "Normal", 1.0
+damagefactor "StandardSaberTip", 0.0
+damagefactor "StandardSaberEdge", 0.0
+
+}
+//[+]========================================================================[+]
+//--------------------------------|Projectiles |--------------------------------
+//[+]========================================================================[+]
+actor SS_BladeWatcher
+{
+    PROJECTILE
+    +NOINTERACTION
+    renderstyle none
+    speed 32
+    height 1
+    radius 1
+    States
+    {
+    Spawn:
+		TNT1 A 0
+	Spawn1:
+        TNT1 A 0 A_SpawnItemEx("SS_BladeStart", 0, 0, 0, cos(pitch), 0, sin(-pitch), -50, SXF_MULTIPLYSPEED)
+		TNT1 A 1 A_Warp(AAPTR_TARGET, cos(-pitch)*16,0,32+(sin(-pitch)*16), 0, WARPF_USECALLERANGLE)
+		TNT1 A 0 A_SetArg(0,args[0]+1)
+		TNT1 A 0 A_JumpIf(args[0] < 3,"Spawn1")
+		TNT1 A 0 A_SetArg(0,0)
+		TNT1 A 0 A_PlaySoundEx("weapon/SlashClaw","Weapon")
+	Spawn2:
+	TNT1 A 0 A_SpawnItemEx("SS_BladeStart", 0, 0, 0, cos(pitch), 0, sin(-pitch), -50+(10*args[1]), SXF_MULTIPLYSPEED)
+	TNT1 A 0 A_SpawnItemEx("SS_BladeStart", 0, 0, 0, cos(pitch), 0, sin(-pitch), -40+(10*args[1]), SXF_MULTIPLYSPEED)
+	TNT1 A 1 A_Warp(AAPTR_TARGET, cos(-pitch)*16,0,32+(sin(-pitch)*16), 0, WARPF_USECALLERANGLE)
+		TNT1 A 0 A_SetArg(1,args[1]+2)		
+		TNT1 A 0 A_JumpIf(args[1] < 10,"Spawn2")
+        stop
+    WindDown1:
+        TNT1 A 0
+        stop
+    }
+}
+
+actor SS_BladeVisualWatcher
+{
+    +MISSILE
+	+NOGRAVITY
+	+SKYEXPLODE
+	+EXPLODEONWATER
+	+DONTSPLASH
+	+PAINLESS
+	+CLIENTSIDEONLY
+	+THRUACTORS
+    renderstyle none
+    speed 32
+    height 1
+    radius 1
+    States
+    {
+    Spawn:
+		TNT1 A 0
+	Spawn1:
+        TNT1 A 0 A_SpawnItemEx("SS_BladeVisual", 0, 0, 0, cos(pitch), 0, sin(-pitch), -50, SXF_MULTIPLYSPEED)
+		TNT1 A 1 A_Warp(AAPTR_TARGET, cos(-pitch)*16,0,32+(sin(-pitch)*16), 0, WARPF_USECALLERANGLE)
+		TNT1 A 0 A_SetArg(0,args[0]+1)
+		TNT1 A 0 A_JumpIf(args[0] < 3,"Spawn1")
+		TNT1 A 0 A_SetArg(0,0)
+		TNT1 A 0 A_PlaySoundEx("weapon/SlashClaw","Weapon")
+	Spawn2:
+	TNT1 A 0 A_SpawnItemEx("SS_BladeVisual", 0, 0, 0, cos(pitch), 0, sin(-pitch), -50+(10*args[1]), SXF_MULTIPLYSPEED)
+	TNT1 A 0 A_SpawnItemEx("SS_BladeVisual", 0, 0, 0, cos(pitch), 0, sin(-pitch), -40+(10*args[1]), SXF_MULTIPLYSPEED)
+	TNT1 A 1 A_Warp(AAPTR_TARGET, cos(-pitch)*16,0,32+(sin(-pitch)*16), 0, WARPF_USECALLERANGLE)
+		TNT1 A 0 A_SetArg(1,args[1]+2)		
+		TNT1 A 0 A_JumpIf(args[1] < 10,"Spawn2")
+        stop
+    WindDown1:
+        TNT1 A 0
+        stop
+    }
+}
+
+
+actor SS_BladeStart : ProjectileBase
+{
++RIPPER
++SERVERSIDEONLY
+damagetype "StandardSaberEdge"
+Obituary "$OB_STANDARDSABER"
+damage (75)
+height 5
+radius 5
+Speed 25
+scale 2.5
+states
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_Jumpif(pitch > 7,"SpawnTip")
+TNT1 A 0 A_setPitch(Pitch+1)
+TNT1 A 0 A_SpawnItemEx("SS_BladeStart",0,0,0,momx,momy,momz,0,SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERPITCH)
+TNT1 A 1 //A_SpawnItemEx("SS_BladeEdgeFX2",0,0,0,0,0,0,0,SXF_ABSOLUTEMOMENTUM)
+Goto Death
+
+SpawnTip:
+TNT1 A 0 A_setPitch(Pitch+1)
+TNT1 A 0 A_SpawnItemEx("SS_BladeTip",0,0,0,momx,momy,momz,0,SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERPITCH)
+TNT1 A 1 //A_SpawnItemEx("SS_BladeTipFX",0,0,0,0,0,0,0,SXF_ABSOLUTEMOMENTUM)
+Goto Death
+
+Death:
+TNT1 A 0 
+stop
+}
+}
+
+actor SS_BladeTip : ProjectileBase
+{
++RIPPER
++SERVERSIDEONLY
+damagetype "StandardSaberTip"
+Obituary "$OB_STANDARDSABER"
+damage (100)
+height 5
+radius 5
+Speed 26
+scale 2.5
+states
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_Jumpif(pitch > 8,"Death")
+TNT1 A 0 A_setPitch(Pitch+1)
+TNT1 A 0 A_SpawnItemEx("SS_BladeTip",0,0,0,momx,momy,momz,0,SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERPITCH)
+TNT1 A 1 //A_SpawnItemEx("SS_BladeTipFX",0,0,0,0,0,0,0,SXF_ABSOLUTEMOMENTUM)
+Goto Death
+Death:
+TNT1 A 0 
+stop
+}
+}
+
+actor SS_BladeVisual : FastProjectileBase
+{
++MISSILE
++NOGRAVITY
++SKYEXPLODE
++EXPLODEONWATER
++DONTSPLASH
++PAINLESS
++CLIENTSIDEONLY
++THRUACTORS
+RenderStyle None
+height 5
+radius 5
+Speed 25
+scale 2.5
+states
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_Jumpif(pitch > 6,"SpawnTip")
+TNT1 A 0 A_setPitch(Pitch+1)
+TNT1 A 0 A_SpawnItemEx("SS_BladeVisual",0,0,0,momx,momy,momz,0,SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERPITCH)
+TNT1 A 1 A_SpawnItemEx("SS_BladeEdgeFX2",0,0,0,0,0,0,0,SXF_ABSOLUTEMOMENTUM)
+Goto Death
+
+SpawnTip:
+TNT1 A 0 A_Jumpif(pitch > 8,"Death")
+TNT1 A 0 A_setPitch(Pitch+1)
+TNT1 A 0 A_SpawnItemEx("SS_BladeVisual",0,0,0,momx,momy,momz,0,SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERPITCH)
+TNT1 A 1 A_SpawnItemEx("SS_BladeTipFX",0,0,0,0,0,0,0,SXF_ABSOLUTEMOMENTUM)
+Goto Death
+
+Death:
+TNT1 A 0 
+stop
+}
+}
+
+
+actor SS_BladeEdgeFX : BasicGraphicEffect
+{
+scale 2.5
+XScale 4.5
+Alpha 1.0
+ReactionTime 8
+renderstyle "Add"
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+BASB V 1
+Spawn2:
+BASB V 1 A_Fadeout
+TNT1 A 0 A_CountDown
+loop
+
+Death:
+TNT1 A 0
+stop
+}
+}
+
+actor SS_BladeTipFX : SS_BladeEdgeFX
+{
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCodeSyncTarget",1)
+SABR A 3
+Spawn2:
+SABR A 1 A_Fadeout
+TNT1 W 0 A_CountDown
+loop
+
+Death:
+TNT1 A 0
+stop
+}
+}
+
+
+actor SS_BladeEdgeFX2 : SS_BladeEdgeFX {ReactionTime 1}
+actor SS_BladeTipFX2 : SS_BladeTipFX {ReactionTime 1}
+
+
+actor SS_BladeSlashFX1 : BasicHelper
+{
++MISSILE
+//+CLIENTSIDEONLY
+	reactiontime 20
+	var int user_angle;
+	States
+	{
+		Spawn:
+		TNT1 A 0
+        TNT1 A 0 A_GiveInventory("ProjectileCodeSyncTarget",1)
+        //TNT1 A 0 A_SetPitch(CallACS("PitchGrab"))
+		TNT1 A 0 A_SetUserVar("user_angle", -50)
+		TNT1 A 3
+        TNT1 A 1 A_Warp(AAPTR_TARGET, cos(-pitch)*16,0,32+(sin(-pitch)*16), 0, WARPF_USECALLERANGLE )
+		SpawnLoop:
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*150, 0, 12-(sin(pitch)*150), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*125, 0, 12-(sin(pitch)*125), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+        TNT1 A 0 A_SpawnItemEx("SS_BladeTipFX", cos(pitch)*200, 0, 12-(sin(pitch)*200), 0, 0, 0, user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SetUserVar("user_angle", user_angle + 5)
+        TNT1 A 0 A_Countdown
+        
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*150, 0, 12-(sin(pitch)*150), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*125, 0, 12-(sin(pitch)*125), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+        TNT1 A 0 A_SpawnItemEx("SS_BladeTipFX", cos(pitch)*200, 0, 12-(sin(pitch)*200), 0, 0, 0, user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SetUserVar("user_angle", user_angle + 5)
+        TNT1 A 0 A_Countdown
+        
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*150, 0, 12-(sin(pitch)*150), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*125, 0, 12-(sin(pitch)*125), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+        TNT1 A 0 A_SpawnItemEx("SS_BladeTipFX", cos(pitch)*200, 0, 12-(sin(pitch)*200), 0, 0, 0, user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SetUserVar("user_angle", user_angle + 5)
+        TNT1 A 0 A_Countdown
+
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*150, 0, 12-(sin(pitch)*150), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*125, 0, 12-(sin(pitch)*125), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+        TNT1 A 0 A_SpawnItemEx("SS_BladeTipFX", cos(pitch)*200, 0, 12-(sin(pitch)*200), 0, 0, 0, user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SetUserVar("user_angle", user_angle + 5)
+        TNT1 A 0 A_Countdown
+
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*150, 0, 12-(sin(pitch)*150), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SpawnItemEx("SS_BladeEdgeFX", cos(pitch)*125, 0, 12-(sin(pitch)*125), 0, 0, 0, 0+user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+        TNT1 A 0 A_SpawnItemEx("SS_BladeTipFX", cos(pitch)*200, 0, 12-(sin(pitch)*200), 0, 0, 0, user_angle, SXF_TRANSFERTRANSLATION|SXF_TRANSFERPITCH)
+		TNT1 A 0 A_SetUserVar("user_angle", user_angle + 5)
+		TNT1 A 0 A_Countdown
+		TNT1 A 1 A_Warp(AAPTR_TARGET, cos(-pitch)*16,0,32+(sin(-pitch)*16), 0, WARPF_USECALLERANGLE )
+		loop
+		Death:
+		TNT1 A 0
+		stop
+	}
+}
+
+
+actor PowerStrikeFX : FXActor_A
+{
+scale 6.5
+Alpha 0.9
+Reactiontime 17
+Var int User_Diminish;
+States
+{
+Spawn:
+CRBM A 0
+X_8G W 0 A_PlaySoundEx("weapon/solarblaze", "Soundslot6")
+X_8G W 0 A_SetUserVar("User_Diminish",2.3)
+Y_8G F 1
+Spawn2:
+Y_8G F 1 A_SetScale(ScaleX + 2.3,Scaley*0.5)
+Y_8G F 0 A_SetUserVar("User_Diminish",User_Diminish*0.5)
+Y_8G F 0 A_Countdown
+loop
+}
+}
+
+actor PowerStrikeFX2 : PowerStrikeFX
+{
+States
+{
+Spawn:
+CRBM A 0
+CRBM A 0 A_TransferPointer(AAPTR_TARGET,AAPTR_DEFAULT,AAPTR_TARGET,AAPTR_TARGET)
+TNT1 A 0 A_GiveInventory("ProjectileCodeSyncTarget",1)
+NAPC A 0 A_PlaySoundEx("weapon/solarblaze", "Soundslot6")
+NAPC A 0 A_SetUserVar("User_Diminish",2.3)
+FLEX F 1
+Spawn2:
+FLEX F 1 A_SetScale(ScaleX + 2.3,Scaley*0.5)
+FLEX F 0 A_SetUserVar("User_Diminish",User_Diminish*0.5)
+FLEX F 0 A_Countdown
+loop
+}
+}
+
+actor CritEffectSpawner : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Pickup:
+TNT1 A 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+stop
+}
+}

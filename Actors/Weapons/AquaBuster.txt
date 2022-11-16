@@ -1,0 +1,326 @@
+/*=============================
+
+*///===========================
+
+const float AQBST_SPD = 4.5; 
+const float AQBST_SPD2 = 5.5; 
+
+actor AquaBusterWep : WepMasterBase
+{
+Tag "Aqua Buster"
+Weapon.AmmoUse 1
+Weapon.AmmoGive 8
+
+Obituary "$OB_AquaBUSTERBUSTER"
+inventory.icon "BSTRI"
+scale 2.0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "AquaBuster_Ammo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+Var int User_Spread;
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+Ready.Wep:
+DW40 A 1 A_WeaponReady(WRF_ALLOWINPUTS)
+"####" A 0 A_Jumpifinventory("AquaBuster_Ammo",1,"Ready.Core")
+Goto Reload
+
+//===============
+Deselect:
+TNT1 A 0 A_TakeInventory("NoClipBar",9)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" A 1 A_Lower
+Loop
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,0.85*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" A 1 A_Raise
+Loop
+Fire:
+"####" A 0 A_JumpIfNoAmmo("NoAmmo")
+"####" A 0 A_Jumpifinventory("ConShotTimer",1,"NoAmmo")
+"####" A 0 A_Jumpifinventory("RefireBuffer",1,"Hold")
+"####" A 0 A_PlaySoundEx("weapon/WaterBalloon","Weapon")
+
+"####" A 0 A_Giveinventory("AquaBuster_RoundHandler")
+"####" A 0 A_Giveinventory("AquaBusterCST")
+"####" A 0 A_Giveinventory("MilitaryBusterFSPD")
+"####" B 0 A_Giveinventory("WepRecoil")
+"####" BC 1
+Hold:
+"####" A 1 A_WeaponReady(WRF_ALLOWONLYINPUTS)
+"####" A 0 A_Jumpifinventory("isBot",1,"BotRefire")
+"####" A 0 A_Refire
+goto Ready.Wep
+NoAmmo:
+"####" A 1
+"####" A 0 A_Jumpifinventory("AquaBuster_Ammo",1,"Ready")
+Goto Reload
+
+Reload.Hold:
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 25 A_WeaponReady(WRF_RELOADING)
+"####" A 0 A_PlaySoundEx("weapon/Crashland","Weapon")
+goto Reload.Rise
+
+Flash:
+TNT1 A 5 
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}
+
+actor AquaBuster_RoundHandler : RoundHandlerBase
+{
+States
+{
+GoodAcc:
+"####" B 0 A_Jumpifinventory("ShotCount",4,"DefaultAcc")
+"####" A 0 A_FireCustomMissile("AquaBusterRound",fRandom(-(AQBST_SPD),(AQBST_SPD)),1,4,4,0,fRandom(-(AQBST_SPD),(AQBST_SPD)))
+"####" AAAAA 0 A_FireCustomMissile("AquaBusterRound",fRandom(-(AQBST_SPD),(AQBST_SPD)),0,4,4,0,fRandom(-(AQBST_SPD),(AQBST_SPD)))
+stop
+//===============
+DefaultAcc:
+"####" A 0 A_FireCustomMissile("AquaBusterRound",fRandom(-(AQBST_SPD),(AQBST_SPD)),1,4,4,0,fRandom(-(AQBST_SPD),(AQBST_SPD)))
+"####" AAAAA 0 A_FireCustomMissile("AquaBusterRound",fRandom(-(AQBST_SPD),(AQBST_SPD)),0,4,4,0,fRandom(-(AQBST_SPD),(AQBST_SPD)))
+stop
+//===============
+BadAcc:
+"####" A 0 A_FireCustomMissile("AquaBusterRound",fRandom(-(AQBST_SPD2),(AQBST_SPD2)),1,4,4,0,fRandom(-(AQBST_SPD2),(AQBST_SPD2)))
+"####" AAAAA 0 A_FireCustomMissile("AquaBusterRound",fRandom(-(AQBST_SPD2),(AQBST_SPD2)),0,4,4,0,fRandom(-(AQBST_SPD2),(AQBST_SPD2)))
+stop
+}
+}
+//[+]========================================================================[+]
+//--------------------------------|Ammo & inventory|---------------------------
+//[+]========================================================================[+]
+actor AquaBuster_Ammo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 2
+Ammo.BackpackMaxAmount 12
+}
+
+actor AquaBusterCST : PowerupGiver
+{
++INVENTORY.AUTOACTIVATE
+Powerup.Duration 9
+powerup.type "ConShotTimer"
+}
+
+//[+]========================================================================[+]
+//--------------------------------|Projectiles |--------------------------------
+//[+]========================================================================[+]
+
+actor AquaBusterRound : fastProjectileBase
+{
+Obituary "$OB_AquaBUSTER"
+DamageType "AquaBuster"
+Damage (18) 
+States
+{
+Spawn:
+TNT1 A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+Goto Spawn2
+Spawn2:
+AQBA A 1 A_SpawnItemEx("AquaTrail",0,0,0,momx,momy,momz,0,9)
+TNT1 A 0 A_CountDown
+AQBA B 1 A_SpawnItemEx("AquaTrail",0,0,0,momx,momy,momz,0,9)
+TNT1 A 0 A_CountDown
+AQBA C 1 A_SpawnItemEx("AquaTrail",0,0,0,momx,momy,momz,0,9)
+TNT1 A 0 A_CountDown
+Goto Spawn2
+Death:
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 0 //A_Explode(18,96,0,0,32)
+TNT1 A 0 A_PlaySoundEx("Misc/Splash","Weapon")
+TNT1 A 0 //A_Spawnitemex("AquaPuff2",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+TNT1 A 1 A_Spawnitemex("WaterGunSplashFX",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+//[+]========================================================================[+]
+//--------------------------------|Effect Actors|-------------------------------
+//[+]========================================================================[+]
+actor AquaPuff1 : FXActor_A
+{
+scale 1.5
+-NOGRAVITY
+States
+{
+Spawn:
+TNT1 A 0 
+TNT1 A 0 A_GiveInventory("ProjectileFXCode",1)
+SWAT S 2
+SpawnLoop:
+SWAT T 1 A_SetScale(ScaleX+0.5)
+TNT1 A 0 A_Fadeout
+Loop
+}
+}
+
+actor AquaPuff2 : AquaPuff1
+{
+scale 2.5
+}
+
+actor AquaTrail : BasicExplosion
+{
+Obituary "$OB_AquaBUSTERBUSTER"
+damagetype "MegaBuster"
+States
+{
+Spawn:
+TNT1 A 0
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_SpawnItemEx("WaterGunDripFX_1",0,random2(16),random2(16),0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("WaterGunDripFX_1",0,random2(16),random2(16),-momx*0.2,-momy*0.2,-momz*0.2,0,9)
+TNT1 A 0 A_SpawnItemEx("WaterGunDripFX_1",0,random2(16),random2(16),-momx*0.4,-momy*0.4,-momz*0.4,0,9)
+TNT1 A 0 A_SpawnItemEx("WaterGunDripFX_1",0,random2(16),random2(16),-momx*0.6,-momy*0.6,-momz*0.6,0,9)
+TNT1 A 1 A_SpawnItemEx("WaterGunDripFX_1",0,random2(16),random2(16),-momx*0.8,-momy*0.8,-momz*0.8,0,9)
+// TNT1 A 0 A_SpawnItemEx("AquaTrail_FX1",0,0,0,0,0,0,0,1)
+// TNT1 A 0 A_SpawnItemEx("AquaTrail_FX",0,0,0,-momx*0.1,-momy*0.1,-momz*0.1,0,9)
+// TNT1 A 0 A_SpawnItemEx("AquaTrail_FX",0,0,0,-momx*0.2,-momy*0.2,-momz*0.2,0,9)
+// TNT1 A 0 A_SpawnItemEx("AquaTrail_FX",0,0,0,-momx*0.3,-momy*0.3,-momz*0.3,0,9)
+// TNT1 A 0 A_SpawnItemEx("AquaTrail_FX",0,0,0,-momx*0.4,-momy*0.4,-momz*0.4,0,9)
+//TNT1 A 0 A_SpawnItemEx("LazerTagBeamFX3",0,0,0,-momx*0.5,-momy*0.5,-momz*0.5,0,9)
+//TNT1 A 0 A_SpawnItemEx("AquaTrail_FX",0,0,0,-momx*0.6,-momy*0.6,-momz*0.6,0,9)
+//TNT1 A 0 A_SpawnItemEx("LazerTagBeamFX3",0,0,0,-momx*0.7,-momy*0.7,-momz*0.7,0,9)
+//TNT1 A 0 A_SpawnItemEx("AquaTrail_FX",0,0,0,-momx*0.8,-momy*0.8,-momz*0.8,0,9)
+//TNT1 A 0 A_SpawnItemEx("LazerTagBeamFX3",0,0,0,-momx*0.9,-momy*0.9,-momz*0.9,0,9)
+TNT1 A 1 
+stop
+}
+}
+
+actor AquaTrail_FX : FXActor_B
+{
+scale 2.5
+Alpha 0.9
+States
+{
+Spawn:
+CRBM A 0
+CRBM A 0 A_STOP
+WTRB BCD 1
+//BSTG AAAAA 1 A_Fadeout
+stop
+}
+}
+
+actor AquaTrail_FX1 : FXActor_A
+{
+scale 2.5
+Alpha 0.9
+States
+{
+Spawn:
+BUST A 0
+WTRB BCD 1
+stop
+}
+}
+
+
+actor WaterGunSplashFX : BasicClientside
+{
++MISSILE
+translation "192:192=218:218", "198:198=221:221"
+scale 2.0
+Alpha 1.0
+States
+{
+Spawn:
+AQBA A 0
+AQBA A 0 A_CheckCeiling("CeilingSplash")
+AQBA AAAA 0 A_SpawnItemEx("WaterGunDripFX",0,0,0,random(2,5),0,random(2,8),random(1,360),SXF_NOCHECKPOSITION|SXF_TRANSFERTRANSLATION)
+AQBA DEFG 2 A_SpawnItemEx("WaterGunDripFX",0,0,0,random(2,5),0,random(2,8),random(1,360),SXF_NOCHECKPOSITION|SXF_TRANSFERTRANSLATION)
+stop
+CeilingSplash:
+AQBA AAAA 0 A_SpawnItemEx("WaterGunDripFX",0,0,0,random(2,5),0,random(2,8),random(1,360),SXF_NOCHECKPOSITION|SXF_TRANSFERTRANSLATION)
+AQBA DHIJ 2 A_SpawnItemEx("WaterGunDripFX",0,0,0,random(2,5),0,random(2,8),random(1,360),SXF_NOCHECKPOSITION|SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+
+actor WaterGunDripFX : BasicClientside
+{
+translation "192:192=218:218", "198:198=221:221"
+-NOGRAVITY
+-NOINTERACTION
++THRUACTORS
+-NOCLIP
++MISSILE
+scale 1.0
+Alpha 0.8
+ReactionTime 35
+States
+{
+Spawn:
+AQBA A 0
+AQAQ QR 2 A_CountDown
+loop 
+Death:
+AQAQ STUV 1 
+stop
+}
+}
+
+
+actor WaterGunDripFX_1 : BasicClientside
+{
+translation "192:192=218:218", "198:198=221:221"
+-NOINTERACTION
+-NOGRAVITY
++THRUACTORS
+-NOCLIP
++MISSILE
+scale 1.0
+Alpha 0.8
+ReactionTime 35
+States
+{
+Spawn:
+AQBA A 0
+AQAQ QR 2 A_CountDown
+loop 
+Death:
+AQAQ STUV 1 
+stop
+}
+}
+
+actor WaterGunDripFX_2 : BasicClientside
+{
+translation "192:192=218:218", "198:198=221:221"
+-NOGRAVITY
+-NOINTERACTION
++THRUACTORS
+-NOCLIP
++MISSILE
+ReactionTime 35
+scale 3.0
+Alpha 1.0
+States
+{
+Spawn:
+AQBA A 0
+AQAQ QR 2 A_CountDown
+loop 
+Death:
+AQAQ STUV 1 
+stop
+}
+}

@@ -1,0 +1,2669 @@
+#library "MEGATACT"
+#include "zcommon.acs"
+#include "8BDMLIB.ACS"
+
+#import "a_Core.acs"
+#import "a_Loadout.acs"
+#import "db_Loadout.acs"
+
+
+script "CG_BOT_CHECK" (void)
+{
+SetResultValue(PlayerIsBot(PlayerNumber()));
+}
+
+script "CG_INSTAGIB_CHECK" (void)
+{
+SetResultValue(GetCvar("instagib")==1);
+}
+
+script "CG_LMS_CHECK" (void)
+{
+SetResultValue(GetCvar("teamlms")||GetCvar("lastmanstanding"));
+}
+
+script "CG_TEAMGAME_CHECK" (void)
+{
+SetResultValue(GetCvar("TeamGame"));
+}
+
+Script "MT_GiveArmor" (int Amount)
+{
+int Subtract = CheckInventory("LT_Armor");
+int Value = Amount-Subtract;
+if(Value){GiveInventory("LT_Armor",Value);}
+//ACS_NamedExecuteAlways("Write_Inventory",0,1);
+}
+
+
+script "MT_HitEvents" (int type, int arg1, int arg2) EVENT
+{
+int Damage = arg1;
+if(type == 11) //GAMEEVENT_ACTOR_DAMAGED 
+{
+
+//===============|Ripper Hit limiter (By Trillster)|===============
+if((ClassifyActor(0) & ACTOR_PLAYER) && GetActorProperty(0,APROP_Health) > 0) {
+	int hittedNum = PlayerNumber();
+	
+	SetActivator(0,AAPTR_DAMAGE_INFLICTOR);
+	
+	int pierceRipperTimes = returnActorVarArraySize(0, "user_PierceRipper");
+	if(pierceRipperTimes > 0) {
+		int timesRipped = GetUserArray(0, "user_RippedPlayer", hittedNum);
+		if(timesRipped >= pierceRipperTimes) {
+			Damage = 0;//SetResultValue(0);
+		} else {
+			SetUserArray(0, "user_RippedPlayer", hittedNum, timesRipped + 1);
+		}
+	}
+}
+SetActivator(0, AAPTR_DAMAGE_TARGET);
+
+if(CheckInventory("LT_Armor"))
+	{
+	TakeInventory("LT_Armor",arg1);
+	GiveInventory("OverHealHealth",arg1);
+	
+	//I can change the end damage, but I'm resorting to
+	//my old Damage interception tricks just so hits still
+	//Trigger painstates.
+	
+	/*
+	Damage -= CheckInventory("LT_Armor");
+	TakeInventory("LT_Armor",arg1);
+	
+	if(Damage<=0){Damage = 1; GiveInventory("HealthBonus",1);}
+	*/
+	}
+
+SetResultValue(Damage);
+}
+}
+
+//#region -=- EntiTID -=-
+#region -=- EntiTID -=-
+
+#LIBDEFINE EntityTID 480000
+#LIBDEFINE ENTITY_CAP 10 //for masterscrub, to reduce the loops
+Script "GiveEntiTID" (Int EntityID)
+{
+/*
+I don't think puns make for good programming practices but why not? hopefully I won't pay for this
+
+anyways, this is for entities that you are only allowed one of per person, this gives them a TID
+formatted in the following way:
+
+EntiTID Tag | Player Number | Entity ID
+48|00|00
+*/
+int OwnerTID = ACS_NamedExecuteWithResult("core_gettarget");
+if(OwnerTID < 1000){Terminate;}
+
+Int P = (OwnerTID-1000)*100;
+int ETID = EntityTID+P+EntityID;
+
+/*
+Now, let's kill any actor that already has this ETID
+*/
+
+if (ThingCount(T_NONE,ETID)){Thing_Remove(ETID); /*ACS_NamedExecuteAlways("Client_Thing_Remove",0,ETID);*/}
+Thing_ChangeTID(0,EntityTID+P+EntityID);
+}
+
+#endregion
+//#endregion
+
+//#region -=- Check EntiTID -=-
+#region -=- Check EntiTID -=-
+
+
+Script "CheckEntiTID" (int Pointer, Int EntityID)
+{
+
+	if(Pointer!=0){SetActivator(0,Pointer);}
+
+Int P = (ActivatorTID()-1000)*100;
+int ETID = EntityTID+P+EntityID;
+
+bool Output = false;
+
+if (ThingCount(T_NONE,ETID)){Output = true;}
+SetResultValue(Output);
+
+}
+
+#endregion
+//#endregion
+
+//#region -=- Multi EntiTID -=-
+#region -=- Multi EntiTID -=-
+
+#LIBDEFINE M_ENTITYTID 4900000
+#LIBDEFINE M_ENTITY_CAP 6 //for masterscrub, to reduce the loops
+int M_EntityRecord[64];
+Script "GiveM_EntiTID" (Int EntityID, int EntityCap, int HasSubEntity)
+{
+/*
+This one allows for multiple entities to be spawned but only up to 9. and if a new one is spawned beyond the cap, the old one get's replaced
+
+EntiTID Tag | Player Number | Entity ID | Entity count
+49|00|00|0
+*/
+
+int OwnerTID = ACS_NamedExecuteWithResult("core_gettarget");
+Int P = (OwnerTID-1000)*1000;
+int M_ETID = M_ENTITYTID+(P)+(EntityID*100);
+int EntityNum;
+bool SpawnComplete;
+
+while(!SpawnComplete)
+	{
+		if(EntityNum >= EntityCap)
+			{
+				Thing_Remove(M_ETID);
+				if(HasSubEntity){ClearSubEntities(M_ETID);}
+				//ACS_NamedExecuteAlways("Client_Thing_Remove",0,M_ETID);
+				for(int i = 1; i < EntityCap; i++)
+				{
+					Thing_ChangeTID(M_ETID+i,M_ETID+i-1);
+					if(HasSubEntity){ShiftSubEntities(M_ETID+i);}
+					//ACS_NamedExecuteAlways("Client_Thing_ChangeTID",0,M_ETID+i,M_ETID+i-1);
+				}
+				EntityNum = 0;
+			}
+		if(ThingCount(T_NONE,M_ETID+EntityNum)){EntityNum++;}
+		else{SpawnComplete = true;}
+
+	}
+Thing_ChangeTID(0,M_ETID+EntityNum);
+}
+
+Function void ClearSubEntities (int ENTITID)
+{
+/*
+Some stuff like the autosentry will spawn entities that basically have a higher entityID than them.
+this will clear the next 10 entityID's
+*/
+For(int i = 1;i < 10; i++)
+	{Thing_Remove(ENTITID+(10*i));}
+}
+
+Function void ShiftSubEntities (int ENTITID)
+{
+/*
+Some stuff like the autosentry will spawn entities that basically have a higher entityID than them.
+this will Shift the next 10 entityID's down an entity count
+*/
+For(int i = 1;i < 10; i++)
+	{Thing_ChangeTID(ENTITID+(10*i),ENTITID+(10*i)-1);}
+}
+
+//#endregion
+
+//#region -=- Radius Give -=-
+#region -=- Radius Give -=-
+
+#DEFINE RG_SELF 1
+#DEFINE RG_TEAM 2
+#DEFINE RG_ENEMY 4
+#DEFINE RG_LOS 8
+
+script "MT_RadiusGive" (int GiveID, int GiveRadius, int GiveType)
+{ 
+int Target_TID;
+int Target_Distance;
+int FiringPlayer;
+int PlayersTeam;
+int TeamGame = ACS_ExecuteWithResult(975, 1);
+str GivePackage;
+Bool GiveClearance;
+
+//GiveType works like a bitwise flag
+If(ActivatorTID() <= 999)
+	{
+	//log(s:"an Actor");
+	FiringPlayer= ACS_NamedExecuteWithResult("core_gettarget"); //Returns the target of the activator
+	}
+Else If(ActivatorTID() >= EntityTID && ActivatorTID() <= (EntityTID+6499))
+	{
+	//log(s:"an EntiTID");
+	FiringPlayer= ACS_NamedExecuteWithResult("core_gettarget"); //Actor is a player spawed entity, Returns the target of the activator
+	}
+Else If(ActivatorTID() >= M_EntityTID && ActivatorTID() <= (M_EntityTID+6499))
+	{
+	//log(s:"an M_EntiTID");
+	FiringPlayer= ACS_NamedExecuteWithResult("core_gettarget"); //Actor is a player spawed entity, Returns the target of the activator
+	}
+else
+	{
+	//log(s:"a Player");
+	FiringPlayer=ActivatorTID();
+	}
+
+PlayersTeam = GetPlayerInfo(FiringPlayer-1000, PLAYERINFO_TEAM);
+For(int i = 0;i < GetMaxEntities(); i++)
+	{
+	Target_TID = i+1000;
+	GiveClearance = false;
+	If(PlayerInGame(i) && xyzDistance(0,Target_TID) < GiveRadius) // && FiringPlayer!=Target_TID
+		{
+			if((GiveType & RG_LOS) && !CheckSight(0,Target_TID,0)) {Continue; /*Log(s:"Not giving to ",i:Target_TID);*/}
+			if((GiveType & RG_SELF) && FiringPlayer == Target_TID) {GiveClearance = True;}
+			if(TeamGame)
+			{
+				if((GiveType & RG_TEAM) && PlayersTeam == GetPlayerInfo(i, PLAYERINFO_TEAM) && FiringPlayer != Target_TID) {GiveClearance = True;}
+				if((GiveType & RG_ENEMY) && PlayersTeam != GetPlayerInfo(i, PLAYERINFO_TEAM)) {GiveClearance = True;}
+			}
+			else
+			{
+				if((GiveType & RG_TEAM) && FiringPlayer == Target_TID) {GiveClearance = True;}
+				if((GiveType & RG_ENEMY) && FiringPlayer != Target_TID) {GiveClearance = True;}				
+			}
+			
+			
+			if(GiveClearance)
+			{
+				//GiveActorInventory(Target_TID,"PackageID", GiveID);
+				//GiveActorInventory(Target_TID,"GivePackage", 1);
+				GivePackage = StrParam(s:"RadiusGiveItem_",i:GiveID);
+				GiveActorInventory(Target_TID,GivePackage, 1);
+			}
+
+		}
+	}
+}
+#endregion
+//#endregion
+
+//#region -=- Medivision -=-
+#region -=- Medivision -=-
+
+Str TinyBarSprite[21] = {
+    "TinyBar0",
+    "TinyBar1",
+    "TinyBar2",
+    "TinyBar3",
+    "TinyBar4",
+    "TinyBar5",
+    "TinyBar6",
+    "TinyBar7",
+    "TinyBar8",
+    "TinyBar9",
+    "TinyBar10",
+    "TinyBar11",
+    "TinyBar12",
+    "TinyBar13",
+    "TinyBar14",
+    "TinyBar15",
+    "TinyBar16",
+    "TinyBar17",
+    "TinyBar18",
+    "TinyBar19",
+    "TinyBar20",
+    };
+       
+    function str TinyBarHealth (int TargTID)
+    {
+    int output;
+    int HealthPercent;
+    int PlayerCurrentHealth;// = GetActorProperty(0,APROP_Health);
+    int PlayerMaxHealth;// = GetActorProperty(0,APROP_SpawnHealth);
+    int OverHealth;
+    
+        if(GetActorProperty(TargTID,APROP_HEALTH)<=0){PlayerCurrentHealth = 1; }
+            Else{PlayerCurrentHealth = GetActorProperty(TargTID,APROP_Health);}
+        if(GetActorProperty(TargTID,APROP_SpawnHealth)<=0){PlayerMaxHealth = 100; }
+            Else{PlayerMaxHealth = GetActorProperty(TargTID,APROP_SpawnHealth);}
+            
+    HealthPercent = ((PlayerCurrentHealth*100)/PlayerMaxHealth);
+    OverHealth = HealthPercent-100;
+     if(OverHealth < 0){OverHealth = 0;}
+      if(HealthPercent > 100){HealthPercent = 100;}
+    
+    HealthPercent = HealthPercent / 10;
+    OverHealth = OverHealth / 5;
+     
+    HealthPercent =  HealthPercent + OverHealth;
+    if(HealthPercent > 20){HealthPercent = 20;}
+    if(HealthPercent < 0){HealthPercent = 0;}
+    return (TinyBarSprite[HealthPercent]);
+    }
+     
+    script "MT_MedivisionScript" (int Weapon) CLIENTSIDE
+    { 
+    if(Weapon==1){str WeaponRequired = GetWeapon();}
+	int Target_TID;
+	//int CamTID = C_TID + ConsolePlayerNumber();
+	int ViewerTID;
+    int PlayersTeam;
+    str TeamTag; 
+	
+    if(ACS_ExecuteWithResult(975,1)!=1){terminate;}
+    
+    Switch(PlayerTeam())
+        {
+        Case 0: TeamTag = "_Light"; Break;
+        Case 1: TeamTag = "_Wily"; Break;
+        Case 2: TeamTag = "_Cossack"; Break;
+        Case 3: TeamTag = "_King"; Break;
+        }
+    
+    while(GetActorProperty(ActivatorTID(), APROP_HEALTH) > 0 && !CheckActorInventory(ActivatorTID(),"CopyRobotUnmorphed"))
+        {
+		//if(cam_mode[ConsolePlayerNumber()] == ON){ViewerTID = CamTID;}
+		//else{}
+		ViewerTID = 0;
+
+        Delay(1);
+        if(Weapon==1 && StrIcmp(GetWeapon(),WeaponRequired)!=0){terminate;}
+        PlayersTeam = GetPlayerInfo(ActivatorTID()-1000, PLAYERINFO_TEAM);
+        For(int p = 0; p < GetMaxEntities(); p++)
+            {
+            Target_TID = p+1000;
+            If(PlayerInGame(p)
+                && p+1000 != ActivatorTID()
+                && (xyzDistance(ViewerTID,Target_TID) < 1900) 
+                && PlayersTeam == GetPlayerInfo(p, PLAYERINFO_TEAM)
+                && Checksight(ViewerTID,Target_TID,0)
+				&& !CheckInventory("BlindMark"))
+                {
+                if(CheckActorInventory(Target_TID,"CannotUseHealing")){SpawnForced(StrParam(s:TinyBarHealth(Target_TID),s:TeamTag,s:"_NoHeal"),GetActorX(Target_TID),GetActorY(Target_TID),GetActorZ(Target_TID) + (65 << 16));}
+                else{if(ConsolePlayerNumber() == PlayerNumber ()){SpawnForced(StrParam(s:TinyBarHealth(Target_TID),s:TeamTag),GetActorX(Target_TID),GetActorY(Target_TID),GetActorZ(Target_TID) + (65 << 16));}}
+                }
+            }
+        }
+    }
+
+#endregion
+//#endregion
+
+//#region -=- Healing Scripts -=-
+#region -=- Healing Scripts -=-
+
+
+Script "MT_HealthPercent" (int Pointer, int Type, int perval)
+{
+
+SetResultValue(GetHealthPercent(Pointer,Type,perval));
+}
+
+Script "MT_Basic(Over)Heal" (int Pointer, int HealAmount, int Overheal ) 
+{
+int OverhealMax = Overheal+100;
+if(OverhealMax<=100){OverhealMax=101;}
+if(OverhealMax>150){OverhealMax=150;}
+if(Pointer!=0){SetActivator(0,Pointer);}
+int MaxHealth = GetActorProperty(0,APROP_SPAWNHEALTH);
+
+if(MaxHealth==0){MaxHealth=100;}
+for(int g=1;g<=HealAmount;g++)
+    {
+    if(GetActorProperty(0,APROP_Health)<MaxHealth){HealThing(1,MaxHealth);}
+    else if(ACS_NamedExecuteWithResult("MT_HealthPercent",0)<OverhealMax && Overheal>=1){GiveInventory("BasicOverhealItem",1);}
+    }
+}
+
+
+Script "MT_AreaHeal" (int Ammount, Int HealRadius)
+{
+int Target_TID;
+int Target_Distance;
+int FiringPlayer;
+int PlayersTeam;
+int TargetTeam;
+int TeamGame = ACS_ExecuteWithResult(975, 1);
+
+
+// - Returns the target of the activator -
+if(ActivatorTID() <= 999){FiringPlayer= ACS_NamedExecuteWithResult("core_gettarget"); }
+// - Actor is a player spawed entity, Returns the target of the activator
+else If(ActivatorTID() >= EntityTID && ActivatorTID() <= (EntityTID+6499)){FiringPlayer= ACS_NamedExecuteWithResult("core_gettarget"); }
+else{FiringPlayer=ActivatorTID();}
+
+PlayersTeam = GetPlayerInfo(FiringPlayer-1000, PLAYERINFO_TEAM);
+For(int i = 0;i < GetMaxEntities(); i++)
+	{
+	Target_TID = i+1000;
+	TargetTeam = GetPlayerInfo(i, PLAYERINFO_TEAM);
+	If(PlayerInGame(i) && PlayersTeam == TargetTeam && xyzDistance(0,Target_TID) < HealRadius) // && FiringPlayer!=Target_TID
+		{
+		if(FiringPlayer-1000 == i){ACS_NamedExecuteAlways("MT_HealTID",0,Target_TID,Ammount);}
+		else{ACS_NamedExecuteAlways("MT_HealTID",0,Target_TID,Ammount,1);}
+		}
+	}
+
+
+}
+
+Script "MT_HealTID" (int TargTID, int HealAmount)
+{
+int HealerTID = ACS_NamedExecuteWithResult("core_gettarget");
+int PayEXP;
+SetActivator(TargTID);
+int MaxHealth = GetActorProperty(0,APROP_SPAWNHEALTH);
+if(MaxHealth==0){MaxHealth=100;}
+for(int g=1;g<=HealAmount;g++)
+    {
+    if(GetActorProperty(0,APROP_Health)<MaxHealth && GetActorProperty(0,APROP_Health)>0)
+	{HealThing(1,MaxHealth); PayEXP++;}
+	}
+	
+}
+
+Script "MT_HealPointer" (int Pointer, int HealAmount)
+{
+int HealerTID = ACS_NamedExecuteWithResult("core_gettarget");
+int PayEXP;
+if(Pointer!=0){SetActivator(0,Pointer);}
+int MaxHealth = GetActorProperty(0,APROP_SPAWNHEALTH);
+if(MaxHealth==0){MaxHealth=100;}
+for(int g=1;g<=HealAmount;g++)
+    {
+    if(GetActorProperty(0,APROP_Health)<MaxHealth && GetActorProperty(0,APROP_Health)>0)
+		{HealThing(1,MaxHealth); PayEXP++;}
+	}
+	
+}
+
+Script "MT_OverhealDrain" (Int Tick)
+{
+if(GetActorProperty(0,APROP_HEALTH) > Tick){SetActorProperty(0,APROP_HEALTH,(GetActorProperty(0,APROP_HEALTH)-Tick));
+	GiveInventory("DaDiBuffer",Tick);}
+}
+
+
+#endregion
+//#endregion
+
+//#region -=- Blast Knockback -=-
+#region -=- Blast Knockback -=-
+
+//From Jaxof7, as well...most stuff here is.
+int Boom_TargetTID;
+int Boom_TargetTeam;
+int Boom_X;
+int Boom_Y;
+int Boom_Z;
+
+Script "Save_Boom" (void) 
+{
+Boom_X = GetActorX(0);
+Boom_Y = GetActorY(0);
+Boom_Z = GetActorZ(0);
+SetActivator(0,AAPTR_TARGET);
+Boom_TargetTID = ActivatorTID();
+Boom_TargetTeam = getSelfTeam();
+}
+
+
+Script "Boom_IsMine" (void) 
+{
+SetResultValue(BoomIsMineFunc());
+}
+
+function bool BoomIsMineFunc(void)  {
+	return (ActivatorTID()==Boom_TargetTID);
+}
+
+Script "Boom_IsEnemy" (void) 
+{
+SetResultValue(BoomIsEnemyFunc());
+}
+
+function bool BoomIsEnemyFunc(void)  {
+	if(BoomIsMineFunc()) return false;
+	if(Boom_TargetTeam==TEAM_NONE) return true;
+	return(Boom_TargetTeam!=getSelfTeam());
+}
+
+Script "Boom_IsAlly" (void) 
+{
+SetResultValue(BoomIsAllyFunc());
+}
+
+function bool BoomIsAllyFunc(void)  {
+	if(BoomIsMineFunc()) return false;
+	if(Boom_TargetTeam==TEAM_NONE) return false;
+	return(Boom_TargetTeam==getSelfTeam());
+}
+
+Script "BlastKnockback2" (int force, int range, int Self) 
+{
+int xDist = GetActorX(0) - Boom_X;
+int yDist = GetActorY(0) - Boom_Y;
+int angle = VectorAngle(xDist,yDist);
+int xyDist = VectorLength(xDist,yDist);
+int zDist = GetActorCenterZ(0) - Boom_Z;
+//int zDist = GetActorZ(0) - Boom_Z;
+int pitch = VectorAngle(xyDist,zDist);
+int dist = VectorLength(xyDist,zDist);
+
+			if(CheckInventory("WeightClass_Light")){force += force*0.5>>16; if(force < 0){force = 0;};}
+			if(!Self && CheckInventory("WeightClass_Heavy")){force -= force*0.5>>16; if(force < 0){force = 0;};}
+
+dist >>= 16;
+//Printbold(i:dist,s:" ",i:range,s:" ",i:force);
+if(dist<range) {
+	dist = max(dist-36,0);
+	range = max(range-36,1);
+	force = (force*(range-dist)/range);
+	//Printbold(i:dist,s:" ",i:range,s:" ",i:force);
+	ThrustThing3Db(0,angle,pitch,force,force*5/2);
+}
+}
+
+function void ThrustThing3Db(int tid, int angle, int pitch, int force, int zForce)  {
+	//PrintBold(f:pitch);
+	ThrustThing(angle>>8,(cos(pitch)*force)>>16,0,tid);
+	ThrustThingZ(tid,(sin(pitch)*zForce)>>16,0,0);
+}
+
+function int GetActorCenterZ(int tid)  {
+	return(GetActorZ(tid) + GetActorProperty(tid,APROP_Height)/2);
+}
+
+Script "BlastKnockback" (int BlastThrust, int ThrustForceH, int MaxRadius)
+{
+int userTID;
+int userTeam;
+Bool SelfThrustOnly = False;
+int ThrustForce = BlastThrust;
+	if(ThrustForce < 0) {SelfThrustOnly = true; ThrustForce = ThrustForce*-1;}
+int AdditiveForce;
+	if(MaxRadius < 0) {AdditiveForce = 1; MaxRadius = MaxRadius*-1;}
+
+	if(ActivatorTID() == 0)
+	{
+		userTID = ACS_NamedExecuteWithResult("core_gettarget");
+		userTeam = GetPlayerInfo(userTID - 1000, PLAYERINFO_TEAM);
+	}
+	else
+	{
+		userTID = ActivatorTID();
+	}
+	
+
+int ActX = GetActorX(0);
+int ActY = GetActorY(0);
+//int ActHeight = GetActorProperty(0,APROP_HEIGHT) >>16;
+int Dist;
+int distdiff;
+int ZThrust;
+int XYThrust;
+int targetTID;
+int PlayerX;
+int PlayerY;
+int pitch;
+
+int SubThrustForce,SubThrustForceH;
+
+int FinalForce;
+int FinalForceH;
+
+//int ThrustDrop = NoNeg( (Dist/10) - MaxRadius) << 16;
+//SetActivatorToTarget(0);
+
+Bool ThrustApprove = true;
+
+For(int q = 0;q < GetMaxEntities(); q++)
+	{
+		ThrustApprove = true;
+		targetTID = q+1000;
+		
+		if(!PlayerInGame(q))
+		{
+			ThrustApprove = false;
+		}
+		
+		if( (userTID != targetTID) && (SelfThrustOnly == True)){ThrustApprove = false;}
+		if(ACS_ExecuteWithResult(975, 1) == 1)
+		{
+			if(userTeam == GetPlayerInfo(q, PLAYERINFO_TEAM) && userTID != targetTID)
+			{
+				ThrustApprove = false;
+			}
+		}
+		
+		if(ThrustApprove)
+		{
+			//log(s:"distance is ",i:xyzDistance(0, targetTID));
+			if(xyzDistance(0, targetTID) < MaxRadius && checksight(0,targetTID,0) == True
+			|| xyzDistance(0, targetTID) <20)
+			{
+			Dist = xyzDistance(0,targetTID);
+		
+			distdiff = NoNeg(Dist - MaxRadius);
+			pitch = GetTargetPitch(targetTID,0);
+			//VectorAngle(xyDistance(0, targetTID), GetActorZ(0) - GetActorZ(targetTID) >> 16);
+			//log(s:"pitch relative to player ",i:q,s:" is ", f:pitch);
+			//log(s:"Height is  ",i:ActHeight);
+
+			//LightWeight & HeavyWeight modifiers
+			SubThrustForce = ThrustForce;
+			SubThrustForceH = ThrustForceH;
+			if(CheckActorInventory(q+1000,"WeightClass_Light"))
+				{
+				SubThrustForce += SubThrustForce*0.5>>16;;
+				SubThrustForceH += SubThrustForceH*0.5>>16;;
+				}
+
+			if(CheckActorInventory(q+1000,"WeightClass_Heavy"))
+				{//log(s:"HeavyWeight  ");
+				SubThrustForce -= SubThrustForce*0.5>>16;; if(SubThrustForce < 0){SubThrustForce = 0;}
+				SubThrustForceH -= SubThrustForceH*0.5>>16;; if(SubThrustForceH < 0){SubThrustForceH = 0;}
+				}
+
+
+			if(xyzDistance(0, targetTID) > BASEBLASTMIN)
+			{
+			FinalForce = ceil(FixedMul(SubThrustForce << 16, 1.0 - FixedDiv(Dist, MaxRadius)));
+			FinalForceH = ceil(FixedMul(SubThrustForceH << 16, 1.0 - FixedDiv(Dist, MaxRadius)));
+			}
+			Else
+			{
+			FinalForce = SubThrustForce;
+			FinalForceH = SubThrustForceH;
+			}
+			ZThrust = (sin(pitch)*-FinalForce); //GetActorPitch(targetTID)
+			XYThrust = (cos(pitch)*-FinalForceH);
+			
+			if (GetActorZ(targetTID) - GetActorFloorZ (targetTID) == 0){XYThrust = FixedMul(XYThrust,1.0);}
+			//log(i:GetActorZ(targetTID) - GetActorFloorZ (targetTID));
+			//log(s:"horizontal thrust is is  ",i:(FixedMul(XYThrust , 1.0 - fixedDiv(distdiff,100)))>> 16);
+			PlayerX = GetActorX(targetTID);
+			PlayerY = GetActorY(targetTID);
+			
+			ThrustThing(VectorAngle(ActX - PlayerX,ActY - PlayerY)>>8,(FixedMul(XYThrust , 1.0 - fixedDiv(distdiff,100)))>> 16,1,targetTID);
+			thrustthingz(targetTID,(FixedMul(ZThrust , 1.0 - fixedDiv(distdiff,100)))>> 16,1,AdditiveForce);
+		}
+	}
+}
+
+}
+
+//Version of push/pull that always references the owner.
+script "MT_PushPull" (int maxforce, int maxRange, int noFalloff)
+{
+	if(maxRange == 0){terminate;}
+
+	int targetTID;
+	int angle;
+	int finalforce;
+	int distance;
+	int userTID;
+	int userTeam = -1;
+	int userCount = 0;
+
+		userTID = ACS_NamedExecuteWithResult("Core_GetTarget", 0);
+		userTeam = GetPlayerInfo(userTID - 1000, PLAYERINFO_TEAM);
+		//log(i:userTeam);
+
+		
+	for(int p = 0;p < GetMaxEntities(); p++)
+	{
+		if(!PlayerInGame(p))
+		{
+			continue;
+		}
+		if(ACS_ExecuteWithResult(975,1)==1)
+		{
+			if(userTeam == GetPlayerInfo(p, PLAYERINFO_TEAM))
+			{
+				continue;
+			}
+		}
+		
+
+		targetTID = p+1000;
+		if(!CheckActorInventory(targetTID, "NoPushFlag")
+			//&&!isTID_KBProof(targetTID) 
+			&& xyzDistance(0, targetTID) < maxRange && userTID != targetTID)
+		{	
+			userCount++;
+			distance = xyzDistance(0,targetTID);
+			finalforce = ceil_cscc(FixedMul(maxforce << 16, 1.0 - FixedDiv(distance, maxRange)));
+			if(CheckInventory("WeightClass_Light")){finalforce += finalforce*0.5>>16; if(finalforce < 0){finalforce = 0;};}
+			if(CheckInventory("WeightClass_Heavy")){finalforce -= finalforce*0.5>>16; if(finalforce < 0){finalforce = 0;};}
+
+			if(finalforce > maxforce || noFalloff > 0 )
+			{
+				finalforce = maxforce;
+			}
+			
+			angle = VectorAngle(GetActorX(0) - GetActorX(targetTID), GetActorY(0) - GetActorY(targetTID)) >> 8;
+			if(distance>40 || finalforce < 0)
+			{
+				ThrustThing(angle, finalforce, false, targetTID);
+			}
+		}
+		
+	}
+	SetResultValue(userCount); // Returns amount of players caught in the pull
+}// End script 247
+#endregion
+//#endregion
+
+//#region -=- Arc limit -=-
+
+int count;
+
+script "Arc_Limit_Start" (void) CLIENTSIDE
+{
+count = 0;
+}
+
+script "Arc_Limit" (void) CLIENTSIDE
+{
+count++;
+SetResultValue(count>50);
+}
+
+script "Arc_ClientSide" (void) CLIENTSIDE
+{
+	int u = UniqueTID();
+	SetActivator(0,AAPTR_TARGET);
+	//Log(i:consoleplayernumber(),s:" ",i:playernumber());
+	if(consoleplayernumber() != playernumber()){
+		SetResultValue(0);
+	}
+	else
+	{SetResultValue(1);}
+}
+
+script "Arc_ClientSide2" (int TargTID) CLIENTSIDE
+{
+	//int u = UniqueTID();
+	SetActivator(TargTID);
+	//Log(i:consoleplayernumber(),s:" ",i:playernumber(),s:" ",s:GetActorClass(0));
+	if(consoleplayernumber() != playernumber()){
+		SetResultValue(0);
+	}
+	else
+	{SetResultValue(1);}
+}
+//#endregion
+
+
+//#region == Remote Actor ==
+#region == Remote Actor ==
+
+Script "RemoteControlActor" (int ActorSpeed, int MaxRange)
+{
+
+    int OwnerTID = ACS_NamedExecuteWithResult("core_gettarget",0);
+    if (MaxRange <= 0){MaxRange = 500;}
+
+    int InputButtons;
+    int InputOldButtons; 
+    int UpInput;
+    int DownInput;
+    int LeftInput;
+    int RightInput;
+    Int ConfirmInput;
+    Int CancelInput;
+
+
+    int Velx;
+    int Vely;
+    int Velx2;
+    int Vely2;
+    int Angle;
+	int Pitch;
+    int HostAngle;
+    int MoveAngle;
+
+	//State machine
+	str SetState = "Idle";
+
+    GiveActorInventory(OwnerTID,"InRemoteMode",1);
+    //GiveActorInventory(OwnerTID,"3PCam_On",1);
+		
+    while(GetActorProperty(OwnerTID, APROP_HEALTH)>0 
+		&& GetActorProperty(0, APROP_HEALTH)>0 
+		&& !CheckActorInventory(OwnerTID,"RemoteKiller"))
+    {	
+        //log(s:"test");
+        // - Grab Inputs -
+        InputButtons = GetPlayerInput(OwnerTID-1000, INPUT_BUTTONS);
+        UpInput = ButtonCheck(InputButtons, InputOldButtons, BT_FORWARD);
+        DownInput = ButtonCheck(InputButtons, InputOldButtons, BT_BACK);
+        LeftInput = ButtonCheck(InputButtons, InputOldButtons, BT_MOVELEFT);
+        RightInput = ButtonCheck(InputButtons, InputOldButtons, BT_MOVERIGHT);
+        ConfirmInput = ButtonCheck(InputButtons, InputOldButtons, BT_ATTACK);
+        CancelInput = ButtonCheck(InputButtons, InputOldButtons, BT_AltATTACK);
+        Angle = GetActorAngle(OwnerTID);
+		Pitch = GetActorPitch(OwnerTID);
+        HostAngle = VectorAngle (GetActorX (0) - GetActorX (OwnerTID), GetActorY (0) - GetActorY (OwnerTID));
+        //MoveAngle = Angle;
+
+
+        Velx = 0;
+        vely = 0;
+        VelX2 = 0;
+        Vely2 = 0;
+        if(UpInput != DownInput)
+            {
+                if(UpInput == 3){Velx = FixedMul(cos(Angle),  ActorSpeed*65536); vely = FixedMul(Sin(Angle),  ActorSpeed*65536);}
+                if(DownInput == 3){Velx = FixedMul(cos(Angle), -ActorSpeed*65536); vely = FixedMul(Sin(Angle),  -ActorSpeed*65536);}
+            }  
+
+        if(LeftInput != RightInput)
+            {
+                if(LeftInput == 3){Velx2 = FixedMul(cos(-Angle),  ActorSpeed*65536); vely2 = FixedMul(Sin(-Angle),  ActorSpeed*65536);}
+                if(RightInput == 3){Velx2 = FixedMul(cos(-Angle), -ActorSpeed*65536); vely2 = FixedMul(Sin(-Angle),  -ActorSpeed*65536);}
+            }    
+//log(f:HostAngle);
+
+			//======|State Machine|======
+			//Mainfire Takes Priority
+			if(!CheckInventory("RemoteTriggerCooldown")){
+			if(CancelInput == 1){SetActorState(0,"Trigger.Alt");}
+            if(ConfirmInput == 1){SetActorState(0,"Trigger.Main");}
+			}
+
+    SetActorVelocity(0, velx+vely2, vely+velx2, 0, TRUE, FALSE);
+    SetActorAngle (0,Angle );
+    SetActorPitch (0,Pitch );
+	
+
+    if(xyDistance(0, OwnerTID) > MaxRange)
+        {
+            Warp(OwnerTID,MaxRange*cos(HostAngle),MaxRange*Sin(-HostAngle),0,HostAngle,WARPF_ABSOLUTEANGLE|WARPF_INTERPOLATE|WARPF_NOCHECKPOSITION|WARPF_TOFLOOR);
+            SetActorAngle (0,Angle );
+        //Velx = FixedMul(cos(HostAngle),  ActorSpeed*65536); vely = FixedMul(Sin(HostAngle),  ActorSpeed*65536);
+        //SetActorVelocity(0, velx, vely, 0, FALSE, FALSE);    
+        }
+    Delay(1);
+	InputOldButtons = InputButtons;
+    }
+
+    TakeActorInventory(OwnerTID,"InRemoteMode",99);
+	//GiveActorInventory(OwnerTID,"3PCam_Off",1);
+    Thing_Remove(0);
+    //if(CheckActorInventory(OwnerTID,"RemoteKiller")){GiveActorInventory(OwnerTID,"FrightFXSpawn",1);}
+}
+
+Script "MouseRemoteControlActor" (int ActorSpeed, int MaxRange)
+{
+
+    int OwnerTID = ACS_NamedExecuteWithResult("core_gettarget",0);
+	int OwnerStartPitch = GetActorPitch(OwnerTID);
+    if (MaxRange <= 0){MaxRange = 500;}
+
+    int InputButtons;
+    int InputOldButtons; 
+    int UpInput;
+    int DownInput;
+    int LeftInput;
+    int RightInput;
+    Int ConfirmInput;
+    Int CancelInput;
+
+
+    int Velx;
+    int Vely;
+    int Velx2;
+    int Vely2;
+    int Angle;
+    int HostAngle;
+    int MoveAngle;
+
+    int yawScale;
+    int pitchScale;
+
+	int mx,my;
+	int pitch;
+	int PitchRamp;
+	int Dist;
+
+    GiveActorInventory(OwnerTID,"InRemoteMode",1);
+    GiveActorInventory(OwnerTID,"3PCam_On",1);
+	if(GetCvar("GL_NoGL") || GetCvar("Vid_Renderer") == 0){SetActorPitch (OwnerTID, 10194);}
+	else{SetActorPitch (OwnerTID, 16384);}
+    while(GetActorProperty(OwnerTID, APROP_HEALTH)>0 && !CheckActorInventory(OwnerTID,"RemoteKiller"))
+    {	
+        //log(s:"test");
+        // - Grab Inputs -
+        InputButtons = GetPlayerInput(OwnerTID-1000, INPUT_BUTTONS);
+        UpInput = ButtonCheck(InputButtons, InputOldButtons, BT_FORWARD);
+        DownInput = ButtonCheck(InputButtons, InputOldButtons, BT_BACK);
+        LeftInput = ButtonCheck(InputButtons, InputOldButtons, BT_MOVELEFT);
+        RightInput = ButtonCheck(InputButtons, InputOldButtons, BT_MOVERIGHT);
+        ConfirmInput = ButtonCheck(InputButtons, InputOldButtons, BT_ATTACK);
+        CancelInput = ButtonCheck(InputButtons, InputOldButtons, BT_AltATTACK);
+        Angle = GetActorAngle(OwnerTID);
+		Pitch = GetActorPitch(OwnerTID);
+        HostAngle = VectorAngle (GetActorX (0) - GetActorX (OwnerTID), GetActorY (0) - GetActorY (OwnerTID));
+
+            yawScale   = FixedDiv(2.5,FixedMul(GetCVar("m_yaw"),GetCVar("mouse_sensitivity")));
+            pitchScale = FixedDiv(5.0,FixedMul(GetCVar("m_pitch"),GetCVar("mouse_sensitivity")));
+           
+            // Now we get our delta x and delta y. 'Delta' means 'change in'. So 'change in x', and 'change in y'.
+            // We'll use these to offset our current mouse position.
+            int dmx = FixedMul(GetPlayerInput(0,INPUT_YAW),yawScale);
+            int dmy = -FixedMul(GetPlayerInput(0,INPUT_PITCH),pitchScale);
+           
+            // Apply our offsets.
+            mx += dmx;
+            my += dmy;
+        //MoveAngle = Angle;
+		
+
+
+        Velx = 0;
+        vely = 0;
+        VelX2 = 0;
+        Vely2 = 0;
+		/*
+        if(UpInput != DownInput)
+            {
+                if(UpInput == 3){Velx = FixedMul(cos(Angle),  ActorSpeed*65536); vely = FixedMul(Sin(Angle),  ActorSpeed*65536);}
+                if(DownInput == 3){Velx = FixedMul(cos(Angle), -ActorSpeed*65536); vely = FixedMul(Sin(Angle),  -ActorSpeed*65536);}
+            }  
+
+        if(LeftInput != RightInput)
+            {
+                if(LeftInput == 3){Velx2 = FixedMul(cos(-Angle),  ActorSpeed*65536); vely2 = FixedMul(Sin(-Angle),  ActorSpeed*65536);}
+                if(RightInput == 3){Velx2 = FixedMul(cos(-Angle), -ActorSpeed*65536); vely2 = FixedMul(Sin(-Angle),  -ActorSpeed*65536);}
+            }    
+			*/
+//log(f:HostAngle);
+
+			VelX2 = (dmx/ActorSpeed)*65536;
+			vely2 = (dmy/ActorSpeed)*65536;
+
+		    velx = FixedMul(VelX2,cos(Angle));
+    		vely = FixedMul(vely2,Sin(Angle));
+
+			//log(i:Velx,s:" ",i:vely);
+
+            if(CancelInput == 1){SetActorPitch (OwnerTID,OwnerStartPitch ); Thing_Remove(0); Terminate;}
+            if(ConfirmInput == 1){SetActorState(0,"Trigger");}
+    //SetActorVelocity(0, Velx, vely, 0, FALSE, FALSE);
+    SetActorAngle (0,Angle );
+    SetActorPitch (0,Pitch );
+
+	//just in case
+	if(GetCvar("GL_NoGL") || GetCvar("Vid_Renderer") == 0){PitchRamp = ValueMap(Pitch,-5825,10194,-16384,0);}
+	else{PitchRamp = ValueMap(Pitch,-16384,16384,-16384,0);}
+
+	Dist = MaxRange*Sin(-PitchRamp) >> 16;
+    Warp(OwnerTID,Dist*cos(Angle),Dist*Sin(-Angle),0,Angle,WARPF_ABSOLUTEANGLE|WARPF_INTERPOLATE|WARPF_NOCHECKPOSITION|WARPF_TOFLOOR);
+
+	//SetUserVariable(OwnerTID,"user_RemoteX",GetActorX (0))
+	//SetUserVariable(OwnerTID,"user_RemoteY",GetActorY (0))
+	//SetUserVariable(OwnerTID,"user_RemoteZ",GetActorZ (0))
+
+    if(xyDistance(0, OwnerTID) > MaxRange)
+        {
+           // Warp(OwnerTID,MaxRange*cos(HostAngle),MaxRange*Sin(-HostAngle),0,Angle,WARPF_ABSOLUTEANGLE|WARPF_INTERPOLATE|WARPF_NOCHECKPOSITION|WARPF_TOFLOOR);
+            //SetActorAngle (0,Angle );
+        //Velx = FixedMul(cos(HostAngle),  ActorSpeed*65536); vely = FixedMul(Sin(HostAngle),  ActorSpeed*65536);
+        //SetActorVelocity(0, velx, vely, 0, FALSE, FALSE);    
+        }
+    Delay(1);
+	InputOldButtons = InputButtons;
+    }
+
+	SetActorPitch (OwnerTID,OwnerStartPitch );
+    TakeActorInventory(OwnerTID,"InRemoteMode",99);
+	GiveActorInventory(OwnerTID,"3PCam_Off",1);
+    Thing_Remove(0);
+    //if(CheckActorInventory(OwnerTID,"RemoteKiller")){GiveActorInventory(OwnerTID,"FrightFXSpawn",1);}
+}
+
+Script "RemoteCursor" (int ActorSpeed, int MaxRange)
+{
+ACS_NamedExecuteAlways("C_RemoteCursor",0, ActorSpeed,  MaxRange);
+}
+
+Script "C_RemoteCursor" (int ActorSpeed, int MaxRange) CLIENTSIDE
+{
+
+	if(Playernumber() != ConsolePlayerNumber()) {Terminate;}
+
+    int OwnerTID = activatorTID();
+	log(i:OwnerTID);
+    if (MaxRange <= 0){MaxRange = 500;}
+
+    int InputButtons;
+    int InputOldButtons; 
+    int UpInput;
+    int DownInput;
+    int LeftInput;
+    int RightInput;
+    Int ConfirmInput;
+    Int CancelInput;
+	int cursortid = (OwnerTID -1000) + 9100;
+
+    int Velx;
+    int Vely;
+    int Velx2;
+    int Vely2;
+    int Angle;
+    int HostAngle;
+    int MoveAngle;
+
+    int yawScale;
+    int pitchScale;
+
+	int mx,my;
+
+		if(SpawnForced("RemoteCursor", GetActorX(OwnerTID), GetActorY(OwnerTID), GetActorZ(OwnerTID)-GetActorFloorZ(OwnerTID) + 28.0, cursortid, GetActorAngle(OwnerTID) >> 8) > 0)
+	{
+	while(!CheckInventory("NetCheck_Freeze")){NamedRequestScriptPuke("NET_RemoStopPlayer",1,Playernumber());Delay(1);}
+
+	while(GetActorProperty(0, APROP_HEALTH)>0 
+			&& !CheckInventory("RemoteKiller") 
+			&& ThingCount(T_NONE,cursortid)
+			)
+    {	
+        //log(s:"test");
+        // - Grab Inputs -
+        InputButtons = GetPlayerInput(-1, INPUT_BUTTONS);
+        UpInput = ButtonCheck(InputButtons, InputOldButtons, BT_FORWARD);
+        DownInput = ButtonCheck(InputButtons, InputOldButtons, BT_BACK);
+        LeftInput = ButtonCheck(InputButtons, InputOldButtons, BT_MOVELEFT);
+        RightInput = ButtonCheck(InputButtons, InputOldButtons, BT_MOVERIGHT);
+        ConfirmInput = ButtonCheck(InputButtons, InputOldButtons, BT_ATTACK);
+        CancelInput = ButtonCheck(InputButtons, InputOldButtons, BT_AltATTACK);
+        Angle = GetActorAngle(0);
+        HostAngle = VectorAngle (GetActorX (cursortid) - GetActorX (OwnerTID), GetActorY (cursortid) - GetActorY (OwnerTID));
+        //MoveAngle = Angle;
+
+
+        Velx = 0;
+        vely = 0;
+        VelX2 = 0;
+        Vely2 = 0;
+        if(UpInput != DownInput)
+            {
+                if(UpInput){Velx = FixedMul(cos(Angle),  ActorSpeed*65536); vely = FixedMul(Sin(Angle),  ActorSpeed*65536);}
+                if(DownInput){Velx = FixedMul(cos(Angle), -ActorSpeed*65536); vely = FixedMul(Sin(Angle),  -ActorSpeed*65536);}
+            }  
+
+        if(LeftInput != RightInput)
+            {
+                if(LeftInput){Velx2 = FixedMul(cos(-Angle),  ActorSpeed*65536); vely2 = FixedMul(Sin(-Angle),  ActorSpeed*65536);}
+                if(RightInput){Velx2 = FixedMul(cos(-Angle), -ActorSpeed*65536); vely2 = FixedMul(Sin(-Angle),  -ActorSpeed*65536);}
+            }    
+//log(f:HostAngle);
+            if(CancelInput == 1){Thing_Remove(cursortid);}
+            if(ConfirmInput == 1){SetActorState(cursortid,"Trigger");}
+    SetActorVelocity(cursortid, velx+vely2, vely+velx2, 0, FALSE, FALSE);
+    SetActorAngle (cursortid,Angle );
+
+	//SetUserVariable(0,"user_RemoteX",(GetActorX (cursortid)-GetActorX (0))/65536);
+	//SetUserVariable(0,"user_RemoteY",(GetActorY (cursortid)-GetActorY (0))/65536);
+	//SetUserVariable(0,"user_RemoteZ",(GetActorZ (cursortid)-GetActorZ (0))/65536);
+
+	SetNoSaveCvarString("user_RemoteX", (GetActorX (cursortid)-GetActorX (0))/65536);
+	SetNoSaveCvarString("user_RemoteY", (GetActorY (cursortid)-GetActorY (0))/65536);
+	SetNoSaveCvarString("user_RemoteZ", (GetActorZ (cursortid)-GetActorZ (0))/65536);
+
+    if(xyDistance(cursortid, OwnerTID) > MaxRange)
+        {
+           // Warp(cursortid,MaxRange*cos(HostAngle),MaxRange*Sin(-HostAngle),0,HostAngle,WARPF_ABSOLUTEANGLE|WARPF_MOVEPTR|WARPF_INTERPOLATE|WARPF_NOCHECKPOSITION|WARPF_TOFLOOR);
+            SetActorAngle (cursortid,Angle );
+        //Velx = FixedMul(cos(HostAngle),  ActorSpeed*65536); vely = FixedMul(Sin(HostAngle),  ActorSpeed*65536);
+        //SetActorVelocity(0, velx, vely, 0, FALSE, FALSE);    
+        }
+    Delay(1);
+	InputOldButtons = InputButtons;
+    }
+	}
+
+
+	while(!CheckInventory("NetCheck_Freeze")){NamedRequestScriptPuke("NET_RemoStopPlayer",0,Playernumber());Delay(1);}
+    Thing_Remove(cursortid);
+    //if(CheckActorInventory(OwnerTID,"RemoteKiller")){GiveActorInventory(OwnerTID,"FrightFXSpawn",1);}
+}
+
+script "NET_RemoStopPlayer" (int toggle, int Pnum) NET
+{
+	if(toggle >= 1){
+		if(!CheckInventory("InRemoteMode"))
+        {ACS_NamedExecuteAlways("RemoStop",0,Pnum);}
+		GiveInventory("NetCheck_Freeze",1);
+	}
+	if(toggle == 0){
+		if(CheckInventory("InRemoteMode")>0 ){
+		TakeInventory("InRemoteMode", 99);
+        ACS_NamedExecuteAlways("Core_StopPlayer",0,0,0);
+		}
+        if(!CheckInventory("InRemoteMode")){GiveInventory("NetCheck_Freeze",1);}
+	}
+	
+}
+
+Script "RemoStop" (int Pnum)
+{
+    GiveInventory("InRemoteMode",1);
+    GiveInventory("3PCam_On",1);
+    ACS_NamedExecuteAlways("Core_StopPlayer",0,0,1);
+
+	While(CheckInventory("InRemoteMode")){Delay(1);}
+    ACS_NamedExecuteAlways("Core_StopPlayer",0,0,0);
+	GiveInventory("3PCam_Off",1);
+}
+
+Script "GrabRemoteCoor" (int T)
+{
+int output;
+switch(T)
+    {
+    case 0: output = GetCvar("user_RemoteX"); /*GetUserVariable(0,"user_RemoteX");*/ break;
+    case 1: output = GetCvar("user_RemoteY");/*GetUserVariable(0,"user_RemoteY");*/ break;
+    case 2: output = GetCvar("user_RemoteZ");/*GetUserVariable(0,"user_RemoteZ");*/ break;
+    }
+SetResultValue(output);
+}
+
+script "SnapToRemote" (int X_Placement)
+{
+    int OwnerTID = ACS_NamedExecuteWithResult("core_gettarget",0);
+    int OwnerPnum = OwnerTID-1000;
+    Warp(9100+OwnerPnum, X_Placement, 0, 0, 0, WARPF_ABSOLUTEPOSITION|WARPF_USECALLERANGLE|WARPF_INTERPOLATE);
+
+}
+
+#endregion
+//#endregion
+
+Script "MT_ActorClassifier" (int TID, int CheckType)
+{
+bool output;
+   
+switch(CheckType)
+	{
+	case 0: if ((ClassifyActor(TID) & ACTOR_NONE)){output = true;} break;
+	case 1: if ((ClassifyActor(TID) & ACTOR_WORLD)){output = true;} break;
+	case 2: if ((ClassifyActor(TID) & ACTOR_PLAYER)){output = true;} break;
+	case 3: if ((ClassifyActor(TID) & ACTOR_BOT)){output = true;} break;
+	case 4: if ((ClassifyActor(TID) & ACTOR_VOODOODOLL)){output = true;} break;
+	case 5: if ((ClassifyActor(TID) & ACTOR_MONSTER)){output = true;} break;
+	case 6: if ((ClassifyActor(TID) & ACTOR_ALIVE)){output = true;} break;
+	case 7: if ((ClassifyActor(TID) & ACTOR_DEAD)){output = true;} break;
+	case 8: if ((ClassifyActor(TID) & ACTOR_MISSILE)){output = true;} break;
+	case 9: if ((ClassifyActor(TID) & ACTOR_GENERIC)){output = true;} break;
+	}
+
+SetResultValue(output);
+}
+
+Script "HitSound" (void)
+{
+localAmbientSound("misc/metdie",127);
+}
+
+script "Spawn_SmallHealth_MSTD" (void)
+{
+SpawnNewWepFunc("SmallHealth_MSTD");
+}
+
+script "Spawn_SmallHealth2_MSTD" (void)
+{
+SpawnNewWepFunc("SmallHealth2_MSTD");
+}
+
+script "Spawn_BigHealth_MSTD" (void)
+{
+SpawnNewWepFunc("BigHealth_MSTD");
+}
+
+script "Spawn_BigHealth2_MSTD" (void)
+{
+SpawnNewWepFunc("BigHealth2_MSTD");
+}
+
+script "Spawn_MegaHealth_MSTD" (void)
+{
+SpawnNewWepFunc("MegaHealth_MSTD");
+}
+
+Script "CheckForAmmoHealth" (int Type)
+{
+int output;
+Switch(Type)
+	{
+	default: Output = GetCvar("MT_SmallAmmoHealth"); Break;
+	case 1: Output = GetCvar("MT_BigAmmoHealth"); Break;
+	}
+SetResultValue(output);
+}
+
+script "CheckModeForSpawn" (void)
+{
+SetResultValue(GetGameModeState() != GAMESTATE_INPROGRESS);
+}
+
+//Damage Over Time Script
+script "DotDamager" (int damage, int TID, int Type)
+{
+setactivator(0,AAPTR_TARGET);
+str DamType;
+Switch(Type)
+	{
+	default: DamType = "FireDOT"; Break;
+	Case 1: DamType = "PoisonDOT"; Break;
+	}
+thing_damage2(TID,damage,DamType);
+}
+
+script "HitKnockBack" (int force)
+{
+if(!ACS_NamedExecuteWithResult("MT_ActorClassifier",0,2)){Terminate;}
+int pusher = ACS_NamedExecuteWithResult("Core_GetTarget", 0);
+if(CheckInventory("WeightClass_Light")){force += force*0.5>>16;} //Lightweight
+if(CheckInventory("WeightClass_Heavy")){force -= force*0.5>>16; if(force<0){force = 0;}} //HeavyWeight
+int Vang = VectorAngle(GetActorX(0) - GetActorX(pusher), GetActorY(0) - GetActorY(pusher)) >> 8;
+ThrustThing(Vang, force, 1, 0);
+}
+
+script "HitKnockUp" (int force, int SetAdd)
+{
+if(!ACS_NamedExecuteWithResult("MT_ActorClassifier",0,2)){Terminate;}
+if(CheckInventory("WeightClass_Light")){force += force*0.5>>16;} //Lightweight
+if(CheckInventory("WeightClass_Heavy")){force -= force*0.5>>16; if(force<0){force = 0;}} //HeavyWeight
+ThrustThingZ(0,force,0,SetAdd);
+}
+
+
+function bool OpenGLCvarClient(void)
+{
+return (getCvar("vid_renderer"));
+}
+
+script "MMBN_OpenGLCheck" (void) CLIENTSIDE
+{
+SetResultValue(OpenGLCvarClient());
+}
+
+Script "MassimoDamageRamp" (int MinDam, int MaxDam)
+{
+SetResultValue(MassimoDamageRamp(MinDam,MaxDam,AAPTR_TARGET));
+}
+
+function int MassimoDamageRamp(int MinDam, int MaxDam, int Pointer)
+{
+int HealthPer = GetHealthPercent(Pointer,0,0);
+int Output = ValueMap(HealthPer,100,0,MinDam,MaxDam);
+return(Output);
+}
+
+
+
+Script "SniperBusterRamp" (int hitCap, int MinDam, int MaxDam)
+{
+SetActivatorToTarget(0);
+str WepName = STD_WhichWeaponName();
+str WepName2 = StrLeft(WepName,StrLen(WepName)-StrLen("Wep"));
+//log(s:WepName);
+//log(s:WepName2);
+int ItemCount = CheckInventory(StrParam(s:WepName2,s:"_HitCounter"));
+if(ItemCount > hitCap){ItemCount = hitCap;}
+int Output = ValueMap(ItemCount,0,hitCap,MinDam,MaxDam);
+SetResultValue(Output);
+}
+
+Script "SearchManDamageRamp" (int MinDam, int MaxDam, int MinRange, int MaxRange)
+{
+	int Output = ValueMap(xyzDistance(0, ACS_NamedExecuteWithResult("core_gettarget")),MinRange,MaxRange,MinDam,MaxDam);
+	Output = RoundToNth(Output,5);
+	if(Output > MaxDam){Output = MaxDam;}
+	else if(Output < MinDam){Output = MinDam;}
+	SetResultValue(Output);
+}
+
+
+
+Script "CheckStatusGuard" (int Pointer, int Input)
+{
+Int Output;
+
+/*
+ * 0 = no status protection
+ * 1 = Minor status protection
+ * 2 = Major status protection
+ *
+ */ 
+
+
+if(Pointer!=0){SetActivator(0,Pointer);}
+
+if(!(ClassifyActor(0) & ACTOR_PLAYER))
+	{Output = Output | STATUS_MAJOR;}
+
+if(CheckInventory("PoisonMark")
+||CheckInventory("BurnMark")
+||CheckInventory("FrostbiteMark")
+)
+{Output = Output | STATUS_MAJOR;}
+
+//if(CheckInventory("ProtectGuard")
+//||CheckInventory("DetectGuard")
+//||CheckInventory("SubGuard"))
+//{Output = Output | STATUS_MAJOR | STATUS_MINOR | STATUS_STATS;}
+
+    //if(CheckInventory("SafeguardPower"))
+    //{Output = Output | STATUS_MAJOR | STATUS_MINOR | STATUS_SPECIALTY | STATUS_TAUNT;}
+
+    //if(CheckInventory("MistFlag"))
+    //{Output = Output | STATUS_STATS  | STATUS_MINOR | STATUS_TAUNT;}
+
+    //if(CheckInventory("CleanseTag"))
+    //{Output = Output | STATUS_STATS;}
+SetResultValue(Output & Input);
+}
+
+Script "WepSpeedMod" (int Value)
+{
+int FixedValue = Value<<16;
+
+
+if(Value != GetActorProperty(0,APROP_SPEED))
+	{
+	//log(i:Value,s:" ",i:GetActorProperty(0,APROP_SPEED),s:" ",f:Value,s:" ",f:GetActorProperty(0,APROP_SPEED));
+	SetActorPRoperty(0,APROP_SPEED,Value);
+	//TriggerAcrobatCheck();
+	}
+
+}
+
+script "SpeedUpdate" (int Value)
+{
+//used to change weapon speeds without switching weapons, this stuff will usually be counted
+//on actual weapon switches, like quickman's class passive
+
+SetActorPRoperty(0,APROP_SPEED,GetActorProperty(0,APROP_SPEED)+Value);
+}
+
+Script "DetectFlicker" (void)
+{
+
+bool FlickerState;
+
+SetActorProperty(0,Aprop_Renderstyle,STYLE_None);
+FlickerState = false;
+
+while(GetActorProperty(0, APROP_HEALTH)>0
+&& CheckInventory("EvasionState") > 0
+    ){
+        Delay(2);
+
+        Switch(FlickerState)
+            {
+                case 0: SetActorProperty(0,Aprop_Renderstyle,STYLE_Translucent); FlickerState = true; break;
+                case 1: SetActorProperty(0,Aprop_Renderstyle,STYLE_None); FlickerState = false; break;
+            }
+    }
+
+    SetActorProperty(0,Aprop_Renderstyle,STYLE_Translucent);
+}
+
+/*
+Script "CheckMeleeWep" (void)
+{
+int Output;
+if(GetThisWeaponType() & WF_MELEE){Output = true;}
+SetResultValue(Output);
+}
+*/
+
+script "HealerShotIdentify"  (VOID) 
+{
+
+	int FiringPlayer= ACS_NamedExecuteWithResult("Core_GetTarget", 0) - 1000;
+    int TracerPlayer= ACS_NamedExecuteWithResult("Core_GetTracer", 0) - 1000;
+    int Output;
+    if( GetPlayerInfo(TracerPlayer, PLAYERINFO_TEAM) == GetPlayerInfo(FiringPlayer, PLAYERINFO_TEAM))
+    {
+        Output = 1;
+    }
+
+    setResultValue(Output);
+}
+
+//======|Damage Faloff Formula Script
+Script "DamageRate" (int ModDamage, int DistStart, int RampRate) //DamageDropoff Script
+{
+SetResultValue(DamageRate(ModDamage, DistStart, RampRate));
+}
+
+function int DamageRate (int ModDamage, int DistStart, int RampRate) //DamageDropoff Script
+{
+int Damage = NoNeg(ModDamage - NoNeg(xyzdistance(0, ACS_NamedExecuteWithResult("core_gettarget"))-DistStart)/RampRate);
+return(Damage);
+}
+
+
+Script "DMinMax" (int MinD, int MaxD)
+{ //Picks the highest of the 2 values
+int Output = MinD;
+if(MaxD > MinD) {Output = MaxD;}
+SetResultValue(Output);
+}
+
+Script "DMGR" (int DMG1, int Range1, int DMG2, int Range2) //Damage Rate Script
+{
+
+//Range 1 is the closest range threshold, Range 2 is the furthest
+
+int Dist = xyzdistance(0, ACS_NamedExecuteWithResult("Core_GetTarget", 0));
+int Damage;
+if(Dist <= Range1*ZDMETER) //Within effective range
+	{Damage = DMG1;}
+else if(Dist <= Range2*ZDMETER) //Beyond effective range
+	{
+	Damage = DMG2;
+	}
+SetResultValue(Damage);
+}
+
+Script "HealRamp" (Int HealMin, Int HealMax, int Pointer)
+{
+if(Pointer!=0){SetActivator(0,Pointer);}
+int HitTime = GetActorPowerupTics(0,"HealRampPower");
+int timeMax = 350;
+int rampPerc = (HitTime*100)/timeMax;
+
+int output = (HealMax*(100 - rampPerc))/100;
+
+
+if (output < HealMin){output = HealMin;}
+if (output > HealMax){output = HealMax;}
+SetResultValue(output);
+}
+
+Script "WeaponReload" (int AmmoCount)
+{
+int ThisWeapon = STD_WhichWeapon();
+str WepAmmoName = MasterWepList[ThisWeapon][2];
+int WepAmmoCount = GetAmmoCapacity(WepAmmoName);
+
+if(!AmmoCount || AmmoCount>WepAmmoCount){AmmoCount = WepAmmoCount;}
+//log(s:WepAmmoName,s:" ",i:AmmoCount);
+GiveInventory(WepAmmoName,AmmoCount);
+}
+
+Script "CheckAmmoFull" (void)
+{
+int ThisWeapon = STD_WhichWeapon();
+str WepAmmoName = MasterWepList[ThisWeapon][2];
+int WepAmmoCount = GetAmmoCapacity(WepAmmoName);
+
+SetResultValue(CheckInventory(WepAmmoName) == WepAmmoCount);
+}
+
+Script "TurretReticleWarper" (void) CLIENTSIDE
+{
+	int Player = ACS_NamedExecuteWithResult("core_gettarget",0);
+	
+	// Loop if shield is active
+	while(GetActorProperty(Player, APROP_HEALTH)>0
+	&& CheckActorInventory(Player, "TurretReticleHold") > 0
+	){
+		Delay(1);
+	}
+	
+	// Remove
+	Thing_Remove(0);
+}
+
+Script "HealthGenSyncher" (void) 
+{
+	int BaseTID = ActivatorTID();
+	int Owner = ACS_NamedExecuteWithResult("core_gettarget")-1000;
+	int Team = GetPlayerInfo(Owner, PLAYERINFO_TEAM);
+	str BaseName = "HealthGenBase";
+			switch(Team)
+			{
+			Case 0:
+			BaseName = StrParam(s:BaseName,s:"_B");
+			break;
+			Case 1:
+			BaseName = StrParam(s:BaseName,s:"_R");
+			break;
+			Case 2:
+			BaseName = StrParam(s:BaseName,s:"_G");
+			break;
+			Case 3:
+			BaseName = StrParam(s:BaseName,s:"_O");
+			break;
+			}
+		
+
+	while(ThingCountName(BaseName,BaseTID)){
+		Delay(1);
+	}
+	
+	// Remove
+	Thing_Remove(0);
+}
+
+
+
+script "TrapSensorIdentify"  (VOID) 
+{
+
+	int SensorPlayer= ACS_NamedExecuteWithResult("Core_GetTarget", 0) - 1000;
+    int FiringPlayer= ACS_NamedExecuteWithResult("Core_GetMaster", 0) - 1000;
+    int Output;
+    if( GetPlayerInfo(SensorPlayer, PLAYERINFO_TEAM) == GetPlayerInfo(FiringPlayer, PLAYERINFO_TEAM))
+    {
+        Output = 1;
+    }
+
+    setResultValue(Output);
+}
+
+
+script "TIDCOUNTER" (int Tid)
+{
+setresultvalue(thingcount(T_NONE,Tid));
+}
+
+script "GetWeaponCharge" (void)
+{
+setresultvalue(CheckInventory("WeaponCharge"));
+}
+
+
+Script "StunnedFXWarper" (void) CLIENTSIDE
+{
+	int Player = ACS_NamedExecuteWithResult("core_gettarget",0);
+	
+	// Loop if shield is active
+	while(GetActorProperty(Player, APROP_HEALTH)>0
+	&& CheckActorInventory(Player, "StunMark") > 0
+	){
+		Delay(1);
+	}
+	
+    // Remove
+    SetActorState(0,"Death");
+    Delay(17);
+	Thing_Remove(0);
+}
+
+Script "TeleportSpotMark" (void)
+{
+    int pln = PlayerNumber();
+    int tid = pln+1000;
+    int ang = GetActorAngle(tid);
+    If(ThingCount(0, pln+PLN_EXITUNITIMAGE)>0)
+    {
+        Thing_Remove(pln+PLN_EXITUNITIMAGE);
+    }
+    SpawnSpotForced("ExitUnitCentaurGhost",ActivatorTID(),pln+PLN_EXITUNITIMAGE,ang>>8);
+
+    If(ThingCount(0, pln+PLN_EXITUNITPOINT)>0)
+    {
+        Thing_Remove(pln+PLN_EXITUNITPOINT);
+    }
+    SpawnSpotForced("TeleportDest2",ActivatorTID(),pln+PLN_EXITUNITPOINT,ang>>8);
+}
+
+Script "TeleportSpotMark2" (void)
+{
+    int pln = ACS_NamedExecuteWithResult("Core_GetTarget",0)-1000;
+    int tid = pln+1000;
+    int ang = GetActorAngle(0);
+    If(ThingCount(0, pln+PLN_EXITUNITIMAGE)>0)
+    {
+        Thing_Remove(pln+PLN_EXITUNITIMAGE);
+    }
+    SpawnSpotForced("ExitUnitCentaurGhost",ActivatorTID(),pln+PLN_EXITUNITIMAGE,ang>>8);
+
+    If(ThingCount(0, pln+PLN_EXITUNITPOINT)>0)
+    {
+        Thing_Remove(pln+PLN_EXITUNITPOINT);
+    }
+    SpawnSpotForced("TeleportDest2",ActivatorTID(),pln+PLN_EXITUNITPOINT,ang>>8);
+}
+
+
+
+//Hitscan based suck/blow, by jax
+script "MT_SuctionCode" (int distRange, int angleRange, int suckPower, int type)
+{
+	distRange <<= 16;
+	angleRange <<= 8;
+	int owner = ACS_NamedExecuteWithResult("MT_GetPointerTID_147",2);
+	if(CheckActorInventory(owner,"NoSourcePushFlag"))terminate;//$CBM (Fishy)
+	int angle = GetActorAngle(owner);
+	int pitch = pitchAdjust(GetActorPitch(owner));
+	int team = ACS_ExecuteWithResult(143, 0);
+	int x = GetActorX(0);
+	int y = GetActorY(0);
+	int z = GetActorZ(0);
+
+	int xDist;
+	int yDist;
+	int zDist;
+	int angleDist;
+	int pitchDist;
+	int dist;
+
+	for(int i=0; i<MAX_PLAYERS; i++) {
+		if(owner == 1000 + i)
+			continue;
+		if(CheckActorInventory(1000 +i, "NoPushFlag")){continue;}
+		if((team==TEAM_NONE||isDifferentTeams(team,i))&&CheckSight(0,1000+i,0)) {
+			xDist = GetActorX(1000+i) - x;
+			yDist = GetActorY(1000+i) - y;
+			angleDist = VectorAngle(xDist,yDist);
+			if(abs(WrapAround(angleDist-angle))<angleRange){
+				dist = fDistanceVal1(angleDist, xDist, yDist);
+				zDist = GetActorZ(1000+i) + 28.0 - z;
+				pitchDist = VectorAngle(dist, zDist);
+				if(abs(WrapAround(pitchDist-pitch))<angleRange) {
+					dist = fDistanceVal2(pitchDist, dist, zDist);
+					if(dist<distRange) {
+						ThrustThing((angle >> 8), suckPower, 1, 1000+i);
+						if(type>0){
+							GiveActorInventory(1000+i,"TempPitProtect_P",1);
+						}
+						switch(abs(type)) {
+						//	case 101://Targeter Type
+						//		GiveActorInventory(1000+i,"HomingLockGiver",1);
+						//		break;
+						//	case 20://Dynamo
+						//		GiveActorInventory(1000+i,"HomingLockGiver",1);
+						//		break;
+							case 4://HSH Suck Cold
+								GiveActorInventory(1000+i,"IcemanSlowPickup",1);
+								break;
+							case 2://Dust Suck
+								if(ACS_NamedExecuteWithResult("MT_IsPlayerAlive",i+1000)){
+									//GiveActorInventory(owner,"CrushEmAmmo",2);
+								}
+								break;
+							case 1://Null for Negative 1
+								break;
+							default://Blow
+								Log(i:type,s:" >> Invalid Number for script C_JAX_SUCKRECODE (422)");
+								break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+}
+
+script "MT_GetPointerTID_147" (int Swap)
+{
+	Switch(Swap) {
+		Default:
+			Log(i:Swap,s:" >> Invalid Pointer for MT_GetPointerTID_147");
+			break;
+		Case 0://Default
+			break;
+		Case 1://Null
+		Case 2://Target
+		Case 4://Master
+		Case 8://Tracer
+		Case 16://Player_GetTarget
+		Case 32://Player_GetConversation
+		Case 16384://FriendPlayer
+			SetActivator(0,Swap);
+			break;
+	}
+	SetResultValue(ActivatorTID());
+}
+
+
+Script "SynchTargetSpecies" (void) 
+{
+	int BaseTID = ActivatorTID();
+	int Owner = ACS_NamedExecuteWithResult("core_gettarget")-1000;
+	int Team = GetPlayerInfo(Owner, PLAYERINFO_TEAM);
+
+	If(ACS_ExecuteWithResult(975, 1))
+		{
+		switch(Team)
+			{
+			Case 0:
+			SetActorProperty(0,APROP_SPECIES,"LightMember");
+			break;
+			Case 1:
+			SetActorProperty(0,APROP_SPECIES,"WilyMember");
+			break;
+			Case 2:
+			SetActorProperty(0,APROP_SPECIES,"CossackMember");
+			break;
+			Case 3:
+			SetActorProperty(0,APROP_SPECIES,"KingMember");
+			break;
+			}
+		}
+		Else{setactorproperty(0,APROP_SPECIES,strparam(s:"Player",i:Owner));}
+}
+
+//WallJump scripts from CSCCDC and CBM.
+
+Script "CSCACS_WallJump" (void)
+{
+Delay(2);
+int Buttons;
+int OlDButtons;
+int WallJumpLimit = CheckInventory("WallJumpLimit");
+
+if(CheckInventory("WeightClass_Light")){SetInventory("WallJumpLimit", 10); WallJumpLimit = 10;}
+else if(CheckInventory("WeightClass_Heavy")){SetInventory("WallJumpLimit", 6); WallJumpLimit = 6;}
+else {SetInventory("WallJumpLimit", 8); WallJumpLimit = 8;}
+
+If(WallJumpLimit == 0){SetInventory("WallJumpLimit", 10); WallJumpLimit = 10;}
+While(GetActorProperty(0,APROP_Health) > 0 && CheckInventory("CanWallJumpFlag"))
+	{
+	Buttons = GetPlayerInput(-1, INPUT_BUTTONS);
+	if(CheckInventory("JumpCancler")==0 && MSTDButtonCheck(Buttons, OldButtons, BT_JUMP)==1) 
+		{
+		If(WallJumpLimit > 0)
+			{
+			GiveInventory("WallJumping",1);
+			Delay(1);
+			If(CheckInventory("WallJumped"))
+				{
+				WallJumpLimit--;
+				TakeInventory("WallJumped", 1);
+				}
+			}
+		Delay(10);
+		}
+
+	If(CheckInventory("JumpCancler") && GetActorVelZ(0) == 0.0){WallJumpLimit = CheckInventory("WallJumpLimit");}
+	OldButtons=Buttons;
+	delay(1);
+	}
+}
+
+script "MT_WallJump" (int Force, int BonusJump)
+{
+	//SetActivatorToTarget(0);
+	//int JumpFixAngle = 0;
+	int JumpAngByte = 0;
+	int TotalAngles = 0;
+    if (CheckInventory("WallN") && !CheckInventory("WallS")) {
+		JumpAngByte += 128;
+		TotalAngles++;
+	}
+    if (/*CheckInventory("WallS") &&*/ !CheckInventory("WallN")) {
+		JumpAngByte += 256;
+		TotalAngles++;
+	}
+	if (CheckInventory("WallE") && !CheckInventory("WallW")) {
+	    JumpAngByte += 64;
+		TotalAngles++;
+	}
+	if (CheckInventory("WallW") && !CheckInventory("WallE")) {
+	    JumpAngByte += 192;
+		TotalAngles++;
+	}
+	if (/*CheckInventory("WallS") && */ !CheckInventory("WallN") && CheckInventory("WallE") && !CheckInventory("WallW")) { //Somewhere, a mathematician is crying.
+	    JumpAngByte = 32;
+		TotalAngles = 1;
+	}
+	if (TotalAngles>0) {
+		JumpAngByte /= TotalAngles;
+		ThrustThing(((GetActorAngle(0) >> 8) + JumpAngByte),(Force*GetActorProperty(0,APROP_SPEED))>>16,1);
+		SetActorVelocity(0,GetActorVelX(0),GetActorVelY(0),GetActorProperty(0,APROP_JumpZ)+BonusJump*1.0,0,0);
+		//ThrustThingZ(0,(GetActorProperty(0,APROP_JumpZ) >> 16) * 4 + BonusJump,0,0);
+	}
+}
+
+
+Script "DeployableCore" (void)
+{
+
+		
+int CoreTID = UniqueTID();
+int X,PastX,Y,PastY,Z,PastZ;
+int TIDWait;
+
+//===
+str CoreName = StrParam(s:"Core_",s:GetActorClass(0));
+SpawnForced(CoreName,GetActorX(0),GetActory(0),GetActorz(0),0);
+
+While(TIDWait < 10)
+	{
+	//Wait untill the spawned actor changes it's own TID
+	if(!ThingCount(T_NONE,CoreTID)){TIDWait = 99;}
+	Delay(1);
+	}
+
+
+While(ThingCount(T_NONE,CoreTID) && GetActorProperty(CoreTID, APROP_Health)>0)
+	{
+	
+	X = GetActorX(0);
+	Y = GetActory(0);
+	Z = GetActorz(0);
+		if(X != PastX || Y != PastY || Z != PastZ)
+		{
+		Warp(CoreTID,GetActorX(0),GetActory(0),GetActorz(0),0,WARPF_MOVEPTR|WARPF_ABSOLUTEPOSITION|WARPF_USECALLERANGLE|WARPF_INTERPOLATE);
+		}
+	
+	Delay(1);
+	PastX = X;
+	PastY = Y;
+	PastZ = Z;
+	}
+	
+	SetActorState(0, "Death");
+}
+
+
+
+#DEFINE CLOAKDAGGERLIMIT 65.0//96.0
+#DEFINE CLOAKDAGGERSTEPCOST 65.0//72.0
+#DEFINE CLOAKDAGGERREGEN 1.5
+// 100 / CLOAKDAGGERLIMIT =
+#DEFINE CLOAKDAGGERFIXEDMULTIPLY 1.042
+
+script "MT_StepHandler" (void)
+{
+int CloakDagger = CLOAKDAGGERLIMIT;
+while(PlayerHealth()>0) {
+	if(GetActorZ (0) - GetActorFloorZ (0) < 1){CloakDagger = CloakDaggerFunc(CloakDagger);}
+	delay(1);
+}
+}
+
+function int CloakDaggerFunc(int CloakDagger)
+{
+	if(CheckInventory("CardboardBoxRadiusFlag")==0 && CheckInventory("HushStep")==0) {
+		CloakDagger -= getTotalVelocity();
+	}
+	CloakDagger += CLOAKDAGGERREGEN;
+	if(CloakDagger > CLOAKDAGGERLIMIT) {
+		CloakDagger = CLOAKDAGGERLIMIT;
+	} else if (CloakDagger <= 0.0) {
+		CloakDagger += CLOAKDAGGERSTEPCOST;
+		GiveInventory("FootStepPickup",1);
+	}
+	//adjustInventory("CloakDaggerBar",(fixedMul(CloakDagger,CLOAKDAGGERFIXEDMULTIPLY))>>16);
+	return CloakDagger;
+}
+
+function int getTotalVelocity(void)
+{
+	int len;
+	int x = GetActorVelX(0);
+	int y = GetActorVelY(0);
+	int z = GetActorVelZ(0);
+
+	int ang = vectorangle(x,y);
+	if(((ang+0.125)%0.5) > 0.25) len = fixeddiv(y, sin(ang));
+	else len = fixeddiv(x, cos(ang));
+
+	ang = vectorangle(len, z);
+	if(((ang+0.125)%0.5) > 0.25) len = fixeddiv(z, sin(ang));
+	else len = fixeddiv(len, cos(ang));
+
+	//print(f:len);
+	return len;
+}
+
+
+
+// Checks if the target is the client. Useful for FX you don't want to render for the creator of them.
+script "MT_istargetclient" (void) CLIENTSIDE
+{
+	SetActivatorToTarget(0);
+	if(consoleplayernumber() == playernumber()){
+		SetResultValue(1);
+	}
+	else
+	{
+		SetResultValue(0);
+	}
+}
+
+//#region FlashBang Blinding
+script "MT_flashstopperlight" (int maxRange, int BlindDuration)
+{
+	if(maxRange == 0){terminate;}
+    maxRange = maxRange << 16;
+
+	int targetTID;
+	int angle;
+	int targetAngle;
+	int xDist, yDist, Dist;
+	int userTID;
+	int userTeam = -1;
+	int userCount = 0;
+	int PreBlind;
+	int BlindGuarded;
+	int BlindFactor;
+	int FiringPlayer= ACS_NamedExecuteWithResult("core_gettarget");
+	int PlayersTeam = GetPlayerInfo(FiringPlayer-1000, PLAYERINFO_TEAM);
+
+	if(BlindDuration<=0){BlindDuration = 100;}
+
+	for(int p = 0;p < GetMaxEntities(); p++)
+	{
+	PreBlind = CheckActorInventory(P+1000,"BlindMark");
+	BlindGuarded = CheckActorInventory(P+1000,"BlindGuard");
+
+		if(PlayersTeam == GetPlayerInfo(p, PLAYERINFO_TEAM)
+			&& FiringPlayer != P+1000
+			&& PlayerInGame(p))
+		{
+			continue;
+		}
+
+		if(BlindGuarded)continue;
+
+		targetTID = p+1000;
+        xDist = abs(GetActorX(0)-GetActorX(targetTID)) < maxRange;
+        yDist = abs(GetActorY(0)-GetActorY(targetTID)) < maxRange;
+		if(xDist && yDist && CheckSight(0,targetTID,0))//&& userTID != targetTID
+		{	
+			angle = VectorAngle(GetActorX(0) - GetActorX(targetTID), GetActorY(0) - GetActorY(targetTID)) + 1.0;
+            targetAngle = GetActorAngle(targetTID) + 1.0;
+
+			if(angle-0.15 < targetAngle && angle+0.15 > targetAngle) {
+			    userCount++;	
+				Dist = xyDistance(0, targetTID);
+				BlindFactor = ValueMap(Dist,maxRange>>16,(maxRange>>16)/2,50,BlindDuration);
+					if(BlindFactor > BlindDuration){BlindFactor = BlindDuration;}
+					if(BlindFactor < 50){BlindFactor = 50;}
+
+				GiveActorInventory(targetTID, "BlindMark", BlindDuration);
+                if(!PreBlind)GiveActorInventory(targetTID, "MT_Blind", 1);
+            }
+			else
+				{
+				GiveActorInventory(targetTID, "BlindMark", BlindDuration);
+				if(!PreBlind)GiveActorInventory(targetTID, "MT_QuickBlind", 1);
+				}
+		}
+	}
+	SetResultValue(userCount); // Returns amount of players caught in the pull
+} // end of core_flashstopperlight
+
+
+// Flash Stopper Script
+Script "BlindConditionHandler" (int BlindSpeed) 
+{
+int BrightBlindCount;
+if(BlindSpeed <= 1){BlindSpeed = 1;}
+FadeTo(150,150,150,1.0,0.05);
+Delay(10);
+While(CheckInventory("BlindMark")>0)
+	{
+	BrightBlindCount=CheckInventory("BlindMark");
+	//if(BrightBlindCount>100){BrightBlindCount=100;}
+	FadeTo(150,150,150,FixedDiv(BrightBlindCount,100),0.0);
+	TakeInventory("BlindMark",BlindSpeed);
+	Delay(1);
+	}
+FadeTo(150,150,150,0.0,0.0);
+}
+
+/*
+Script "MT_Blinder" (void) ClientSide
+{
+if(consoleplayernumber() != playernumber()){Terminate;}
+	int BrightBlindCount;
+	FadeTo(150,150,150,1.0,0.05);
+	Delay(10);
+	BlinderSet(On);
+	FadeTo(150,150,150,0.0,0.5);
+
+	While(CheckInventory("BlindMark")>0)
+		{
+		BlinderSet(On);
+		Delay(7);
+		}
+	BlinderSet(Off);
+	
+}
+
+Script "MT_QuickBlinder" (void) ClientSide
+{
+if(consoleplayernumber() != playernumber()){Terminate;}
+	int BrightBlindCount;
+	FadeTo(150,150,150,1.0,0.05);
+	Delay(10);
+	FadeTo(150,150,150,0.0,0.5);
+	
+}
+*/
+
+Function void BlinderSet (Bool Toggle)
+{
+
+int Mode = STYLE_Translucent;
+if(Toggle){Mode = STYLE_None;}
+
+For(int i = 0;i < GetMaxEntities(); i++)
+	{
+	if(ConsolePlayerNumber() != i)
+	{
+	SetActorProperty(i+1000,Aprop_Renderstyle,Mode);
+	}
+	
+	}
+
+}
+
+
+Script "BlinderFXWarper" (void) CLIENTSIDE
+{
+	int Player = ACS_NamedExecuteWithResult("core_gettarget",0);
+	
+	// Loop if shield is active
+	while(GetActorProperty(Player, APROP_HEALTH)>0
+	&& CheckActorInventory(Player, "BlindMark") > 0
+	){
+		Delay(1);
+	}
+	
+    // Remove
+    SetActorState(0,"Death");
+    Delay(17);
+	Thing_Remove(0);
+}
+
+Script "DeployableStopper" (int TID)
+{//Used for CoreActors to inflict stop on the acting part
+GiveActorInventory(TID,"StopMark",1);
+SetActorState(TID,"Deploy.Stop");
+}
+
+//#endregion
+
+//Tactics and ability stuff
+
+
+Script "TLMS_RoundWarp" ENTER
+{
+if(GetRoundGame(1)==1){
+	While(GetGameModeState() != GAMESTATE_INPROGRESS) Delay(1);
+	//===Round Start
+	While(GetGameModeState()!=GAMESTATE_INRESULTSEQUENCE) delay(1);
+	//===Round End
+	GiveInventory("SigRoundEndCue",1); //Stop all signature cooldowns
+	//ACS_NamedExecuteWithResult("Inventory_Reload"); 
+
+	While(GetGameModeState() != GAMESTATE_COUNTDOWN) Delay(1);
+
+	//Player survived the game
+	if(PlayerHealth()>0)
+		{
+		GiveInventory("ExitUnitAuto",1); 
+		ClearRoundInventory(true);
+		ACS_NamedExecuteWithResult("TLMS_RoundSignatureHandler");
+		}
+
+	//player died in the game
+	else{
+		until(PlayerHealth()>0) Delay(1); //wait till they respawn
+		ClearRoundInventory(false); //Clear inventory again for good measure
+		ACS_NamedExecuteWithResult("TLMS_RoundSignatureHandler");
+		}
+	
+	}
+}
+
+function void ClearRoundInventory (bool reload)
+{
+if (reload){
+	switch(GetCvar("MT_econmode")){
+	case 1: ACS_NamedExecuteWithResult("Inventory_Reload"); break;
+	default: break;
+	}
+}
+else{
+	switch(GetCvar("MT_econmode")){
+	case 1: ACS_NamedExecuteWithResult("Clear_Inventory"); break;
+	default: break;
+	}
+}
+
+}
+
+/*
+Script "TLMS_RoundWarpRespawn" RESPAWN
+{
+ACS_NamedExecuteAlways("TLMS_RoundWarpRespawn", 0);
+}
+*/
+/*
+Script "TLMS_RoundSignature" ENTER
+{
+if(GetRoundGame(1)==1){
+	While(GetGameModeState() != GAMESTATE_INPROGRESS) Delay(1);
+	//===Round Start
+	While(GetGameModeState() != GAMESTATE_INRESULTSEQUENCE ){ Delay(1);}
+	GiveInventory("SigRoundEndCue",1); //Stop all signature cooldowns
+	While(GetGameModeState() != GAMESTATE_COUNTDOWN){ Delay(1);}
+	until(PlayerHealth()>0) { Delay(1); }
+	//ACS_NamedExecuteWithResult("GiveUltimateCharge", 0);
+	if(!CheckInventory("AbilityCharge_1"))
+		{
+		Delay(5); 
+		GiveInventory("AbilityCharge_1",1); 
+		ACS_NamedExecuteAlways("Write_Inventory",0,1);
+		}
+	}
+}
+
+Script "TLMS_RoundSignatureRespawn" RESPAWN
+{
+ACS_NamedExecuteAlways("TLMS_RoundSignature", 0);
+}
+*/
+
+Script "TLMS_RoundSignatureHandler" (Void)
+{
+if((GetRoundGame(1)==1)
+	&& GetGameModeState() == GAMESTATE_COUNTDOWN
+	&& !CheckInventory("AbilityCharge_1"))
+	{
+	GiveInventory("AbilityCharge_1",1); 
+	ACS_NamedExecuteAlways("Write_Inventory",0,1);
+	}
+Else if ((GetRoundGame(0)==1)
+	&& GetCvar("Bomb_GameState") == 0
+	&& !CheckInventory("AbilityCharge_1"))
+	{
+	GiveInventory("AbilityCharge_1",1); 
+	ACS_NamedExecuteAlways("Write_Inventory",0,1);
+	}
+}
+
+Script "TLMS_RoundCleanup" OPEN
+{
+if(GetRoundGame(0)==1){
+	//While(GetGameModeState() != GAMESTATE_INPROGRESS) Delay(1);
+	//===Round Start
+	While(GetGameModeState() != GAMESTATE_COUNTDOWN) Delay(1);
+
+	For(int i=0;i<100;i++)
+	{
+	Thing_Remove(DROPITEMTID+i);
+	ACS_NamedExecuteAlways("TLMS_ClientRoundCleanup", 0,DROPITEMTID+i);
+	}	
+	}
+}
+
+Script "TLMS_ClientRoundCleanup" (int TID)
+{
+Thing_Remove(TID);
+}
+
+Script "CheckAbilityCap" (int AbilityNum)
+{
+int Owner;
+
+If(ActivatorTID() <= 999){Owner = ACS_NamedExecuteWithResult("Core_GetTarget", 0);}
+Str Charge,Cap;
+Charge = StrParam(s:"AbilityCharge_",i:AbilityNum);
+Cap = StrParam(s:"AbilityChargeCap_",i:AbilityNum);
+if(Owner)SetResultValue(CheckActorInventory(Owner,Charge) >= CheckActorInventory(Owner,Cap));
+else SetResultValue(CheckInventory(Charge) >= CheckInventory(Cap));
+}
+
+
+
+Script "CheckAbilityKillQuota" (Void)
+{
+SetResultValue(CheckInventory("SignatureKillCount") >= CheckInventory("SignatureKillCap"));
+}
+
+Script "GiveSignatureCharge" (int Cap)
+{
+if(CheckInventory("AbilityCharge_1") < Cap){GiveInventory("AbilityCharge_1",1);}
+}
+
+Script "GiveAbilityCharge" (int AbilityNum, int Cap)
+{
+Switch(AbilityNum)
+	{
+	Case 1: if(CheckInventory("AbilityCharge_1") < Cap){GiveInventory("AbilityCharge_1",1);} break;
+	Case 2: if(CheckInventory("AbilityCharge_2") < Cap){GiveInventory("AbilityCharge_2",1);} break;
+	Case 3: if(CheckInventory("AbilityCharge_3") < Cap){GiveInventory("AbilityCharge_3",1);} break;
+	}
+
+}
+
+
+Script "GiveUltimateCharge" (void)
+{
+if(CheckInventory("UltimateCharge") < CheckInventory("UltimateChargeCap")){GiveInventory("UltimateCharge",1);}
+}
+
+Script "StockUltimateCharge" (void)
+{
+TakeInventory("UltimateCharge",99);
+GiveInventory("UltimateCharge",CheckInventory("UltimateChargeCap"));
+}
+
+Script "StockAbilities" (void)
+{
+Str Item,Cap;
+	For(int i = 1; i < 4; i++)
+	{
+	Item = StrParam(s:"AbilityCharge_",i:i);
+	Cap = StrParam(s:"AbilityChargeCap_",i:i);
+
+	TakeInventory(Item,9);
+	GiveInventory(Item,CheckInventory(Cap));
+
+	}
+}
+
+
+
+Script "CSLT_CrystalMan_CheckFlash" (void)
+{
+SetActivatorToTarget(0);
+int output;
+if(!CheckInventory("CrystalManCamFlag") && !CheckInventory("RCFlag")){output = (GetPlayerInput(-1, INPUT_BUTTONS)&BT_ALTATTACK)>0;}
+SetResultValue(output);
+}
+
+Script "CSLT_CrystalMan_ConfirmTarget" (void)
+{
+int tracer = ACS_NamedExecuteWithResult("core_gettracer");
+int target = ACS_NamedExecuteWithResult("core_gettarget");
+int result = 0;
+if(target >= 1000 && target < 1064){
+	if(tracer != target){
+		if(GetPlayerInfo(target-1000,PLAYERINFO_TEAM)!=GetPlayerInfo(tracer-1000,PLAYERINFO_TEAM) || GetPlayerInfo(target-1000,PLAYERINFO_TEAM)>=4){
+			result = 1;
+			}
+		}
+	}
+SetResultValue(result);
+}
+
+Script "CSLT_CrystalMan_CamAngle" (int first)
+{
+int targetPlayer = ACS_ExecuteWithResult(257);
+int playerPitch = GetActorPitch(targetPlayer);
+int playerAngle = GetActorAngle(targetPlayer);
+
+if(CheckActorInventory(TargetPlayer,"CrystalManCamFlag")>0){
+	SetUserVariable(ActivatorTID(),"user_setPitch",playerPitch);
+	SetUserVariable(ActivatorTID(),"user_setAngle",playerAngle);
+	}
+else{
+	if(first == 1){
+		SetUserVariable(ActivatorTID(),"user_setPitch",GetActorPitch(ActivatorTID()));
+		SetUserVariable(ActivatorTID(),"user_setAngle",GetActorAngle(ActivatorTID()));
+		}
+	}
+	
+if(CheckActorInventory(targetPlayer,"CrystalManCamFlag")>0){
+	SetActorPitch(ActivatorTID(), playerPitch);
+	SetActorAngle(ActivatorTID(), playerAngle);
+	}
+else{
+	SetActorAngle(ActivatorTID(), GetUserVariable(ActivatorTID(),"user_setAngle"));
+	SetActorPitch(ActivatorTID(), GetUserVariable(ActivatorTID(),"user_setPitch"));
+	}
+}
+
+script "CSLT_CrystalMan_Camera" (void)
+{
+int targetPlayer = ACS_ExecuteWithResult(257);
+int targetPLN = targetPlayer - 1000;
+
+SetCameraToTexture(targetPlayer + 666, StrParam(s:"STKTC1", i:targetPLN), 90);
+
+NamedExecuteClientScript("CSLT_Show_CrystalMan_Camera",targetPLN,targetPlayer);
+
+SetActivator(targetPlayer);
+while(GetActorProperty(targetPlayer,APROP_Health)>0 && UniqueTID(targetPlayer+666,1) != targetPlayer+666&& PlayerInGame(targetPLN)){
+	Delay(1);
+	}
+if(GetActorProperty(targetPlayer,APROP_Health)>0 && PlayerInGame(targetPLN)){
+	//if(CheckInventory("SignatureTimer")<=0){ACS_NamedExecuteWithResult("CSLT_Chatline",0,random(3,4));}
+	GiveInventory("SignatureRecharge",1);
+	}
+else{Thing_Remove(targetPlayer+666);}
+}
+
+script "CSLT_Show_CrystalMan_Camera" (int TID) CLIENTSIDE
+{
+SetHudSize(4096, 3072, 0);
+str team = "";
+switch(GetPlayerInfo(TID-1000,PLAYERINFO_TEAM)){
+	case 0:
+		team = "L";
+		break;
+	case 1:
+		team = "W";
+		break;
+	case 2:
+		team = "C";
+		break;
+	case 3:
+		team = "K";
+		break;
+	}
+while(GetActorProperty(TID,APROP_Health)>0 && UniqueTID(TID+666,1) != TID+666 && PlayerInGame(TID-1000)){
+	SetFont(StrParam(s:"STKTC1", i:TID-1000));
+	HudMessage(s:"A";HUDMSG_PLAIN,867,CR_WHITE,3712.0,1920.0,1.0 / 35 + 3);//0.1, 225.1//1024 768
+	SetFont(StrParam(s:"STKTC", s:team));
+	HudMessage(s:"A";HUDMSG_PLAIN,868,CR_WHITE,3712.0,1920.0,1.0 / 35 + 3);//0.1, 225.1//1024 768
+	Delay(1);
+	}
+}
+
+//
+
+
+script "MiniCam_Handler" (int CamNum)
+{
+int targetPlayer = ACS_ExecuteWithResult(257);
+int targetPLN = targetPlayer - 1000;
+if (CamNum < 1)CamNum = 1;
+if (CamNum > 2)CamNum = 2;
+str CamType = StrParam(s:"STKTC",i:CamNum);
+
+SetCameraToTexture(targetPlayer + 6660, StrParam(s:CamType, i:targetPLN), 90);
+
+NamedExecuteClientScript("Show_MiniCam",targetPLN,CamNum,targetPlayer);
+
+SetActivator(targetPlayer);
+while(GetActorProperty(targetPlayer,APROP_Health)>0 && UniqueTID(targetPlayer+6660,1) != targetPlayer+6660&& PlayerInGame(targetPLN)){
+	Delay(1);
+	}
+if(GetActorProperty(targetPlayer,APROP_Health)>0 && PlayerInGame(targetPLN)){
+	}
+else{Thing_Remove(targetPlayer+6660);}
+}
+
+
+script "Show_MiniCam" (int CamNum, int TID) CLIENTSIDE
+{
+SetHudSize(4096, 3072, 0);
+str team = "";
+str CamType = StrParam(s:"STKTC",i:CamNum);
+switch(GetPlayerInfo(TID-1000,PLAYERINFO_TEAM)){
+	case 0:
+		team = "L";
+		break;
+	case 1:
+		team = "W";
+		break;
+	case 2:
+		team = "C";
+		break;
+	case 3:
+		team = "K";
+		break;
+	}
+while(GetActorProperty(TID,APROP_Health)>0 && UniqueTID(TID+6660,1) != TID+6660 && PlayerInGame(TID-1000)){
+	SetFont(StrParam(s:CamType, i:TID-1000));
+	HudMessage(s:"A";HUDMSG_PLAIN,857,CR_WHITE,3712.0,1920.0,1.0 / 35 + 3);//0.1, 225.1//1024 768
+	SetFont(StrParam(s:"STKTC", s:team));
+	HudMessage(s:"A";HUDMSG_PLAIN,858,CR_WHITE,3712.0,1920.0,1.0 / 35 + 3);//0.1, 225.1//1024 768
+	Delay(1);
+	}
+}
+
+
+#DEFINE BUSHRADIUS 138
+#DEFINE BUSHHEIGHT -138
+script "CSLT_Stakeout_BushRustling" (void)
+{
+int playersInBush = 0;
+for(int i = 0; i<64; i++){ //if you're in the area of the bush to begin with, no rustling
+	if(PlayerInGame(i) && GetActorProperty(i+1000,APROP_Health)>0){
+		if(xyDistance(0,i+1000) < BUSHRADIUS && zDistance(0,i+1000) > BUSHHEIGHT && zDistance(0,i+1000) <= 0){
+			playersInBush++;
+			}
+		}
+	}
+int oldPlayersInBush = playersInBush;
+
+int live = 245;
+while(live > 0){
+	playersInBush = 0;
+	for(i = 0; i<64; i++){ 
+		if(PlayerInGame(i) && GetActorProperty(i+1000,APROP_Health)>0){
+			if(xyDistance(0,i+1000) < BUSHRADIUS && zDistance(0,i+1000) > BUSHHEIGHT && zDistance(0,i+1000) <= 0){
+				playersInBush++;
+				}
+			}
+		}
+	if(playersInBush != oldPlayersInBush){
+		GiveInventory("StakeoutBushHelperGiver",1);
+		}
+	oldPlayersInBush = playersInBush;
+	Delay(1);
+	live--;
+	}
+}
+	
+
+ //[Trill] - for later
+script "CSLT_CrystalMan_GoPro" (int targetPlayer) CLIENTSIDE
+{
+if(ConsolePlayerNumber() != targetPlayer-1000){terminate;}
+
+int targetPLN = targetPlayer - 1000;
+
+SetCameraToTexture(targetPlayer + 6660, StrParam(s:"STKTC2", i:targetPLN), 90);
+
+SetActivator(targetPlayer);
+
+SetHudSize(4096, 3072, 0);
+SetFont(StrParam(s:"STKTC2", i:targetPLN));
+while(GetActorProperty(targetPlayer,APROP_Health)>0 && PlayerInGame(targetPLN) && (ClassifyActor(targetPlayer+6660) != ACTOR_NONE)){
+	HudMessage(s:"A";HUDMSG_PLAIN,568,CR_WHITE,2808.0,616.0,1.0 / 35 + 3);
+	Delay(1);
+	}
+Thing_Remove(targetPlayer + 6660);
+}
+
+
+Script "PingAlert" (int Sound)
+{
+	//used on the activator to alert the enemy tha they have been pinged
+	int clientTeam,victimTeam,victimTID;
+
+	victimTID = PlayerNumber()+1000;
+	victimTeam = GetPlayerInfo(victimTID,PLAYERINFO_TEAM);
+
+	for(int i=0; i<MAX_PLAYERS; i++) {
+	clientTeam = GetPlayerInfo(i,PLAYERINFO_TEAM);
+	if(clientTeam != victimTeam
+	|| i == victimTID){ACS_NamedExecuteAlways("PingSounder",0,i+1000,Sound);}
+
+	}
+}
+
+script "PingSounder" (int TID, int Sound)
+{
+	SetActivator(TID);
+	switch(Sound){
+	case 0: localAmbientSound("Support/PingAlert",127); break;
+	case 1: localAmbientSound("Misc/GravityWarn",127); break;
+	}
+}
+
+
+//#region -=- hookshot code -=-
+
+Script "MT_hookshot" (int PlayerID, int Vel, int Moving)
+{
+    int myx, myy, myz;
+    int px, py, pz;
+    int vx, vy, vz, magnitude, nx, ny, nz;
+    myx = GetActorX(0);
+    myy = GetActorY(0);
+    myz = GetActorZ(0);
+    
+    px = GetActorX(PlayerID);
+    py = GetActorY(PlayerID);
+    pz = GetActorZ(PlayerID);
+
+    GiveActorInventory(PlayerID,"WireAdaptorDelay",1);
+    
+    while(true)
+    {
+        if(Moving > 0){//If the hook is set to move, the positions need to be updated.
+            myx = GetActorX(0);
+            myy = GetActorY(0);
+            myz = GetActorZ(0);
+        }
+        
+        px = GetActorX(PlayerID);
+        py = GetActorY(PlayerID);
+        pz = GetActorZ(PlayerID) + 32.0;
+        
+        vx = myx - px;
+        vy = myy - py;
+        vz = myz - pz;
+        
+
+        magnitude = magnitudeThree(vx >> 16, vy >> 16, vz >> 16);
+
+        if(magnitude != 0)
+        {
+            nx = vx / magnitude; ny = vy / magnitude; nz = vz / magnitude;
+        }
+        else {
+            nx = 0; ny = 0; nz = 0;
+        }
+        
+        SetActorVelocity(PlayerID, nx*Vel, ny*Vel, nz*Vel, false, true);
+
+        Delay(1);
+        
+        if(magnitude <= Vel)
+        {
+            break;
+        }
+        
+        if(CheckActorInventory(PlayerID,"WireAdaptorDelay") < 1 || CheckActorInventory(PlayerID,"IsDead"))
+        {
+            break;
+        }
+		
+		if(abs(px - GetActorX(PlayerID)) < 2.0 && abs(py - GetActorY(PlayerID)) < 2.0 && abs(pz - GetActorZ(PlayerID) - 32.0) < 2.0)
+		{
+            break;
+		}
+		
+    }
+    
+    Thing_Remove(0);//Remove Hook
+    Delay(1);
+    GiveActorInventory(PlayerID, "WireHookShotEnd_MT",1);
+}
+
+
+//#endregion
+
+script "MT_LocalSounds" (int SoundID){
+
+//just a script to play local sound cues that only the acivator hears
+switch(SoundID){
+	case 1: localAmbientSound("weapon/Trigger",127); break;
+	case 2: localAmbientSound("weapon/Trigger",127); break;
+	}
+
+}
+
+
+
+script "PitchMatch" (Void)
+{
+int FiringPlayer= ACS_ExecuteWithResult(257, 0);
+
+SetActorPitch(0,GetActorPitch(FiringPlayer));
+//--
+}
+
+script "PitchGrab" (Void)
+{
+int FiringPlayer= ACS_ExecuteWithResult(257, 0);
+int Output = 360 * (GetActorPitch(FiringPlayer));
+
+//Log(f:Output);
+//Log(i:Output >> 16);
+//Setresultvalue(cos(GetActorPitch(FiringPlayer)) * 64 >> 16);
+Setresultvalue(Output >> 16);
+
+//--
+}
+
+Script "TripHeightRange" (int RangeBuffer)
+{
+//for tripwires, this checks to make sure the seen actor is level with them.
+int Targ = ACS_NamedExecuteWithResult("core_gettarget");
+int TargZLow = GetActorZ(Targ)>> 16;
+int TargZHigh = (TargZLow+(GetActorProperty(Targ,APROP_HEIGHT)>> 16));
+int Z = (GetActorZ(0))>> 16;
+int ZLow = Z-RangeBuffer;
+int ZHigh = Z+RangeBuffer;
+
+bool LowHitbox = TargZLow>ZLow && TargZLow<ZHigh;
+bool HighHitbox = TargZHigh>ZLow && TargZHigh<ZHigh;
+
+Log(i:TargZHigh,s:" ",i:ZLow);
+Setresultvalue(LowHitbox||HighHitbox);
+
+}
+
+Script "TripAngle" (int a, int b)
+{
+int sum;
+//This is taking the starting angle and the bounce angle, we actually need to flip the
+//starting angle by subtracting it by -180
+	a = a-180;
+//so now, if the value goes below 0, we want to wrap it back around from 360
+	if(a < 0)a += 360;
+
+/*
+okay so, now for the wraparound. and the issue of angles that cut between that point.
+
+so it's safe to say that the bounce angle should never be wider than 180, thus the shortest possible angle
+will be the one below 180.
+
+if a is say, 320 and b is 20, that's technically a 60 degree angle but the numbers would see it as a 300 degree
+angle. so I think what I want to do is make a case where the following is true:
+
+~ the "natural" degree is greater than 180
+~ one angle is greater than 180 and the other is less than 180
+
+so in this case, we're gonna adapt the wrap around by taking the smaller angle and adding 360 to it. then get
+the average, and then wrap that average by subtracting 360 if it is greater than it.
+*/
+
+if(abs(a-b) > 180 && ((a>180 && b<180) || (b>180 && a<180)))
+	{
+	if(a<b)a += 360;
+	else if(b<a)b += 360;
+
+	sum = (a + b)/2;
+	if(sum > 360)sum -= 360;
+	}
+else{sum = (a + b)/2;}
+
+log(i:a, s:" ", i:b,s:" ", i:sum);
+        Setresultvalue(sum);
+}
+
+
+script "RollShotRNG" (int angle, int pitch)
+{
+SetUserVariable(0,"User_RandAng",random(-angle,angle));
+SetUserVariable(0,"User_RandPitch",random(-pitch,pitch));
+}
+
+script "ShotAng" (void)
+{
+Setresultvalue(GetUserVariable(0,"User_RandAng"));
+}

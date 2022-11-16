@@ -1,0 +1,530 @@
+actor ClassBase2 : ClassBase1
+{
+States
+{
+//modded pain states go here
+
+//#region -=-Old Neumodian Pains-=-
+/*
+Pain.Poisonous:
+"----" H 0 //A_Jump(192,"Pain")
+"----" H 0 A_Giveinventory("PoisonStatusProc")
+"----" H 0
+"----" H 0
+Goto Pain+1
+Pain.Stinger:
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,1)
+"----" H 0 A_GiveInventory("PoisonCritCheck",1)
+"----" H 0 A_jumpifinventory("PoisonProof",1,9)
+"----" H 0 A_jumpifinventory("TempPoisonProof",1,8)
+"----" H 0 A_jumpifinventory("PoisonMark",1,7)
+"----" H 0 A_jumpifinventory("StingBuffer",1,2)
+"----" H 0 A_SpawnItemEX("StingWatcher",1)
+"----" H 0
+"----" H 0 A_Giveinventory("StingCount")
+"----" H 0 A_Giveinventory("StingBuffer")
+"----" H 0 A_jumpifinventory("StingCount",3,"StingerPoison")
+"----" H 0
+Goto Pain+1
+StingerPoison:
+"----" H 0 A_Giveinventory("PoisonStatusProc")
+Goto Pain+1
+
+Pain.PKFire:
+"----" H 0 A_jumpifinventory("PKFireProtection",1,8)
+Pain.Burner:
+Pain.Incendiary:
+"----" H 0 A_Giveinventory("BurnStatusProc")
+Goto Pain+1
+
+Pain.HotShot:
+"----" H 0 A_GiveInventory("PoisonCritCheck",1)
+"----" H 0 A_jumpifinventory("FireProof",1,9)
+"----" H 0 A_jumpifinventory("TempFireProof",1,8)
+"----" H 0 A_jumpifinventory("BurnMark",1,7)
+"----" H 0 A_jumpifinventory("ScorchBuffer",1,2)
+"----" H 0 A_SpawnItemEX("ScorchWatcher",1)
+"----" H 0
+"----" H 0 A_Giveinventory("ScorchCount")
+"----" H 0 A_Giveinventory("ScorchBuffer")
+"----" H 0 A_jumpifinventory("ScorchCount",3,"HotShotBurn")
+"----" H 0
+"----" H 0 A_jumpifinventory("BurnMark",1,2) //reapply burn if you have it already
+Goto Pain+1
+"----" H 0
+"----" H 0 A_Giveinventory("BurnMark")
+Goto Pain+1
+
+HotShotBurn:
+"----" H 0 A_Giveinventory("BurnStatusProc")
+Goto Pain+1
+
+pain.HeatRay:
+"----" H 0 A_GiveInventory("FireCritCheck",1)
+"----" H 0 A_Giveinventory("BurnStatusProc")
+"----" H 0
+"----" H 0 //A_GiveInventory("BurnerhitDelay",1)
+"----" H 0
+Goto Pain+1
+*/
+
+/*
+Pain.Freezer2:
+"----" H 0 A_jumpifinventory("TempFreezeProof",1,"NoFreeze")
+"----" H 0 SetPlayerProperty(0,1,4)
+"----" H 0 Thing_SetTranslation(0, 105)
+"----" H 0 A_SpawnItemEx("FreezeHandler")
+"----" H 0 A_GiveInventory("IceVision",1)
+"----" H 30 A_Stop
+"----" H 30
+"----" H 0 SetPlayerProperty(0,0,0)
+"----" H 0 ACS_ExecuteAlways(998,0,1)
+"----" H 0 A_TakeInventory("IceVision",1)
+"----" H 0 A_Giveinventory("TempFreezeProof")
+Goto Spawn+2
+NoFreeze:
+"----" H 0
+Pain.Freezer1:
+"----" H 0 //A_Jump(192,"Pain")
+"----" H 0 A_jumpifinventory("ChillProof",1,5)
+"----" H 0 A_jumpifinventory("TempChillProof",1,4)
+"----" H 0 A_jumpifinventory("ChilledMark",1,2)
+"----" H 0 A_SpawnItemEX("ChillWatcher",1)
+"----" H 0 A_Giveinventory("ChilledMark")
+"----" H 0
+"----" H 0 //A_GiveInventory("BurnerhitDelay",1)
+"----" H 0
+Goto Pain+1
+*/
+Pain.ShadowM_Caltrop:
+"----" H 0 A_Stop
+"----" H 0 A_GiveInventory("AimStagger",1)
+"----" H 0
+Goto Pain+1
+
+Pain.Illuminator:
+"####" H 0 A_SpawnItemEx("ShockFX",4,0,32)
+"####" H 0 A_GiveInventory("MineStun",1)
+"####" H 0 A_GiveInventory("RadiusGiveItem_3",1) //Ping Crystal Ping
+Goto Pain+1
+
+Pain.MiniMollyFire:
+"####" H 0 A_GiveInventory("MiniMollyFireHitDelay",1)
+"####" H 0 A_GiveInventory("BurnStatusSlowBuild",1)
+Goto Pain+1
+
+Pain.FlameBlastBoss:
+"####" H 0 A_GiveInventory("BurnStatusFastBuild",1)
+"####" H 0 A_GiveInventory("FlameBlastBossHitDelay",1)
+Goto Pain+1
+
+
+/*
+Pain.Tackle:
+"----" H 0 //A_GiveInventory("TackleHitDelay",1)
+"----" H 0 ThrustThing(random(0,255),30,0,0)
+"----" H 0 ThrustThingZ(0,30,0,0)
+"----" H 0
+Goto Pain+1
+*/
+
+//---->Status Effect Pain States End<----
+Pain.SingleShot: // regular shots
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,8)
+Goto Pain+1
+pain.VoltSpear:
+Pain.SingleShot2: // rapid shot
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,1)
+Goto Pain+1
+Pain.Sniper: 
+Pain.SingleShot3: //Hard single shots
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,15)
+Goto Pain+1
+Pain.SpreadShot: //shotgun like shots
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,2)
+Goto Pain+1
+Pain.SpreadShot2: //shotgun like shots, weaker knockback
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,1)
+Goto Pain+1
+
+Death.Crisperizer:
+Death.HeatRay:
+"----" H 0 //A_GiveInventory("FireCritCheck",1)
+Goto Death
+
+//#endregion
+Pain.WindPressureBuster:
+"----" H 0 //ACS_NamedExecuteAlways("HitKnockBack",0,15)
+"----" H 0
+Goto Pain+1
+
+Pain.ShadowBuster:
+"----" H 0 A_GiveInventory("ShadowBusterProtect",1)
+"----" H 0
+Goto Pain+1
+
+Pain.GasEmitter:
+"----" H 0 A_GiveInventory("GasEmitterhitDelay",1)
+"----" H 0 //A_Giveinventory("PoisonStatusBuild")
+"----" H 0
+Goto Pain+1
+/*
+Pain.CompressedSpray:
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,55)
+"----" H 0 A_GiveInventory("CompressedSprayhitDelay",1)
+"----" H 0
+Goto Pain+1
+Pain.BurningSpray:
+"----" H 0 A_GiveInventory("BurningSprayhitDelay",1)
+"----" H 0 A_Giveinventory("BurnStatusFastBuild")
+"----" H 0
+Goto Pain+1
+Pain.SnowySpray:
+"----" H 0 A_GiveInventory("SnowySprayhitDelay",1)
+"----" H 0 A_GiveInventory("FrostbiteStatusBuild",1)
+"----" H 0
+Goto Pain+1
+Pain.CrushingSpray:
+"----" H 0 A_GiveInventory("CrushingSprayhitDelay",1)
+"----" H 0
+Goto Pain+1
+*/
+
+/*
+Pain.DrillHead:
+"----" H 0 A_GiveInventory("DrillHeadProtect",1)
+"----" H 0
+Goto Pain+1
+*/
+/*
+Pain.Slash1:
+"----" H 0 A_GiveInventory("Slash1Protect", 1)
+Goto Pain+1
+Pain.Slash2:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+"----" H 0 A_GiveInventory("Slash2Protect", 1)
+Goto Pain+1
+*/
+Pain.StandardSaberEdge:
+"----" H 0 A_GiveInventory("StandardSaberEdgeProtect", 1)
+Goto Pain+1
+Pain.StandardSaberTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+"----" H 0 A_GiveInventory("StandardSaberTipProtect", 1)
+Goto Pain+1
+Death.StandardSaberTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+Death.StandardSaberEdge:
+"----" H 0 
+Goto Death
+/*
+Pain.BeamRapierEdge:
+"----" H 0 A_GiveInventory("BeamRapierEdgeProtect", 1)
+Goto Pain+1
+Pain.BeamRapierTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+"----" H 0 A_GiveInventory("BeamRapierTipProtect", 1)
+Goto Pain+1
+Death.BeamRapierTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+Death.BeamRapierEdge:
+"----" H 0 
+Goto Death
+
+Pain.ViperRifle:
+"----" H 0 A_Giveinventory("PoisonStatusBuild_ViperRifle")
+"----" H 0
+Goto Pain+1
+
+Pain.TriangularSaberEdge:
+"----" H 0 A_GiveInventory("TriangularSaberEdgeProtect", 1)
+Goto Pain+1
+Pain.TriangularSaberTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+"----" H 0 A_GiveInventory("TriangularSaberTipProtect", 1)
+Goto Pain+1
+Death.TriangularSaberTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+Death.TriangularSaberEdge:
+"----" H 0 
+Goto Death
+
+Pain.ReplislasherEdge:
+"----" H 0 A_GiveInventory("ReplislasherEdgeProtect", 1)
+"----" H 0 A_GiveInventory("ReplislasherWaveProtect", 1)
+Goto Pain+1
+Pain.ReplislasherWave:
+"----" H 0 A_GiveInventory("ReplislasherWaveProtect", 1)
+Goto Pain+1
+Death.ReplislasherWave:
+"----" H 0 
+Death.ReplislasherEdge:
+"----" H 0 
+Goto Death
+*/
+Pain.FireballBuster:
+"----" H 0 //A_Giveinventory("BurnStatusBuild")
+"----" H 0
+Goto Pain+1
+
+//with the Megacannon, You either take splash damage 
+//or direct, but not both. that's what I am doing here
+pain.MegaCannon:
+"----" H 0 A_GiveInventory("MegaCannonProtect",1)
+Goto Pain+1
+pain.MegaCannonDirect:
+"----" H 0 A_GiveInventory("MegaCannonProtect",1)
+Goto Pain+1
+/*
+pain.Roaster:
+"----" H 0 //A_GiveInventory("RoasterProtect",1)
+Goto Pain+1
+
+pain.TossShield:
+"----" H 0 A_GiveInventory("TossShieldProtect",1)
+Goto Pain+1
+*/
+Pain.AquaBuster:
+"----" H 0 //A_Giveinventory("AquaBusterSOAKInitiate")
+"----" H 0
+Goto Pain+1
+/*
+Pain.AncientRelicEdge:
+"----" H 0 A_GiveInventory("AncientRelicEdgeProtect", 1)
+"----" H 0 A_Giveinventory("BurnStatusFastBuild")
+Goto Pain+1
+Pain.AncientRelicTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+"----" H 0 A_GiveInventory("AncientRelicTipProtect", 1)
+"----" H 0 A_Giveinventory("BurnStatusProc")
+Goto Pain+1
+Death.AncientRelicTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+Death.AncientRelicEdge:
+"----" H 0 
+Goto Death
+
+Pain.FloromaSprayer:
+"----" H 0 A_GiveInventory("FloromaSprayerhitDelay",1)
+"----" H 0
+Goto Pain+1
+*/
+/*
+Pain.GutsPunch:
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,70)
+"----" H 0
+Goto Pain+1
+
+Pain.PoisSeed:
+"----" H 0 A_Giveinventory("PoisonStatusSlowBuild")
+Goto Pain+1
+Pain.MagBomb:
+"----" H 0 A_Giveinventory("StunStatusProc")
+Goto Pain+1
+Pain.FreezeBomb:
+"----" H 0 A_Giveinventory("FrostBiteStatusProc")
+Goto Pain+1
+
+Pain.Whirlwind:
+"----" H 0
+"----" H 0 A_GiveInventory("WhirlwindProtect",1)
+"----" H 0 //A_SpawnItemEX("WhirlwindImpactPuff")
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,70)
+"----" H 0
+Goto Pain+1
+Pain.BerzerkCharge:
+"----" H 0
+"----" H 0 A_GiveInventory("BerzerkChargehitDelay",1)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,5)
+"----" H 0
+Goto Pain+1
+
+Pain.RyuenjinEdge:
+"----" H 0 A_GiveInventory("RyuenjinEdgeProtect", 1)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockUp",0,30)
+Goto Pain+1
+Pain.RyuenjinTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockUp",0,30)
+"----" H 0 A_GiveInventory("RyuenjinTipProtect", 1)
+Goto Pain+1
+
+Death.RyuenjinTip:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+Death.RyuenjinEdge:
+"----" H 0 
+Goto Death
+
+Pain.Rekkoha:
+"----" H 0 A_GiveInventory("RekkohaProtect", 1)
+Goto Pain+1
+
+
+
+
+Pain.ScatteredFlower:
+"----" H 0 A_Giveinventory("PoisonStatusFastBuild")
+"----" H 0 //A_SpawnItemEx("ShockFX",4,0,32)
+"----" H 0 //A_GiveInventory("StunStatusProc",1)
+"----" H 0
+Goto Pain+1
+
+
+Pain.FiremanBall:
+"----" H 0 A_GiveToTarget("FiremanHeat", 25)
+Pain.FireStormBoss:
+"----" H 0 A_Giveinventory("BurnStatusProc")
+Goto Pain+1
+
+Death.FiremanBall:
+"----" H 0 A_GiveToTarget("FiremanHeat", 25)
+Goto Death
+
+Pain.FireStormTrail:
+"----" H 0 A_GiveInventory("FireStormTrailhitDelay",1)
+"----" H 0 A_Giveinventory("BurnStatusFastBuild")
+"----" H 0
+Goto Pain+1
+
+Pain.ShiningRayBomb:
+"----" H 0 A_GiveInventory("ShiningRayBombhitDelay",1)
+Goto Pain+1
+*/
+Pain.MeltCreeper:
+"----" H 0 A_GiveInventory("MeltCreeperhitDelay",1)
+"----" H 0 //A_GiveInventory("MeltCreeperStun",1)
+"----" H 0 A_Giveinventory("BurnStatusFastBuild")
+"----" H 0
+Goto Pain+1
+
+Pain.GoyoBombFire:
+"----" H 0 A_GiveInventory("GoyoBombFirehitDelay",1)
+"----" H 0 //A_GiveInventory("MeltCreeperStun",1)
+"----" H 0 A_Giveinventory("BurnStatusSlowBuild")
+"----" H 0
+Goto Pain+1
+
+/*
+Pain.SyringeToss:
+"----" H 0 A_Giveinventory("SyringeTossNerfInitiate")
+"----" H 0
+Goto Pain+1
+
+Pain.StrafeBarrage:
+"----" H 0 A_TakeFromTarget("TacticalRollCooldownItem",5)
+"----" H 0
+Goto Pain+1
+Death.StrafeBarrage:
+"----" H 0 A_TakeFromTarget("TacticalRollCooldownItem",999)
+"----" H 0 A_GiveToTarget("StrafeBarrageTimerItem",35)
+"----" H 0 
+Goto Death
+
+Pain.GuitarMachineGun:
+"----" H 0 A_GiveInventory("GuitarMachineGunHitDelay", 1)
+"----" H 0 A_GiveInventory("StopStatusProc", 1)
+Goto Pain+1
+
+Pain.GuitarMachineGun2:
+"----" H 0 A_GiveInventory("GuitarMachineGun2_HitDelay", 1)
+Goto Pain+1
+
+Pain.PulseSong:
+"----" H 0 A_GiveInventory("BlindStatusProc", 1)
+Goto Pain+1
+
+Pain.StopArrow:
+Pain.FlashPoint:
+"----" H 0 A_GiveInventory("StopStatusProc", 1)
+Goto Pain+1
+
+Pain.IceSlasherBoss:
+"----" H 0 A_GiveInventory("IceSlasherBossHitDelay", 1)
+"----" H 0 A_GiveInventory("FrostBiteStatusProc", 1)
+Goto Pain+1
+
+Pain.RingWarp:
+"----" H 0 A_GiveInventory("RingWarpHitDelay", 1)
+"----" H 0 A_TakeFromTarget("RingWarpCooldownItem",70)
+"----" H 0 A_TakeFromTarget("BlackHoleSpreadCooldownItem",70)
+Goto Pain+1
+
+Pain.BlackHoleShot:
+"----" H 0 A_GiveInventory("RingWarpHitDelay", 1)
+"----" H 0 A_TakeFromTarget("RingWarpCooldownItem",5)
+"----" H 0 A_TakeFromTarget("BlackHoleSpreadCooldownItem",5)
+Goto Pain+1
+
+pain.QuickBoomerangBoss:
+"----" H 0 A_GiveToTarget("AtomicSpeedResource",4)
+"----" H 0 A_GiveToTarget("AtomicSpeedUp",1)
+Goto Pain+1
+
+pain.DashPunch:
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,70)
+"----" H 0 A_GiveInventory("DashPunchhitDelay",1)
+Goto Pain+1
+
+pain.DashPunchWall:
+"----" H 0 A_GiveInventory("StunStatusProc",1)
+"----" H 0 A_GiveInventory("DashPunchWallhitDelay",1)
+Goto Pain+1
+*/
+pain.ElectriggerV:
+"----" H 0 A_GiveInventory("ElectriggerVhitDelay",1)
+Goto Pain+1
+/*
+pain.ElectricShockRound:
+"----" H 0 A_GiveInventory("StunStatusProc",1)
+Goto Pain+1
+pain.ExplosiveRound:
+"----" H 0 A_GiveInventory("BurnStatusProc",1)
+Goto Pain+1
+
+
+pain.AcidRain:
+"----" H 0 A_GiveInventory("AcidRainHitDelay",1)
+"----" H 0 A_GiveInventory("PoisonStatusSlowBuild",1)
+Goto Pain+1
+
+Pain.BladeDashImpact:
+"----" H 0 A_GiveInventory("StunStatusProc",1)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,70)
+Goto Pain+1
+
+Pain.BladeDashSaberEdge:
+"----" H 0 A_GiveInventory("BladeDashSaberEdgeProtect", 1)
+Goto Pain+1
+Pain.BladeDashSaberTop:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+"----" H 0 A_GiveInventory("BladeDashTipProtect", 1)
+Goto Pain+1
+Death.BladeDashSaberTop:
+"----" H 0 A_SpawnItemEX("PowerStrikeFX2",0,0,28)
+Death.BladeDashSaberEdge:
+"----" H 0 
+Goto Death
+
+
+pain.BoosterKick:
+"----" H 0 A_GiveInventory("StunStatusProc",1)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,1)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockUp",0,5,1)
+Goto Pain+1
+pain.CrescentKick:
+"----" H 0 A_GiveInventory("StunStatusProc",1)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,70)
+Goto Pain+1
+
+Pain.KnightWrecker:
+"----" H 0 A_GiveInventory("StunStatusProc",1)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockUp",0,5,1)
+Goto Pain+1
+Pain.KnightWreckerSwing:
+"----" H 0 A_GiveInventory("KnightWreckerSwingProtect",1)
+"----" H 0 ACS_NamedExecuteAlways("HitKnockBack",0,45)
+Goto Pain+1
+
+*/
+}
+}

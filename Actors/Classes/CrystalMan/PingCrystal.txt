@@ -1,0 +1,283 @@
+actor Ability2_CrystalMan : AbilityMasterBase
+{
+Weapon.AmmoUse2 1
+Weapon.AmmoGive2 0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+Obituary "$OB_MEGABUSTER"
+Tag "whatanicetag"
+weapon.ammotype1 "AbilityAmmo"
+inventory.icon "IWALL"
++WEAPON.ALLOW_WITH_RESPAWN_INVUL
+States
+{
+
+Ready:
+CRYA A 0 
+"####" A 1 Offset(0,110)
+"####" A 1 Offset(0,96)
+"####" A 1 Offset(0,82)
+"####" A 1 Offset(0,70)
+"####" A 1 Offset(0,58)
+"####" A 1 Offset(0,46)
+"####" A 1 Offset(0,32)
+Ready2:
+"####" B 0 A_FireCustomMissile("PingCrystalAimPathStart",0,1,0)
+"####" B 1 A_WeaponReady
+goto Ready2
+
+Fire:
+CRYA B 0 A_PlaySoundEx("weapon/chillshot","Weapon")
+"####" D 0 A_FireCustomMissile("PingCrystal",0,1,0)
+"####" B 0 A_TakeInventory("AbilityCharge_2",1)
+"####" B 0 
+"####" BA 3
+"####" A 1 Offset(0,32)
+"####" A 1 Offset(0,58)
+"####" A 1 Offset(0,82)
+"####" A 1 Offset(0,96)
+"####" A 0 A_Jump(256,"End")
+goto End
+
+AltFire:
+ICEB D 0 A_PlaySoundEx("weapon/chillshot","Weapon")
+"####" D 0 A_FireCustomMissile("PingCrystalSlow",0,1,0)
+"####" B 0 A_TakeInventory("AbilityCharge_2",1)
+"####" B 0 
+"####" BA 3
+"####" A 1 Offset(0,32)
+"####" A 1 Offset(0,58)
+"####" A 1 Offset(0,82)
+"####" A 1 Offset(0,96)
+"####" A 0 A_Jump(256,"End")
+goto End
+
+End:
+"####" A 1 A_TakeInventory("AbilityActiveFlag",9)
+"####" A 0 
+Goto End
+}
+}
+//====
+
+actor UseAbility2_CrystalMan : CustomInventory
+{
+states
+{
+Use:
+WEA2 A 0 A_GiveInventory("PingCrystalAbility",1)
+fail
+}
+}
+
+actor PingCrystalAbility : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",1,"Pickup2")
+stop
+
+Pickup2:
+TNT1 A 0 ACS_NamedExecuteAlways("RunClassAbility",0,2)
+stop
+
+Nope:
+TNT1 A 0 ACS_Execute(979,0)
+stop
+}
+}
+//=================
+// A PROJECTILE
+//=================
+
+    actor PingCrystalAim : GolfBallAim 
+    { 
+    Height 4
+    Radius 4
+    +ALLOWBOUNCEONACTORS
+	+BOUNCEONACTORS
+    bouncetype "Classic"
+    +BOUNCEONWALLS
+    +CANBOUNCEWATER
+    +FORCEXYBILLBOARD
+    +USEBOUNCESTATE
+    +MBFBOUNCER
+    bouncefactor 1.0
+    Wallbouncefactor 1.0
+    speed 32
+    }
+
+		actor PingCrystalAimPathStart : PingCrystalAim
+		{
+			+CLIENTSIDEONLY
+			+NOGRAVITY
+			radius 4
+			height 4
+			translation "198:198=220:220", "192:192=229:229"
+			States
+			{
+			Spawn:
+				TNT1 A 0
+				TNT1 A 0 ACS_NamedExecuteWithResult("Arc_Limit_Start")
+				TNT1 A 0 A_JumpIf(!CallACS("Arc_ClientSide"),"Perish")
+				TNT1 A 0 A_SpawnItemEx("PingCrystalAimPathBuffer",0,0,0,momx,momy,momz,0,SXF_TRANSFERTRANSLATION | SXF_ABSOLUTEVELOCITY)
+				TNT1 A 1
+				stop
+			}
+		}
+		actor PingCrystalAimPathBuffer : PingCrystalAim
+		{
+			+CLIENTSIDEONLY
+			+NOGRAVITY
+			radius 4
+			height 4
+			States
+			{
+			Spawn:
+				TNT1 A 0
+				TNT1 A 0 A_JumpIf(!CallACS("Arc_ClientSide"),"Perish")
+				TNT1 A 0 A_SpawnItemEx("PingCrystalAimPath",0,0,0,momx,momy,momz,0,SXF_TRANSFERTRANSLATION | SXF_ABSOLUTEVELOCITY)
+				TNT1 A 1
+				stop
+			}
+		}
+	
+		actor PingCrystalAimPath : PingCrystalAim
+		{
+			+CLIENTSIDEONLY
+			+BOUNCEONCEILINGS
+			+BOUNCEONWALLS
+			+BOUNCEONFLOORS
+			+MBFBOUNCER
+			+NOGRAVITY
+			radius 4
+			height 4
+			States
+			{
+			Spawn:
+				TNT1 A 0
+				TNT1 A 0 A_JumpIf(CallACS("Arc_Limit"),"Nope")
+				TNT1 A 0 //A_JumpIfInTargetInventory("BetweenShots",1,"Nope")
+				TNT1 A 0 A_JumpIf(!CallACS("Arc_ClientSide"),"Perish")
+				TNT1 A 0 A_SpawnItemEx("BallTrailAim",(10*momx)/-20.0,-(10*momy)/-20.0,(10*momz)/-20.0,0,0,0,0,SXF_ABSOLUTEANGLE | SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION)
+				TNT1 A 0 A_SpawnItemEx("BallTrailAim",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION | SXF_TRANSFERTRANSLATION )
+				TNT1 A 0 A_SpawnItemEx("PingCrystalAimPath",0,0,0,momx,momy,momz,0,SXF_TRANSFERTRANSLATION | SXF_ABSOLUTEVELOCITY)
+				TNT1 A 1
+				stop
+			Nope:
+				TNT1 A 1
+				stop
+			}
+		}
+
+
+
+
+Const int PingCrystalArea = 280;
+Const int RGI_PingCrystal1 = 3;
+
+actor PingCrystal
+{
+PROJECTILE
+Scale 2.5
+Height 4
+Radius 4
+Damage(13)
++ALLOWBOUNCEONACTORS
+bouncetype "Classic"
++BOUNCEONWALLS
++CANBOUNCEWATER
++FORCEXYBILLBOARD
++USEBOUNCESTATE
++MBFBOUNCER
+seesound "weapon/OrbBounce"
+damagetype "CrystalEyeBit"
+Obituary "$OB_CRYSTALEYE"
+bouncefactor 1.0
+Wallbouncefactor 1.0
+speed 32
+reactiontime 8
+States
+{
+Spawn:
+CRYE A 0 A_CountDown
+CRYE FGHIJFF 4
+loop
+
+Bounce:
+TNT1 A 0 ACS_NamedExecuteAlways("MT_RadiusGive",0,RGI_PingCrystal1,PingCrystalArea,RG_ENEMY)
+TNT1 A 0 A_SpawnItemEx("PingCrystalPulseFX")
+TNT1 A 0 //A_SpawnItemEx("PingCrystal_Rad")
+goto Spawn
+
+Death:
+TNT1 A 0 A_SpawnItemEx("ExplosionEffect1")
+stop
+}
+}
+
+actor PingCrystalSlow : PingCrystal
+{Speed 24}
+
+actor PingCrystalPulseFX : BasicClientside
+{
+scale 0.5
+Renderstyle "Add"
+ReactionTime 12
+Alpha 0.2
+speed 7
+States
+{
+Spawn:
+TNT1 A 0
+HARD B 1 
+RFLC A 0 A_SetScale(ScaleX+0.5)
+RFLC A 0 A_FadeIn
+RFLC A 0 A_CountDown
+loop
+
+Death:
+RFLC A 0
+stop
+}
+}
+
+actor PingCrystalXRay : PowerupGiver
+{
++INVENTORY.AUTOACTIVATE
+Powerup.Duration -5
+inventory.Amount 1
+powerup.type "XRayTagFlag"
+}
+
+actor RadiusGiveItem_3 : CustomInventory
+{
+States
+{
+Pickup:
+TNT1 A 0 A_JumpIfInventory("XRayTagFlag",1,"Nope")
+TNT1 A 0 ACS_NamedExecuteAlways("PingAlert",0)
+TNT1 A 0 A_GiveInventory("PingCrystalXRay")
+stop 
+Nope:
+TNT1 A 0
+Stop
+}
+}
+
+//for debugging
+
+actor MassPing : CustomInventory
+{
+States
+{
+Pickup:
+TNT1 A 0 ACS_NamedExecuteAlways("MT_RadiusGive",0,RGI_PingCrystal1,9999,RG_ENEMY)
+stop
+Nope:
+TNT1 A 0
+Stop
+}
+}
+
+

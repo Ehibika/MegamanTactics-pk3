@@ -1,0 +1,142 @@
+
+Actor Bombman : ClassBase //replaces Bombman
+{
+Player.DisplayName "Bombman"
+Player.SoundClass "Bombman"
+
+Player.Startitem "IsBombman"
+Player.Startitem "Bombman_ClassSet"
+
+player.startitem "SetupShop"
+player.startitem "LoadShopInventory"
+player.startitem "RoundSignatureGive"
+player.startitem "AbilityAmmo"
++NOSKIN
+States
+{
+Spawn: 
+BOMM A 0
+BOMM B 1 
+BOMM A 1
+GoTo Spawn+2
+See:
+BOMM BCDE 5
+GoTo Spawn+1
+Missile:
+BOMM F 5
+BOMM G 4
+GoTo Spawn+2
+PainFix:
+BOMM H 0 
+GoTo PainFrames
+}
+}
+
+
+
+Actor IsBombman : Once{}
+Const int Cap_HyperBomb = 2;
+Const int Cap_CrossBomb = 2;
+
+actor BombmanStarterSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("Zapper",1)
+TNT1 A 0 //ACS_NamedExecuteAlways("GiveSignatureCharge",0,Cap_HyperBomb)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor Bombman_Melee : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("BasicKnife",1)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor Bombman_ClassSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("UseAbility1_Bombman",1)
+TNT1 A 0 A_GiveInventory("Ability1_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_1",Cap_HyperBomb)
+
+//==
+TNT1 A 0 A_GiveInventory("UseAbility2_Bombman",1)
+TNT1 A 0 A_GiveInventory("Ability2_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_2",Cap_CrossBomb)
+//==
+Done:
+TNT1 A 0
+stop
+}
+}
+
+//=========|Class Shop|============
+
+actor Bombman_ClassShop : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("BuyHyperBomb",1)
+TNT1 A 0 A_GiveInventory("BuyCrossBomb",1)
+stop
+}
+}
+
+Const int Cost_HyperBomb = 350;
+Const int Cost_CrossBomb = 450;
+
+actor BuyHyperBomb : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_HyperBomb),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_HyperBomb)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",Cap_HyperBomb,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_1",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyCrossBomb : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_CrossBomb),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_CrossBomb)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",Cap_CrossBomb,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_2",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}

@@ -1,0 +1,86 @@
+
+OptionString ClassNames
+{
+//Ordered based on Keyconf
+
+"Megaman", "Megaman" 
+"Iceman", "Iceman"
+"Fireman", "Fireman"
+"Bombman", "Bombman"
+
+"Protoman", "Protoman"
+"CrystalMan", "CrystalMan"
+"Snakeman", "Snakeman"
+"Shadowman", "Shadowman"
+"Brightman", "Brightman"
+"Crashman", "Crashman"
+"Flameman", "Flameman"
+}
+
+OptionString Class_Altfire
+{
+"Megaman", "Combat Slide" 
+"Iceman", "Fog Grenade"
+"Fireman", "Fire Field"
+"Bombman", "Hyper Bomb"
+
+"Protoman", "Proto Shield"
+"CrystalMan", "Crystal Eye Cam"
+"Snakeman", "Searching Snake"
+"Shadowman", "Ninja Smoke"
+"Brightman", "Bright Bulb"
+"Crashman", "Crash Bomb"
+"Flameman", "Fire Blast"
+}
+
+
+OptionString Class_AltfireInfo
+{
+//-1,       "--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n---------------------------"
+"Megaman", "Perform a Quick Slide while \non the ground" 
+"Iceman" , "Toss a grenade that create a \nfreezing, vision blocking \nfog, slows anyone that moves \nthrough it!"
+"Fireman", "Toss a grenade that creates a \nburding area on the ground"
+"Bombman", "Toss a bomb that deals \narea damage after a set \namount of time."
+
+"Protoman", "Equips your proto shield along \nwith your protobuster, \nallowing you to block frontal \nattacks and shoot back when \nyou need to, firing lowers \nthe shield."
+"CrystalMan", "Hold to deploy a camera and \nadjust it's view using your \naim. the camera sticks to \nsurfaces and shows what it \nsees in a small viewport on \nthe screen, press the ability \nagain to detonate the camera \nand blind opponents."
+"Snakeman", "Send out a snake drone and \ncontrol it remotely. the snake \ndrone can scale some walls \nand shows what it sees \nthrough a viewport on your screen, \nuse M1 to fire a tracking \ndart that pings opponents in a \nsmall area, and recall \nthe drone with M2."
+"Shadowman", "Deploy a special smoke bomb \nthat cloaks the user and their \nteammates when they enter \nit. the cloak drops after \n2.5 seconds or immediately \nupon firing."
+"Brightman", "Launch an overcharged lightbulb \nthat explodes in a glorious, \nblinding light after being \nlaunched. hold M2 to \nlaunch it across a higher, \ncloser arc."
+"Crashman", "Launch explosives that clamp onto \nwalls and opponents and \ndetonates after 4 seconds, \nunleashing a chain of \nexplosions at it's location."
+"Flameman", "Launch a condensed plume of fire \nthat erupts into a horizontal \nline of flames, use M2 \nto launch a vertical \nline of flames instead."
+}
+
+
+OptionString Class_Ability
+{
+"Megaman", "Rush Call" 
+"Iceman", "FootHolder lift"
+"Fireman", "Melt Creeper"
+"Bombman", "Giga Bomb"
+
+"Protoman", "Proto Strike"
+"CrystalMan", "Ping Crystal"
+"Snakeman", "Snake Wire"
+"Shadowman", "Caltrops"
+"Brightman", "Illuminator Mines"
+"Crashman", "Piercer Bomb"
+"Flameman", "----"
+}
+
+OptionString Class_AbilityInfo
+{
+//-1,           "--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n--------------------------- \n---------------------------"
+"Megaman"     , "Call rush to a designated \narea, can offer a boost to \nthe you or a teammate." 
+"Iceman"      , "Spawn a footholder that can \nlift you up to higher places"
+"Fireman"     , "launch a projectile that \ncreates a long wall of fire, \nyou can control the shape \nthrough your aim."
+"Bombman"     , "Toss a huge and extreemely \npotent bomb that can decimate \nentire rooms."
+
+"Protoman"    ,"Launch a condensed ball of \nenergy that erupts several times \nupon reaching the ground, \nM2 launches it in a closer,\n higher arc and can also be \nused with the proto shield up."
+"CrystalMan"  ,"Toss a bouncing crystal orb \nthat pings it's immediate area \non every bounce, enemies \nwithin that area will be marked \nand visible to you and your \nteammates. use M2 to \nlaunch a slower crystal."
+"Snakeman"    ,"A specialized wire adaptor \nwith greater reach and speed."
+"Shadowman"   ,"Toss spikes across the ground \nthat stagger enemies that \nstep on them, slowing them \ndown and stunting their aim \nfor a bit."
+"Brightman"   ,"Plant mines that activate once \nenemies step over them, \nreleasing a flare that upon \ndetonation, stuns and pings \nenemies in a large area."
+"Crashman"    ,"Launch a specialized drilling \ncrash bomb that can bore \nthrough solid walls and explode \nout the other end, the bomb \ncan only go so far through \nwalls however."
+"Flameman"    ,"---"
+}

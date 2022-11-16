@@ -1,0 +1,142 @@
+
+Actor IceMan : ClassBase //replaces IceMan
+{
+Player.DisplayName "IceMan"
+Player.SoundClass "IceMan"
+
+Player.Startitem "IsIceMan"
+Player.Startitem "IceMan_ClassSet"
+
+player.startitem "SetupShop"
+player.startitem "LoadShopInventory"
+player.startitem "RoundSignatureGive"
+player.startitem "AbilityAmmo"
++NOSKIN
+States
+{
+Spawn: 
+ICEM A 0
+ICEM B 1 
+ICEM A 1
+GoTo Spawn+2
+See:
+ICEM BCDE 5
+GoTo Spawn+1
+Missile:
+ICEM F 5
+ICEM G 4
+GoTo Spawn+2
+PainFix:
+ICEM H 0 
+GoTo PainFrames
+}
+}
+
+
+
+Actor IsIceMan : Once{}
+Const int Cap_FogGrenade = 3;
+Const int Cap_IceCube = 2;
+
+actor IceManStarterSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("Zapper",1)
+TNT1 A 0 //ACS_NamedExecuteAlways("GiveSignatureCharge",0,Cap_FogGrenade)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor IceMan_Melee : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("BasicKnife",1)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor IceMan_ClassSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("UseAbility1_IceMan",1)
+TNT1 A 0 A_GiveInventory("Ability1_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_1",Cap_FogGrenade)
+
+//==
+TNT1 A 0 A_GiveInventory("UseAbility2_IceMan",1)
+TNT1 A 0 A_GiveInventory("Ability2_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_2",Cap_IceCube)
+//==
+Done:
+TNT1 A 0
+stop
+}
+}
+
+//=========|Class Shop|============
+
+actor IceMan_ClassShop : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("BuyFogGrenade",1)
+TNT1 A 0 A_GiveInventory("BuyIceCube",1)
+stop
+}
+}
+
+Const int Cost_FogGrenade = 200;
+Const int Cost_IceCube = 100;
+
+actor BuyFogGrenade : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_FogGrenade),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_FogGrenade)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",Cap_FogGrenade,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_1",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyIceCube : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_IceCube),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_IceCube)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",Cap_IceCube,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_2",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}

@@ -1,0 +1,109 @@
+//[+]========================================================[+]
+//[+]========================================================[+]
+actor User1_Trigger : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+//TNT1 A 0 A_JumpIfInventory("RespawnGhostTimer",1,"Nope") //for evil escourt
+TNT1 A 0 
+stop
+Nope:
+//BUST B 0 A_PlaySoundEx("weapon/heat3","Item")
+TNT1 A 0
+stop
+}
+}
+
+actor User2_Trigger : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+//TNT1 A 0 A_JumpIfInventory("RespawnGhostTimer",1,"Nope")
+TNT1 A 0 
+stop
+Nope:
+//BUST B 0 A_PlaySoundEx("weapon/heat3","Item")
+TNT1 A 0
+stop
+}
+}
+
+actor User3_Trigger : Inventory
+{
+inventory.amount 1
+Inventory.MaxAmount 2
+}
+
+actor User4_Trigger : Inventory
+{
+inventory.amount 1
+Inventory.MaxAmount 2
+}
+
+actor Reload_Trigger : Inventory
+{
+inventory.amount 1
+Inventory.MaxAmount 2
+}
+
+actor InputBlock : Inventory
+{
+inventory.amount 1
+Inventory.MaxAmount 1
+}
+
+actor InputChecker : CustomInventory
+{ states {
+pickup:
+TNT1 A 0 //ACS_ExecuteAlways(725,0) // 
+//---
+stop}}
+
+
+actor ReloadItem : CustomInventory 
+{
+Tag "Reload"
+inventory.amount 1
+inventory.maxamount 1
+inventory.pickupmessage "$PU_ETANK"
+
+//inventory.icon "ETANK"
+Inventory.PickupSound "item/1up"
++INVBAR
++COUNTITEM
+scale 2.0
+States
+{
+Spawn:
+EBAL F 0 
+EBAL F 0 Thing_ChangeTID(0,999)
+EBAL FE 6
+Goto Spawn+2
+Use:
+TNT1 A 0 A_Giveinventory("Reload_Trigger")
+fail
+Death:
+TNT1 A 0
+stop
+}
+}
+
+actor HelpWarnSound : CustomInventory
+{ 
++CLIENTSIDEONLY
+states {pickup: TNT1 A 0 A_Playsoundex("Commute/Medic","Soundslot5") 
+stop}}

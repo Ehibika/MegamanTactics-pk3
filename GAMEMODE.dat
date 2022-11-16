@@ -1,0 +1,15 @@
+LastManStanding {
+    removeflag DONTSPAWNMAPTHINGS
+}
+
+TeamLMS {
+    removeflag DONTSPAWNMAPTHINGS
+}
+
+cooperative {
+    addflag PLAYERSONTEAMS
+}
+
+Survival {
+    addflag PLAYERSONTEAMS
+}

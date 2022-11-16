@@ -1,0 +1,208 @@
+Const float SG_SprAng = 3.2;
+Const float SG_SprAngRev = SRev-SG_SprAng;
+
+Const float SG_SprD_Ang = SG_SprAng/1.5;
+Const float SG_SprD_AngRev = SRev-(SG_SprAng/1.5);
+
+const float SG_SPD = 0.8; 
+
+actor ShotGunWep : WepMasterBase
+{
+Tag "ShotGun"
+Weapon.AmmoUse 1
+Weapon.AmmoGive 4
+
+Obituary "$OB_SHOTGUN"
+inventory.icon "BLITI"
+scale 2.0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "ShotGun_Ammo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+Var int User_Spread;
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+Ready.Wep:
+DW08 A 1 A_WeaponReady(WRF_ALLOWINPUTS)
+"####" A 0 A_Jumpifinventory("ShotGun_Ammo",1,"Ready.Core")
+Goto Reload
+//===============
+Deselect:
+TNT1 A 0 A_TakeInventory("NoClipBar",9)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" A 1 A_Lower
+Loop
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,0.85*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" A 1 A_Raise
+Loop
+Fire:
+/*
+
+"####" A 0 A_FireCustomMissile("ShotGunShot",fRandom(-(SG_SPD),(SG_SPD)),1,4,4,0,fRandom(-(SG_SPD),(SG_SPD)))
+"####" A 0 A_FireCustomMissile("ShotGunShot",-12+fRandom(-(SG_SPD),(SG_SPD)),0,4,4,0,fRandom(-(SG_SPD),(SG_SPD)))
+"####" A 0 A_FireCustomMissile("ShotGunShot",12+fRandom(-(SG_SPD),(SG_SPD)),0,4,4,0,fRandom(-(SG_SPD),(SG_SPD)))
+"####" A 0 A_FireCustomMissile("ShotGunShot",-24+fRandom(-(SG_SPD),(SG_SPD)),0,4,4,0,fRandom(-(SG_SPD),(SG_SPD)))
+"####" A 0 A_FireCustomMissile("ShotGunShot",24+fRandom(-(SG_SPD),(SG_SPD)),0,4,4,0,fRandom(-(SG_SPD),(SG_SPD)))
+*/
+"####" A 0 A_WeaponReady(WRF_FIRING) //Reset Aim from reload interupt
+"####" A 0 A_JumpIfNoAmmo("NoAmmo")
+"####" A 0 A_Jumpifinventory("ConShotTimer",1,"NoAmmo")
+"####" A 0 A_PlaySoundEx("weapon/HardBuster1","Weapon")
+"####" A 0 A_FireCustomMissile("ShotGunShot",0,2,0,8)
+"####" A 0 A_FireCustomMissile("ShotGunShot",SG_SprAng,0,0,8,0,0)
+"####" A 0 A_FireCustomMissile("ShotGunShot",SG_SprD_Ang,0,0,8,0,SG_SprD_Ang)
+"####" A 0 A_FireCustomMissile("ShotGunShot",0,0,0,8,0,SG_SprAng)
+"####" A 0 A_FireCustomMissile("ShotGunShot",SG_SprD_Ang,0,0,8,0,SG_SprD_AngRev)
+"####" A 0 A_FireCustomMissile("ShotGunShot",SG_SprAngRev,0,0,8,0,0)
+"####" A 0 A_FireCustomMissile("ShotGunShot",SG_SprD_AngRev,0,0,8,0,SG_SprD_AngRev)
+"####" A 0 A_FireCustomMissile("ShotGunShot",0,0,0,8,0,SG_SprAngRev)
+"####" A 0 A_FireCustomMissile("ShotGunShot",SG_SprD_AngRev,0,0,8,0,SG_SprD_Ang)
+
+//--
+"####" A 0 A_Giveinventory("ShotgunCST")
+"####" A 0 A_Giveinventory("FiringSpeed")
+"####" BC 2 
+"####" A 8 
+"####" A 1 Offset(0,32)
+"####" A 1 Offset(0,46)
+"####" A 1 Offset(0,58)
+"####" A 0 A_PlaySoundEx("weapon/adapterreturn","Weapon")
+"####" A 1 Offset(0,58)
+"####" A 1 Offset(0,46)
+"####" A 1 Offset(0,32)
+"####" A 2  A_WeaponReady(WRF_NOPRIMARY|WRF_NOSWITCH)
+"####" C 0 A_REfire
+goto Ready.Wep
+
+
+Reload.Hold:
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_JumpIfNoAmmo("Reload.FirstLoop")
+Goto Reload.loop
+
+Reload.FirstLoop:
+"####" A 22 A_WeaponReady(WRF_STARTRELOADING) 
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_Giveinventory("WeaponSingleReloader",1)
+"####" A 1 A_JumpIf(CallACS("CheckAmmoFull")==0,"Reload.Loop")
+Reload.Loop:
+"####" A 17 A_WeaponReady(WRF_CYCLERELOADING) 
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_Giveinventory("WeaponSingleReloader",1)
+"####" A 1 A_JumpIf(CallACS("CheckAmmoFull")==0,"Reload.Loop")
+"####" A 0 A_PlaySoundEx("weapon/Crashland","Weapon")
+goto Reload.Rise2
+
+
+NoAmmo:
+"####" A 1
+"####" A 0 A_Jumpifinventory("ShotGun_Ammo",1,"Ready")
+Goto Reload
+
+Flash:
+TNT1 A 5 
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}
+
+actor ShotGunWep2 : ShotGunWep
+{Weapon.slotnumber 2}
+//[+]========================================================================[+]
+//--------------------------------|Ammo & inventory|---------------------------
+//[+]========================================================================[+]
+actor ShotGun_Ammo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 4
+Ammo.BackpackMaxAmount 6
+}
+
+actor ShotgunCST : PowerupGiver
+{
++INVENTORY.AUTOACTIVATE
+Powerup.Duration 14
+powerup.type "ConShotTimer"
+}
+//[+]========================================================================[+]
+//--------------------------------|Projectiles |--------------------------------
+//[+]========================================================================[+]
+
+actor ShotGunShot : fastProjectileBase
+{
+Obituary "$OB_SHOTGUN"
+DamageType "ShotgunP"
+Damage (13)
+States
+{
+Spawn:
+TNT1 A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+Goto Spawn2
+Spawn2:
+TNT1 A 0 A_CountDown
+TNT1 A 1 A_SpawnItemEx("ShotGunTrail",0,0,0,momx,momy,momz,0,9)
+Goto Spawn2
+Death:
+TNT1 A 1 A_Spawnitemex("BasicShotPuff",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+
+actor ShotGunTrail : BasicExplosion
+{
+Obituary "$OB_SHOTGUN"
+States
+{
+Spawn:
+TNT1 A 0
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_SpawnItemEx("ShotGunTrailX1",0,0,0,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("ShotGunTrailX",0,0,0,-momx*0.1,-momy*0.1,-momz*0.1,0,9)
+TNT1 A 0 A_SpawnItemEx("ShotGunTrailX",0,0,0,-momx*0.2,-momy*0.2,-momz*0.2,0,9)
+TNT1 A 0 A_SpawnItemEx("ShotGunTrailX",0,0,0,-momx*0.3,-momy*0.3,-momz*0.3,0,9)
+TNT1 A 0 A_SpawnItemEx("ShotGunTrailX",0,0,0,-momx*0.4,-momy*0.4,-momz*0.4,0,9)
+TNT1 A 0 A_SpawnItemEx("ShotGunTrailX",0,0,0,-momx*0.5,-momy*0.5,-momz*0.5,0,9)
+TNT1 A 0 A_SpawnItemEx("ShotGunTrailX",0,0,0,-momx*0.6,-momy*0.6,-momz*0.6,0,9)
+TNT1 A 1 
+stop
+}
+}
+
+actor ShotGunTrailX : FXActor_B
+{
+scale 2.5
+Alpha 0.9
+States
+{
+Spawn:
+CRBM A 0
+AXLB A 1
+//BSTG AAAAA 1 A_Fadeout
+stop
+}
+}
+
+actor ShotGunTrailX1 : FXActor_A
+{
+scale 2.5
+Alpha 0.9
+States
+{
+Spawn:
+BUST A 0
+AXLB A 1
+stop
+}
+}

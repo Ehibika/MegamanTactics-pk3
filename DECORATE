@@ -1,0 +1,122 @@
+
+#include "Actors/SourceActors.txt"
+#include "Actors/BaseFlags.txt"
+#include "Actors/ConstList.txt"
+
+//Wepon base
+#include "Actors/WeaponBase/WeaponBase0.txt"
+#include "Actors/WeaponBase/WeaponBase1.txt"
+#include "Actors/WeaponBase/WeaponBase2.txt"
+#include "Actors/WeaponBase/WeaponBase.txt"
+
+//ClassBase
+#include "actors/Classes/ClassBase/classbase0.txt"
+#include "actors/Classes/ClassBase/classbase1.txt"
+#include "actors/Classes/ClassBase/classbase2.txt"
+#include "actors/Classes/ClassBase/classbase.txt"
+#include "actors/Classes/ClassBase/classbaseTID.txt"
+#include "actors/Classes/ClassBase/classbase-flags.txt"
+
+#include "actors/Classes/ClassBase/classbaseStatuses.txt"
+#include "actors/Classes/ClassBase/classbaseStatuses2.txt"
+
+//inventories
+#include "Actors/inventory/Giverpackage.txt"
+#include "Actors/inventory/InputTriggers.txt"
+#include "Actors/inventory/ItemGiver.txt"
+#include "Actors/inventory/KeyItems.txt"
+#include "Actors/inventory/PlayerIcons.txt"
+#include "Actors/inventory/Properties.txt"
+#include "Actors/inventory/ArcTargeter.txt"
+#include "Actors/inventory/HealerUtilities.txt"
+#include "Actors/Inventory/items/Armor.txt"
+#include "Actors/Inventory/items/Utilities/MiniNade.txt"
+#include "Actors/Inventory/items/Utilities/MiniSmoke.txt"
+#include "Actors/Inventory/items/Utilities/ConcreteNade.txt"
+#include "Actors/Inventory/items/Utilities/Dynamite.txt"
+#include "Actors/Inventory/items/Utilities/WireAdaptor.txt"
+#include "Actors/Inventory/items/Utilities/Item1.txt"
+#include "Actors/Inventory/items/Utilities/Item2.txt"
+#include "Actors/Inventory/items/Utilities/MiniMolly.txt"
+#include "Actors/Inventory/items/Utilities/MiniFlash.txt"
+#include "Actors/Inventory/items/Utilities/TurtleDrone.txt"
+#include "Actors/Inventory/items/GeneralItems.txt"
+
+#include "Actors/Inventory/Shop/ShopAct.txt"
+#include "Actors/Inventory/Shop/ShopWeps.txt"
+#include "Actors/Inventory/Shop/ShopItems.txt"
+
+
+#include "Actors/Weapons/StandardBuster.txt"
+#include "Actors/Weapons/MilitaryBuster.txt"
+#include "Actors/Weapons/LazerRifle.txt"
+#include "Actors/Weapons/Shotgun.txt"
+
+#include "Actors/Weapons/WindPressureBuster.txt" 
+#include "Actors/Weapons/ArrowBuster.txt"
+#include "Actors/Weapons/ShadowBuster.txt"
+#include "Actors/Weapons/HighSpeedRifle.txt"
+#include "Actors/Weapons/GasEmitter.txt" 
+#include "Actors/Weapons/MegaCannon.txt"
+#include "Actors/Weapons/StandardSaber.txt"
+#include "Actors/Weapons/ElectriggerV.txt" 
+#include "Actors/Weapons/VioletZapper.txt"
+#include "Actors/Weapons/HawkPrecisionBuster.txt"
+#include "Actors/Weapons/AquaBuster.txt"
+#include "Actors/Weapons/TriangleGun.txt"
+#include "Actors/Weapons/ColdFront.txt"
+#include "Actors/Weapons/FireBrand.txt"
+#include "Actors/Weapons/Hoser.txt"
+#include "Actors/Weapons/SpikeGatling.txt"
+
+#include "Actors/Classes/Megaman/MegamanClass.txt"
+#include "Actors/Classes/Megaman/Rushcall.txt"
+#include "Actors/Classes/Megaman/CombatSlide.txt"
+
+#include "Actors/Classes/Iceman/IcemanClass.txt"
+#include "Actors/Classes/Iceman/FogGrenade.txt"
+#include "Actors/Classes/Iceman/IceCube.txt"
+
+#include "Actors/Classes/Bombman/BombmanClass.txt"
+#include "Actors/Classes/Bombman/HyperBombBoss.txt"
+#include "Actors/Classes/Bombman/CrossBomb.txt"
+
+#include "Actors/Classes/Fireman/FiremanClass.txt"
+#include "Actors/Classes/Fireman/FireField.txt"
+#include "Actors/Classes/Fireman/MeltCreeper.txt"
+
+#include "Actors/Classes/CrystalMan/CrystalManClass.txt"
+#include "Actors/Classes/CrystalMan/CrystalEyeCam.txt"
+#include "Actors/Classes/CrystalMan/PingCrystal.txt"
+
+#include "Actors/Classes/Snakeman/SnakemanClass.txt"
+#include "Actors/Classes/Snakeman/SearchSnake.txt"
+#include "Actors/Classes/Snakeman/SnakeWire.txt"
+
+#include "Actors/Classes/Shadowman/ShadowmanClass.txt"
+#include "Actors/Classes/Shadowman/NinjaSmoke.txt"
+#include "Actors/Classes/Shadowman/Caltrops.txt"
+
+#include "Actors/Classes/Brightman/BrightmanClass.txt"
+#include "Actors/Classes/Brightman/BrightBulb.txt"
+#include "Actors/Classes/Brightman/Illuminator.txt"
+
+#include "Actors/Classes/Protoman/ProtomanClass.txt"
+#include "Actors/Classes/Protoman/Protoshield.txt"
+#include "Actors/Classes/Protoman/ProtoBlaster.txt"
+
+#include "Actors/Classes/Crashman/CrashmanClass.txt"
+#include "Actors/Classes/Crashman/CrashBomb.txt"
+#include "Actors/Classes/Crashman/PiercerBomb.txt"
+
+#include "Actors/Classes/Flameman/FlamemanClass.txt"
+#include "Actors/Classes/Flameman/FlameBlast.txt"
+
+
+#include "Actors/Classes/~Prototyping/MaestroClass.txt"
+#include "Actors/Classes/~Prototyping/MT_FlashJolt.txt"
+//#include "Actors/Classes/~Prototyping/BurnerGrenade.txt"
+#include "Actors/Classes/~Prototyping/MT_DangerWrap.txt"
+//#include "Actors/Classes/~Prototyping/MT_SovaDart.txt"
+//#include "Actors/Classes/~Prototyping/MT_Tripwire.txt"
+//#include "Actors/Classes/~Prototyping/MT_GoyoBomb.txt"

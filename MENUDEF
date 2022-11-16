@@ -1,0 +1,156 @@
+LISTMENU "MainMenu"
+{
+	IfGame(Doom, Chex)
+	{
+		StaticPatch 94, 2, "M_DOOM"
+		Position 97, 72
+	}
+	IfGame(Strife)
+	{
+		StaticPatch 84, 2, "M_STRIFE"
+		Position 97, 45
+	}
+	IfGame(Heretic)
+	{
+		StaticPatch 88, 0, "M_HTIC"
+		StaticPatch 40, 10, "M_SKL01"
+		StaticPatch 232, 10, "M_SKL00"
+		Position 110, 56
+	}
+	IfGame(Hexen)
+	{
+		StaticPatch 88, 0, "M_HTIC"
+		StaticPatch 37, 80, "FBULB0"
+		StaticPatch 278, 80, "FBULA0"
+		Position 110, 56
+	}
+	
+	IfGame(Doom, Strife, Chex)
+	{
+		Font "DBIGFONT", "MenuWhite"
+		TextItem "SinglePlayer", "s", "PlayerclassMenu"
+		TextItem "Multiplayer", "m", "ZA_MultiplayerOptions" // [Lego]
+		TextItem "Player Setup", "p", "PlayerMenu"
+		Font "DBIGFONT", "MenuGreen" // [C]
+		TextItem "Megaman Tactics", "d", "MT_Menu" 
+		Font "DBIGFONT", "MenuWhite" //
+		TextItem "Options", "o", "OptionsMenu"
+		TextItem "Quit Game", "q", "QuitMenu"
+	}
+	
+	IfGame(Heretic, Hexen)
+	{
+		TextItem "$MNU_NEWGAME", "n", "PlayerclassMenu"
+		TextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+		TextItem "$MNU_GAMEFILES", "g", "GameFilesMenu"
+		TextItem "$MNU_INFO", "i", "ReadThisMenu"
+		TextItem "$MNU_QUITGAME", "q", "QuitMenu"
+	}
+}
+
+ListMenu "PlayerMenu"//[v5c edit]
+{
+	StaticTextCentered 160, 6, "$MNU_PLAYERSETUP"
+	Font "SmallFont"//, "White", "Cyan"
+	Linespacing 14
+	Position 48, 36
+	IfGame(Doom, Heretic, Strife, Chex)
+	{
+		MouseWindow 0, 220
+		//PlayerDisplay 220, 75, "20 00 00", "80 00 40", 1, "PlayerDisplay"
+		//PlayerDisplay 220, 55, "00 00 00", "00 AA AA", 1, "PlayerDisplay"
+		PlayerDisplay 220, 55, "20 00 00", "20 FF 40", 1, "PlayerDisplay"
+	}
+	IfGame(Hexen)
+	{
+		MouseWindow 0, 220
+		PlayerDisplay 220, 75, "00 07 00", "40 53 40", 1, "PlayerDisplay"
+	}
+	
+	IfGame (Doom, Strife, Chex)
+	{
+		PlayerNameBox "Name", 0, "Playerbox"
+		Selector "-", -16, -1
+	}
+	IfGame(Heretic, Hexen)
+	{
+		PlayerNameBox "Name", 5, "Playerbox"
+		Selector "-", -16, 1
+	}
+	
+	Linespacing 14
+	ValueText "Class", "Class"
+	TextItem "Loadout", "w", "EditLoadOutMenu"
+	//TextItem "Emblem", "e" , "EditEmblemMenu"
+	ValueText "Skin", "Skin"
+	ValueText "Gender", "Gender", "Gender"
+	ValueText "Autoaim", "Autoaim", "Autoaim"
+	ValueText "Always Run", "AlwaysRun", "OnOff"
+	
+	Class "PlayerMenu"
+}
+
+OptionMenu "ShopStartMenu"
+{
+Title "Open Shop"
+Command "Shop" , "OpenMainShop"
+control "Open Shop KEy", "OpenMainShop"
+}
+
+listmenu "MT_Menu"
+{
+	StaticPatch 108,31, "Megaman Tactics"//94,2
+	Position 97,72
+	TextItem "Mod Options", "m1", "MegaTactMenu"
+	TextItem "DataBase", "m2", "N_DataBaseMenu"
+}
+
+listmenu "N_DataBaseMenu"
+{
+	StaticPatch 108,31, "Megaman Tactics Database"//94,2
+	Position 97,72
+	TextItem "Class Database", "d4", "ClassDatabase"
+	TextItem "Weapon Database", "d1", "WepDataMenu"
+    //TextItem "Property Database", "d1", "PropertyDataMenu"
+	//TextItem "SubWeapon Database", "d2", "SubWepDataMenu"
+	//TextItem "Mechanics Glossary", "d3", "MechGlossMenu"
+	
+}
+
+listmenu "LoadOutMenu"
+{
+	StaticPatch 108,31, "CBMTITLE"//94,2
+	Position 97,72
+	TextItem "Edit Loadout", "t1", "EditLoadOutMenu"
+	TextItem "Edit PSI", "t1", "EditPsionicsMenu"
+	TextItem "Edit Emblem", "t2", "EditEmblemMenu"
+}
+
+OptionMenu "MegaTactMenu"
+{
+    Title "Megaman Tactics Menu"
+	StaticText ""
+	StaticText "===============================================================",1
+	StaticText "$SHOPNOTICE"
+	Command "$SHOPENTER" , "OpenMainShop"
+	control "Open Shop Key", "OpenMainShop"
+	StaticText "===============================================================",1
+	Option "Projectile Team Coloring",	"MT_CV_ProjTeamColor", "OnOff"
+	Option "Draw Voxels",			"r_drawvoxels", "OnOff"
+	Option "Show Current Cash",			"MT_ShowCash", "OnOff"
+	Slider "Cash Display X Offset",				"MT_MonHudX", -500.0, 500.0,10.0,1
+	Slider "Cash Display Y Offset",				"MT_MonHudY", -500.0, 500.0,10.0,1
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText "===============================================================",1
+	StaticText "$PBNOTICE"
+	Submenu "Ping Button Options", "PBOptions"
+	StaticText "===============================================================",1
+	StaticText "$DDNOTICE"
+	Submenu "Damage Display Options", "DDOptions"
+	StaticText "===============================================================",1
+	StaticText "$RELOADNOTICE"
+	Control 	"Reload",			"+Reload"
+	Control 	"Ability",			"+Zoom"
+}

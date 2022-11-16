@@ -1,0 +1,142 @@
+
+Actor CrashMan : ClassBase //replaces CrashMan
+{
+Player.DisplayName "CrashMan"
+Player.SoundClass "CrashMan"
+
+Player.Startitem "IsCrashMan"
+Player.Startitem "CrashMan_ClassSet"
+
+player.startitem "SetupShop"
+player.startitem "LoadShopInventory"
+player.startitem "RoundSignatureGive"
+player.startitem "AbilityAmmo"
++NOSKIN
+States
+{
+Spawn: 
+CRAM A 0
+CRAM B 1 
+CRAM A 1
+GoTo Spawn+2
+See:
+CRAM BCDE 5
+GoTo Spawn+1
+Missile:
+CRAM F 5
+CRAM G 4
+GoTo Spawn+2
+PainFix:
+CRAM H 0 
+GoTo PainFrames
+}
+}
+
+
+
+Actor IsCrashMan : Once{}
+Const int Cap_CrashBomb = 3;
+Const int Cap_PiercerBomb = 2;
+
+actor CrashManStarterSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("Zapper",1)
+TNT1 A 0 //ACS_NamedExecuteAlways("GiveSignatureCharge",0,Cap_CrashBomb)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor CrashMan_Melee : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("BasicKnife",1)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor CrashMan_ClassSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("UseAbility1_CrashMan",1)
+TNT1 A 0 A_GiveInventory("Ability1_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_1",Cap_CrashBomb)
+
+//==
+TNT1 A 0 A_GiveInventory("UseAbility2_CrashMan",1)
+TNT1 A 0 A_GiveInventory("Ability2_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_2",Cap_PiercerBomb)
+//==
+Done:
+TNT1 A 0
+stop
+}
+}
+
+//=========|Class Shop|============
+
+actor CrashMan_ClassShop : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("BuyCrashBomb",1)
+TNT1 A 0 A_GiveInventory("BuyPiercerBomb",1)
+stop
+}
+}
+
+Const int Cost_CrashBomb = 250;
+Const int Cost_PiercerBomb = 300;
+
+actor BuyCrashBomb : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_CrashBomb),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_CrashBomb)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",Cap_CrashBomb,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_1",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyPiercerBomb : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_PiercerBomb),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_PiercerBomb)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",Cap_PiercerBomb,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_2",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}

@@ -1,0 +1,172 @@
+/* -=- Loadout data -=-
+ * contains constants and variables used by the loadout system. 
+ *
+ * 
+
+*/
+#library "db_Loadout"
+#include "zcommon.acs"
+
+
+#LIBDEFINE WEAPONLIST 43
+#LIBDEFINE SUBWEAPONLIST_MAX 7
+#LIBDEFINE PSILIST 5
+
+#LIBDEFINE AUTOPICKLIST_MAX 31
+
+#LIBDEFINE NO_PB -1.0
+#LIBDEFINE PB_START 0.0
+
+
+#LIBDEFINE MILITARYBUSTER 0
+#LIBDEFINE WINDPRESSUREBUSTER 1
+#LIBDEFINE ARROWBUSTER 2
+#LIBDEFINE SHADOWBUSTER 3
+#LIBDEFINE LAZERRIFLE 4
+#LIBDEFINE TRIANGLEGUN 5
+#LIBDEFINE HIGHSPEEDRIFLE 6
+#LIBDEFINE SpikeGatling 7
+#LIBDEFINE SHOTGUN 8
+#LIBDEFINE GASEMITTER 9
+#LIBDEFINE COMPRESSEDSPRAYER 10		
+#LIBDEFINE FIREBRAND 11		
+#LIBDEFINE COLDFRONT 12		
+#LIBDEFINE HOSER 13		
+#LIBDEFINE ENERGYCANNON 14		
+#LIBDEFINE MEGACANNON 15		
+#LIBDEFINE LIGHTWAVECANNON 16		
+#LIBDEFINE DRILLHEADCANNON 17		
+#LIBDEFINE STANDARDSABER 18		
+#LIBDEFINE BEAMRAPIER 19		
+#LIBDEFINE TRIANGULARSABER 20
+
+// Weapon bitFlags
+#LIBDEFINE WF_NULL 0.0
+#LIBDEFINE WF_BUSTER 1.0
+#LIBDEFINE WF_MACHINEGUN 2.0
+#LIBDEFINE WF_SPRAYER 4.0
+#LIBDEFINE WF_LAUNCHER 8.0
+#LIBDEFINE WF_MELEE 16.0
+#LIBDEFINE WF_NOBOT 32.0
+#LIBDEFINE WF_MEDICAL	64.0
+#LIBDEFINE WF_BLADE 128.0
+#LIBDEFINE WF_HARMLESS 256.0
+#LIBDEFINE WF_EXPLOSION	512.0
+#LIBDEFINE WF_TOSSSHIELD 1024.0
+#LIBDEFINE WF_FORBIDDEN 2048.0
+#LIBDEFINE WF_6 4096.0
+#LIBDEFINE WF_7 8192.0
+#LIBDEFINE WF_8 16384.0
+#LIBDEFINE WF_9 32768.0
+#LIBDEFINE WF_10	65536.0
+#LIBDEFINE WF_11 131072.0
+#LIBDEFINE WF_12	262144.0
+#LIBDEFINE WF_13 524288.0
+#LIBDEFINE WF_14	1048576.0
+#LIBDEFINE WF_15 2097152.0
+#LIBDEFINE WF_16 4194304.0
+#LIBDEFINE WF_17 8388608.0
+#LIBDEFINE WF_18 16777216.0
+
+//Master Weapon List
+str MasterWepList[WEAPONLIST][6] = {
+
+//    Weapname, Actor name, Ammo Name, Weapon Flags, PainType1, Paintype2 
+/*0*/{"Military Buster","MilitaryBusterWep","MilitaryBuster_Ammo", WF_BUSTER,"MilitaryBuster",""},
+/*1*/{"WindPressure Buster", "WindPressureBusterWep","WindPressureBuster_Ammo", WF_BUSTER,"WindPressureBuster",""},
+/*2*/{"Arrow Buster","ArrowBusterWep","ArrowBuster_Ammo",WF_BUSTER,"ArrowBuster","NOBOT"},
+/*3*/{"Shadow Buster", "ShadowBusterWep","ShadowBuster_Ammo", WF_BUSTER|WF_BLADE,"ShadowBuster",""},
+
+/*4*/{"Lazer Rifle","LazerRifleWep","LazerRifle_Ammo", WF_MACHINEGUN,"LazerRifle",""},
+/*5*/{"Triangle Gun","TriangleGunWep","TriangleGun_Ammo", WF_MACHINEGUN,"TriangleGun",""},
+/*6*/{"HighSpeed Rifle","HighSpeedRifleWep","HighSpeedRifle_Ammo", WF_MACHINEGUN,"HighSpeedRifle",""},
+/*7*/{"SpikeGatling","SpikeGatlingWep","SpikeGatling_Ammo", WF_MACHINEGUN,"SpikeGatlingP",""},
+/*8*/{"Shotgun","ShotgunWep","Shotgun_Ammo",WF_MACHINEGUN,"ShotgunP",""},
+
+/*9*/{"Gas Emitter","GasEmitterWep","GasEmitter_Ammo", WF_SPRAYER,"GasEmitter",""},
+/*10*/{"Compressed Sprayer","CompressedSprayerWep","CompressedSprayer_Ammo",WF_SPRAYER,"CompressedSpray",""},
+/*11*/{"FireBrand","FireBrandWep","FireBrand_Ammo", WF_SPRAYER,"FireBrand",""},
+/*12*/{"ColdFront","ColdFrontWep","ColdFront_Ammo", WF_MACHINEGUN,"ColdFront",""},
+/*13*/{"Hoser","HoserWep","Hoser_Ammo", WF_SPRAYER,"Hoser",""},
+
+/*14*/{"Energy Cannon","EnergyCannonWep","EnergyCannon_Ammo", WF_LAUNCHER,"EnergyCannon",""},
+/*15*/{"Mega Cannon","MegaCannonWep","MegaCannon_Ammo", WF_LAUNCHER,"MegaCannon",""},
+/*16*/{"LightWave Cannon","LightWaveCannonWep","LightWaveCannon_Ammo", WF_LAUNCHER,"LightWaveCannon",""},
+/*17*/{"DrillHead Cannon","DrillHeadCannonWep","DrillHeadCannon_Ammo", WF_LAUNCHER,"DrillHead",""},
+
+/*18*/{"Standard Saber","StandardSaberWep","MeleeAmmo", WF_MELEE,"StandardSaberEdge","StandardSaberTip"},
+/*19*/{"Beam Rapier","BeamRapierWep","MeleeAmmo", WF_MELEE,"BeamRapierEdge","BeamRapierTip"},
+/*20*/{"Triangular Saber","TriangularSaberWep","MeleeAmmo", WF_MELEE,"TriangularSaberEdge","TriangularSaberTip"},
+
+/*21*/{"FireballBuster","FireballBusterWep","FireballBuster_Ammo", WF_BUSTER,"FireballBuster",""},
+/*22*/{"AtomicBuster","AtomicBusterWep","AtomicBuster_Ammo", WF_BUSTER,"AtomicBuster",""},
+/*23*/{"MeddyGun","MeddyGunWep","MeddyGun_Ammo", WF_MACHINEGUN|WF_MEDICAL|WF_HARMLESS,"MeddyGun",""},
+/*24*/{"ViperRifle","ViperRifleWep","ViperRifle_Ammo", WF_MACHINEGUN,"ViperRifle",""},
+
+/*25*/{"ThriceGun","ThriceGunWep","ThriceGun_Ammo", WF_MACHINEGUN,"ThriceGun",""},
+/*26*/{"MediBuster","MediBusterWep","MediBuster_Ammo", WF_BUSTER|WF_MEDICAL,"Medibuster",""},
+/*27*/{"ScrewShooter","ScrewShooterWep","ScrewShooter_Ammo", WF_MACHINEGUN|WF_MEDICAL,"ScrewShooter",""},
+/*28*/{"BoltDriver","BoltDriverWep","BoltDriver_Ammo", WF_MACHINEGUN|WF_MEDICAL,"BoltDriver",""},
+/*29*/{"FloromaSprayer","FloromaSprayerWep","FloromaSprayer_Ammo", WF_MACHINEGUN|WF_MEDICAL,"FloromaSprayer",""},
+/*30*/{"RepairLauncher","RepairLauncherWep","RepairLauncher_Ammo", WF_LAUNCHER|WF_MEDICAL,"RepairLauncher",""},
+/*31*/{"Replislasher","ReplislasherWep","Replislasher_Ammo", WF_MELEE,"ReplislasherEdge","ReplislasherWave"},
+/*32*/{"ElectriggerV","ElectriggerVWep","ElectriggerV_Ammo", WF_SPRAYER,"ElectriggerV",""},
+/*33*/{"VioletZapper","VioletZapperWep","VioletZapper_Ammo", WF_MACHINEGUN,"VioletZapper",""},
+/*34*/{"HawkPrecisionBuster","HawkPrecisionBusterWep","HawkPrecisionBuster_Ammo", WF_BUSTER,"HawkPrecisionBuster",""},
+/*35*/{"AbsoluteFreeze","AbsoluteFreezeWep","AbsoluteFreeze_Ammo", WF_LAUNCHER,"AbsoluteFreezeDirect","AbsoluteFreeze"},
+/*36*/{"TurboLauncher","TurboLauncherWep","TurboLauncher_Ammo", WF_LAUNCHER,"TurboLauncher",""},
+/*37*/{"Roaster","RoasterWep","Roaster_Ammo", WF_LAUNCHER,"Roaster",""},
+/*38*/{"TossShield","TossShieldWep","TossShield_WaitCount", WF_MELEE|WF_TOSSSHIELD,"TossShield",""},
+/*39*/{"AncientRelic","AncientRelicWep","TossShield_WaitCount", WF_MELEE,"AncientRelicEdge","AncientRelicTip"},
+/*40*/{"AquaBuster","AquaBusterWep","AquaBuster_Ammo", WF_BUSTER,"AquaBuster",""},
+/*41*/{"Napalm Head","NapalmHeadWep","NapalmHead_Ammo", WF_LAUNCHER,"NapalmHead",""},
+
+/*42*/{"MegaBuster","StandardBusterWep","StandardBuster_Ammo", WF_BUSTER,"StandardBuster",""},
+
+};
+
+
+#LIBDEFINE MAX_ITEMS 33
+
+str the_items[MAX_ITEMS] = 
+{
+"StandardBusterWep",
+"MilitaryBusterWep",
+"ShotgunWep",
+
+"WindPressureBusterWep",
+"ArrowBusterWep",
+"ShadowBusterWep",
+"HighSpeedRifleWep",
+"LazerRifleWep",
+"TriangleGunWep",
+"MegaCannonWep",
+"StandardSaberWep",
+"FireballBusterWep",
+"ElectriggerVWep",
+"VioletZapperWep",
+"HawkPrecisionBusterWep",
+"AquaBusterWep",
+"FirebrandWep",
+"ColdfrontWep",
+"HoserWep",
+"SpikeGatlingWep",
+//===
+"LT_Armor",
+"MiniSmoke",
+"MiniNade",
+"Dynamite",
+"ConcreteNade",
+"WireAdaptorMT",
+"Item1_MT",
+"MiniMolly",
+"MiniFlash",
+//===
+"AbilityCharge_1",
+"AbilityCharge_2",
+//"AbilityCharge_3",
+"AbilityResource_1",
+"AbilityResource_2",
+//"AbilityResource_3",
+//"UltimateCharge",
+};

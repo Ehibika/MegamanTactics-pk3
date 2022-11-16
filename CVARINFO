@@ -1,0 +1,59 @@
+server noarchive bool MT_SV_ProJTeamColor = true;
+user bool MT_CV_ProjTeamColor = true;
+user bool MT_ShowPropertyFX = true;
+user bool MT_ShowOverHealFX = true;
+user bool MT_ShowCash = true;
+user float MT_MonHudX = 0.000;
+user float MT_MonHudY = 0.000;
+
+user noarchive bool auto_false = false;
+server noarchive bool CASH_INIT = false;
+server noarchive bool INV_INIT = false;
+
+server int MT_EconMode = 0;
+server bool MT_DeathKeepWeapons = false;
+server bool MT_DeathKeepItems = false;
+server bool MT_DeathKeepAbilities = true;
+
+user int YOUR_CASH;
+
+server noarchive int TLMS_RoundCount = 0;
+server noarchive int TLMS_WinTeam = -1;
+server noarchive int TLMS_WinTeamStreak = 0;
+
+//===|Database server variables|===
+user noarchive int WepADataBase = 0; 
+user noarchive int WepBDataBase = 0; 
+user noarchive int PropertyDataBase = 0; 
+
+user noarchive int MechGlossindex = 0; 
+user noarchive string DB_Class = "Megaman"; 
+
+//===
+User float sv_CameraAng = 0.0;
+User float sv_CameraHeight = 0.0;
+User int sv_CameraZoom = 160;
+User float SV_CameraPitch = 0.3;
+User float SV_CamPlayerAlpha = 0.75;
+
+User float sv_ZoomCameraAng = -0.6;
+User float sv_ZoomCameraHeight = -0.6;
+User int sv_ZoomCameraZoom = 60;
+User float SV_ZoomCameraPitch = 0.0;
+User float SV_ZoomCamPlayerAlpha = 0.3;
+
+User int sv_CamReticuleMode = 1;
+User int sv_ZoomCamReticuleMode = 1;
+
+User color sv_CamReticuleColor = 0xFFFFFF;
+User float sv_CamReticuleAlpha = 6.5;
+user bool sv_CamReticuleTeamColor = true;
+User int Sv_CamReticuleType = 0;
+
+User int Sv_ZoomToggle = 0;
+User noarchive int ZoomToggle = 0;
+
+User noarchive int Sv_DisableStartupCamMenu = 0;
+
+user noarchive int PlayerCamNum = 0;
+//===

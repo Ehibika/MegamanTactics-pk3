@@ -1,0 +1,76 @@
+/* -=- Tip System -=-
+ * Gives random gameplay tips on death
+ *
+ * 
+
+\cg\cf
+
+The \cg\cf Property 
+*/
+#library "A_Tips"
+#include "zcommon.acs"
+
+#DEFINE TIPCOUNT 40
+
+str Tips[TIPCOUNT] = { 
+//====|Utility Tips|======
+"Generic utility can be bough on the ability side of the shop (reached by moving left or right), these can be used from your inventory.",
+"Mini nades are throwable frag grenades that do a decent chunk of damage, use them against opponents behind cover to drive them out.",
+"Mini smokes are throwable smoke grenades that create a plume of vision obscuring smoke, use them to conceal your movement so positioned opponents can't shoot you as easily",
+"Concrenates create walls made of concrete blocks use them to fortify an area to make your current position safer",
+"Weapons in this game shoot fast and far, so don't stand out in the open for too long",
+"Most throwable utilities can perform shorter, high angle throws by holding \cgAltfire\cf while aiming",
+"Be sure to buy \cgArmor\cf whenever you can, the extra health provided by it can mean the difference in a lot of situations.",
+"Everyone starts at their base equipment per round, keeping nothing from the previous round, so buy what you can and what you know you'll use",
+"Everyone gains \cg900 cred\cf on the first round of every map. enough to buy a starting weapon or utility but not always both",
+"Everyone gains \cg2400 cred\cf on the second round of every map. Players will start to run low cost weapons but these can still pack a punch, so be wary",
+"Everyone gains \cg3600 cred\cf on the third round of every map, players running high cost weapons like the \cgLazer rifle\cf likely won't have much utility on them. so make use of that.",
+"Everyone gains \cg6000 cred\cf on the fourth round and onward of every map. at this point players will be fully stocked with armor and strong weaponry.",
+"Utilities that can flash opponents like Brightman's \cgBright Bulb\cf effect opponents that see them when they go off, regardless of how far they are.",
+"Utilities that create damaging fields like Fireman's \cgFire Field\cf are creat for ocupying space or forcing opponents out of comfortable positions.",
+"Iceman's \cgIce Fog\cf slows any opponent that runs through it, this also generates a sound that exposes their efforts",
+"Dynamites are sticky explosives that go off when enemies come near them, sending out an alarm before detonating, use these to help watch for flanks you want to keep open.",
+"Utilities like Crystalman's \cgPing Crystal\cf or Brightman's \cgIlluminators\cf can ping a player, exposing their location to all of the enemy.",
+"Most forms of throwable utility will sink into water if they fall into it, so keep that in mind when there are areas with standing water.",
+"Signature abilities grant one charge for free per round, and are able to replenish that one charge mid round.",
+
+
+//====|Weapon Tips|======
+"The \cgwindPressureBuster\cf and \cgHighSpeed Rifle\cf may lack in accuracy and power but have few movement penalties, these weapons are best in close quarters",
+"The \cgLazer rifle\cf is costly but is a potent weapon thanks to it's power, fire rate, and accuracy",
+"Sniper style busters like the \cgArrow Buster\cf and \cgHawk Precision Buster\cf have to charge their shots, but they never have to reload as a result.",
+"Sniper style Busters come with a zoom feature that is activated by pressing the \cgReload\cf key",
+"The \cgHawk Precision Buster\cf can vaporize unarmored targets but is expensive and charges slowly",
+"the \cgAqua Buster\cf and \cgShotgun\cf have low range but can quickly eliminate unarmored opponents with one good shot, make the most out of tight spaces and vision denial tools",
+"Many weapons become inaccurate if you fire while jumping or moving, it's best to hold a stable position ahead of time so your shots will land.",
+"Be wary when standing on some moving platforms as they may worsen your accuracy",
+"The \cgTriangle gun\cf fires in 3 shot bursts, it's capable of doing a lot of damage with great precision but has low ammo. so make your shots count!",
+"The \cgViolet Zapper\cf fires somewhat slowly, but shoots accurately compared to other rifle weapons.",
+"If the enemy team has a sniper, you may want to invest in \cgMini Smokes\cf to conceal yourself whenever you have to move out in the open.",
+"The \cgFirebrand\cf is optimized for agressive playstyles thanks to it's high movement and low kill time. it's ammo capacity is short but reloads quickly. so make sure your ammo is always full before engaging.",
+"The \cgColdfront\cf is optimized for absolute precision, ideal for sharpshooters that like the flexibility of a rifle but wants one fitted for taking strong positions.",
+"The \cgHoser\cf is great for shotgun fans as it boasts automatic firing and more efficient reloading.",
+"It can be tempting to go ham with the \cgSpike Gatling\cf but you'll need to be smart with it, it's kill time isn't as fast as you think so it may not fair well in direct combat with other rifle weapons.",
+"The \cgSpike Gatling\cf is a prime choice for those wanting to play suppressive fire, it's heat based ammo system gives it more uptime than most weapons.",
+
+//====|Mechanics Tips|======
+"If you get flashed, you won't be able to see enemy players, you can still see the map however.",
+"Be on guard whenever you get pinged, enemy players can see your movements and respond to them ahead of time",
+"Be careful of the noise you make while traversing the map, keen players may pick up your location and shoot you down.",
+"Watch your angles wherever you decide to position yourself, if someone can see you, they can shoot you without much issue.",
+"",
+};
+
+script "HeresATip" DEATH 
+{
+Int cln = PlayerNumber();
+
+if(PlayerClass(cln) == -1 || PlayerIsBot(cln)){TERMINATE;}
+
+SetHudSize(656,496,0);
+SetFont("SMALLFONT");
+//hudmessage(s:"PROTIP: ",s:Tips[random(0,TIPCOUNT)]; HUDMSG_FADEINOUT|HUDMSG_LOG, 665, CR_GREEN, 400.0, 585.0, 5.0, 3.5, 1.0);
+
+hudmessage(s:"Tip: ",s:Tips[random(0,TIPCOUNT-1)]; HUDMSG_FADEINOUT|HUDMSG_LOG, 665, CR_YELLOW, 328.0, 445.0, 5.0, 3.5, 1.0);
+
+}

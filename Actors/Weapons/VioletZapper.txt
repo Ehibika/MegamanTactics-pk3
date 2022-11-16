@@ -1,0 +1,226 @@
+
+const float VZP_SPD = 1.3; 
+const float VZP_SPD2 = 2.4; 
+
+actor VioletZapperWep : WepMasterBase
+{
+Tag "VioletZapper"
+Weapon.AmmoUse 1
+Weapon.AmmoGive 80
+
+Obituary "$OB_VIOLETZAPPER"
+inventory.icon "BLASI"
+scale 2.0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "VioletZapper_Ammo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+Var int User_Spread;
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+Ready.Wep:
+DW33 A 1 A_WeaponReady(WRF_ALLOWINPUTS)
+"####" A 0 A_Jumpifinventory("VioletZapper_Ammo",1,"Ready.Core")
+Goto Reload
+//===============
+Deselect:
+TNT1 A 0 A_TakeInventory("NoClipBar",9)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" A 1 A_Lower
+Loop
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,0.7*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" A 1 A_Raise
+Loop
+Fire:
+"####" A 0 A_JumpIfNoAmmo("NoAmmo")
+"####" A 0 A_Jumpifinventory("ConShotTimer",1,"NoAmmo")
+"####" A 0 A_PlaySoundEx("weapon/Basshot","Weapon")
+
+"####" A 0 A_Giveinventory("VioletZapper_RoundHandler")
+"####" A 0 A_Giveinventory("FiringSpeed")
+"####" A 0 A_Giveinventory("VioletZapperCST")
+"####" B 0 A_Giveinventory("WepRecoil")
+"####" BC 1 A_WeaponReady(WRF_FIRING)
+"####" C 0 A_REfire
+goto Ready.Wep
+
+NoAmmo:
+"####" A 1
+"####" A 0 A_Jumpifinventory("VioletZapper_Ammo",1,"Ready")
+Goto Reload
+
+Flash:
+TNT1 A 5 
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}
+
+actor VioletZapper_RoundHandler : RoundHandlerBase
+{
+States
+{
+GoodAcc:
+"####" B 0 A_Jumpifinventory("ShotCount",8,"DefaultAcc")
+"####" B 0 A_FireCustomMissile("VioletZapperShot",fRandom(-(Aim_GoodSpread),(Aim_GoodSpread)),1,Aim_WepHor,Aim_WepHei,0,fRandom(-(Aim_GoodSpread),(Aim_GoodSpread)))
+stop
+//===============
+DefaultAcc:
+"####" A 0 A_FireCustomMissile("VioletZapperShot",fRandom(-(VZP_SPD),(VZP_SPD)),1,AIM_WEPHOR,AIM_WEPHEI,0,fRandom(-(VZP_SPD),(VZP_SPD)))
+Stop
+BadAcc:
+"####" A 0 A_FireCustomMissile("VioletZapperShot",fRandom(-(VZP_SPD2),(VZP_SPD2)),1,AIM_WEPHOR,AIM_WEPHEI,0,fRandom(-(VZP_SPD2),(VZP_SPD2)))
+stop
+}
+}
+//[+]========================================================================[+]
+//--------------------------------|Ammo & inventory|---------------------------
+//[+]========================================================================[+]
+actor VioletZapper_Ammo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 20
+Ammo.BackpackMaxAmount 30
+}
+
+actor VioletZapperCST : PowerupGiver
+{
++INVENTORY.AUTOACTIVATE
+Powerup.Duration 4
+powerup.type "ConShotTimer"
+}
+//[+]========================================================================[+]
+//--------------------------------|Projectiles |--------------------------------
+//[+]========================================================================[+]
+
+actor VioletZapperShot : FastProjectileBase
+{
+Obituary "$OB_VIOLETZAPPER"
+DamageType "VioletZapper"
+Damage (20)
+States
+{
+Spawn:
+TNT1 A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+Goto Spawn2
+Spawn2:
+TNT1 A 0 
+SHOC C 1 A_SpawnItemEx("VioletZapperTrailX1",0,0,0,momx,momy,momz,0,9)
+TNT1 A 0 A_CountDown
+SHOC D 1 A_SpawnItemEx("VioletZapperTrailX1",0,0,0,momx,momy,momz,0,9)
+Goto Spawn2
+Death:
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 1 A_Spawnitemex("VioletZapperPuff",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+
+actor VioletZapperPuff : FXActor_A
+{
+scale 3.0
+States
+{
+Spawn:
+CRBM A 0
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 0 A_PlaySoundEx("weapon/Mirrordeflect","Weapon") 
+TNT1 AAAAA 0 A_SpawnItemEx("ElectriggerVBurst2",0,frandom(-36,36),frandom(-36,36),0,0,0,0,1)
+PLSE ABC 1 A_SpawnItemEx("ElectriggerVFX",0,frandom(-36,36),frandom(-36,36),0,0,0,0,1)
+stop
+}
+}
+
+actor VioletZapperTrailX1 : BasicExplosion
+{
+States
+{
+Spawn:
+TNT1 A 0
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX1",0,0,0,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX1",0,0,0,-momx*0.1,-momy*0.1,-momz*0.1,0,9)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX1",0,0,0,-momx*0.2,-momy*0.2,-momz*0.2,0,9)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX1",0,0,0,-momx*0.3,-momy*0.3,-momz*0.3,0,9)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX2",0,0,0,-momx*0.4,-momy*0.4,-momz*0.4,0,9)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX2",0,0,0,-momx*0.5,-momy*0.5,-momz*0.5,0,9)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX2",0,0,0,-momx*0.6,-momy*0.6,-momz*0.6,0,9)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX2",0,0,0,-momx*0.7,-momy*0.7,-momz*0.7,0,9)
+TNT1 A 0 A_SpawnItemEx("ThunderShockTrailFX2",0,0,0,-momx*0.8,-momy*0.8,-momz*0.8,0,9)
+
+TNT1 A 0 A_SpawnItemEx("MoveThunderShockFX",0,frandom(-9,9),frandom(-9,9),0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("MoveThunderShockFX",0,frandom(-9,9),frandom(-9,9),-momx*0.2,-momy*0.2,-momz*0.2,0,9)
+TNT1 A 0 A_SpawnItemEx("MoveThunderShockFX",0,frandom(-9,9),frandom(-9,9),-momx*0.4,-momy*0.4,-momz*0.4,0,9)
+TNT1 A 0 A_SpawnItemEx("MoveThunderShockFX",0,frandom(-9,9),frandom(-9,9),-momx*0.6,-momy*0.6,-momz*0.6,0,9)
+TNT1 A 1 A_SpawnItemEx("MoveThunderShockFX",0,frandom(-9,9),frandom(-9,9),-momx*0.8,-momy*0.8,-momz*0.8,0,9)
+stop
+}
+}
+
+
+
+actor ThunderShockTrailFX1 : BasicClientside
+{
+scale 2.5
+alpha 1.0
+//renderstyle "add"
+speed 7
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_Stop
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+SHOC D 1 
+stop
+}
+}
+
+actor ThunderShockTrailFX2 : BasicClientside
+{
+scale 2.0
+alpha 1.0
+//renderstyle "add"
+speed 7
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_Stop
+SHOC C 1 
+stop
+}
+}
+
+
+actor MoveThunderShockFX : BasicGraphicEffect
+{
+    +FORCEXYBILLBOARD
+    +BRIGHT
+    States
+    {
+	Spawn:
+		TNT1 A 0
+        TNT1 A 0 A_Stop
+		TNT1 A random(1,9)
+        ESPA Q 0
+        ESPA Q 0 A_Jump(256,1,4)
+        ESPA QRS 1
+        stop
+        ESPA XWV 1
+        stop
+    }
+}

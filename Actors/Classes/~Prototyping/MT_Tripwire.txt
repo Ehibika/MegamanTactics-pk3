@@ -1,0 +1,330 @@
+actor Ability1_Prototyper : AbilityMasterBase
+{
+Weapon.AmmoUse2 1
+Weapon.AmmoGive2 0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+Obituary "$OB_MEGABUSTER"
+Tag "RushCall Ability"
+weapon.ammotype1 "AbilityAmmo"
+inventory.icon "RCOIL"
+Dropitem ""
++WEAPON.ALLOW_WITH_RESPAWN_INVUL
++WEAPON.NOAUTOFIRE
+States
+{
+
+Ready:
+HSPR D 0 
+"####" D 0 //A_FireCustomMissile("RushCallRingSpawner",0,0,0,0)
+"####" D 1 A_WeaponReady(WRF_NOSECONDARY)
+goto ready
+
+Fire:
+"####" C 0 A_PlaySoundEx("weapon/crackerthrow","Weapon")
+"####" D 0 A_FireCustomMissile("TripWireThrow",0,0,0,0)
+"####" D 1 A_TakeInventory("AbilityCharge_1",1)
+"####" C 0 A_GiveInventory("RefireBuffer")
+//"####" A 0 ACS_NamedExecuteWithResult("MT_Chatline",CLT_ABILITY,Random(0,1))
+"####" ELM 2
+"####" B 0 A_Jump(256,"End")
+goto End
+
+AltFire:
+"####" M 1
+End:
+"####" M 1 A_TakeInventory("AbilityActiveFlag",9)
+"####" M 0 
+Goto End
+}
+}
+//====
+
+actor UseAbility1_Prototyper : CustomInventory
+{
+states
+{
+Use:
+WEA2 A 0 A_GiveInventory("TripwireAbility",1)
+fail
+}
+}
+
+actor TripwireAbility : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",1,"Pickup2")
+stop
+
+Pickup2:
+TNT1 A 0 ACS_NamedExecuteAlways("RunClassAbility",0,1)
+stop
+
+Nope:
+TNT1 A 0 ACS_Execute(979,0)
+stop
+}
+}
+//=================
+//=================
+
+actor TripWireThrow
+{
+PROJECTILE
+Scale 2.5
+Height 8
+Radius 8
+Damage(13)
++ALLOWBOUNCEONACTORS
+bouncetype "Classic"
++BOUNCEONWALLS
++CANBOUNCEWATER
++FORCEXYBILLBOARD
++USEBOUNCESTATE
++MBFBOUNCER
+seesound "weapon/OrbBounce"
+damagetype "CrystalEyeBit"
+Obituary "$OB_CRYSTALEYE"
+bouncefactor 1.0
+Wallbouncefactor 1.0
+speed 32
+reactiontime 8
+States
+{
+Spawn:
+CRYE A 0 A_CountDown
+CRYE A 0 A_SetArg(0,angle)
+Spawn2:
+CRYE FGHIJFF 4
+loop
+
+Bounce.Wall:
+TNT1 A 0 A_SpawnItemEx("TripwireSet",0,0,0,0,0,0,CallACS("TripAngle",args[0],angle),1|SXF_ABSOLUTEANGLE)//
+TNT1 A 0 //A_SpawnItemEx("PingCrystal_Rad")
+goto stop
+
+Bounce:
+CRYE FGHIJFF 4
+goto Spawn2
+
+Death:
+TNT1 A 0 A_SpawnItemEx("ExplosionEffect1")
+stop
+}
+}
+
+
+actor TripwireSet  
+{
++MISSILE
++NOBLOOD
++DONTBLAST
++SEEKERMISSILE
++NOTARGETSWITCH
++SHOOTABLE
++NOGRAVITY
++NOCLIP
+-LOOKALLAROUND
++THRUSPECIES
+species "Tripwire"
+Obituary "$OB_DYNAMITE"
+DamageType "Dynamite"
+scale 2.5
+radius 8
+height 8
+speed 0
+health 10
+scale 2
+args 0,8
+Mass 50 //TripRange
+states
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_CheckCeiling("SpawnCeiling")
+goto Spawn1
+
+SpawnCeiling:
+CRYE F 0 A_SetScale(Scalex,-ScaleY)
+CRYE F 0 A_SetArg(0,-args[1])
+goto Spawn1
+
+Spawn1:
+CRYE F 0 A_GiveInventory("ProjectileCode",1)
+CRYE F 0 ACS_NamedExecuteAlways("GiveM_EntiTID",0,4,3)
+CRYE F 1 A_RearrangePointers(AAPTR_DEFAULT, AAPTR_TARGET, AAPTR_DEFAULT)
+CRYE F 5
+CRYE F 0 
+DMIT C 0 A_Jump(256,"Scan")
+Goto Scan
+
+Scan:
+CRYE F 0 A_RearrangePointers(AAPTR_MASTER, AAPTR_DEFAULT, AAPTR_DEFAULT)
+Scan1:
+CRYE F 0 
+CRYE F 0 A_SpawnItemEx("TripwireBeamRay", cos(-pitch)*4,0,0+(sin(pitch)*4), cos(-pitch+1), 0, sin(-pitch+1), 0, SXF_MULTIPLYSPEED|SXF_TRANSFERPOINTERS)
+CRYE F 1  A_LookEx(LOF_NOSOUNDCHECK, 0, 1000, 1000, 5, "Targetcheck")
+Goto Scan1
+Targetcheck:
+CRYE F 1 A_Jumpif(CallACS("TripHeightRange",32)==1,"Explode") //You Are at level with me
+Goto Scan
+Targetcheck2:
+CRYE F 1 A_Jumpif(CallACS("TrapSensorIdentify")==1,"Scan") //You Are A Teammate
+Goto Explode
+
+Explode:
+CRYE F 0 A_PlaySoundEX("weapon/BombAlarm","Soundslot6")
+CRYE FGFGF 5
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 1 A_RearrangePointers(AAPTR_MASTER, AAPTR_DEFAULT, AAPTR_DEFAULT)
+TNT1 A 0 A_SpawnItemEx("ExplosionEffect2",0,0,0,0,0,0,0,1)
+TNT1 A 0 A_PlaySoundEx("weapon/Napalm","Weapon")
+TNT1 A 0 A_Explode(Dynamite_DMG,Dynamite_RAD2,1,0,Dynamite_RADMin)
+stop
+Death:
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 0 A_PlaySoundEx("misc/MetDie","Weapon")
+TNT1 A 0 A_SpawnItemEx("ExplosionEffect1",0,0,0,0,0,0,0,1)
+TNT1 A 3
+stop
+}
+}
+
+Actor TripwireSet_B : TripwireSet{Designatedteam 0 Species "LightMember" }
+Actor TripwireSet_R : TripwireSet{Designatedteam 1 Species "WilyMember" }
+Actor TripwireSet_G : TripwireSet{Designatedteam 2 Species "CossackMember" }
+Actor TripwireSet_O : TripwireSet{Designatedteam 3 Species "KingMember" }
+
+
+
+actor TripwireBeamStart //: BasicHelper
+{
+    +MISSILE
+    -SOLID
+    +NOCLIP
+    +NOINTERACTION
+    +NOGRAVITY
+    +DONTBLAST
+    +DONTREFLECT
+    +THRUACTORS
+    RenderStyle none
+    Radius 2
+    Height 2
+
+    Speed 15
+    States
+    {
+    Spawn:
+        TNT1 A 0
+        TNT1 A 0 A_Warp(2,15,0,32,0,16+8)//But which interpolation? Does it matter?
+        TNT1 A 1 A_SpawnItemEx("TripwireBeamRay",0,0,0,momx,momy,momz,0,8)
+        stop
+    }
+}
+
+actor TripwireBeamRay : FastProjectilebase//FastProj to match damager hitbox
+{
+    +MISSILE
+    +NOGRAVITY
+    +SKYEXPLODE
+    +EXPLODEONWATER
+    +DONTSPLASH
+    +PAINLESS
+    +CLIENTSIDEONLY
+    +THRUSPECIES
+    species "Tripwire"
+    RenderStyle None
+    Damage (0)
+    Speed 15
+    Scale 2.5
+    meleeRange 4
+    Mass 100 //TripRange
+    States
+    {
+    Spawn:
+        TNT1 A 0
+        TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+        TNT1 A 0 A_JumpIf(Pitch > Mass,"Death2")
+        TNT1 A 0 A_SetPitch(Pitch+1)
+        TNT1 A 0 A_SpawnItemEx("TripwireBeamRay",0,0,0,momx,momy,momz,0,552+1)//512+32+8
+        TNT1 A 0 A_Stop
+        TNT1 A 0 A_JumpIf(Pitch > meleeRange,"Death3")
+        TNT1 A 0 A_SpawnItemEx("TripwireBeamRayFX",0,0,0,0,0,0,0,1)
+        TNT1 A 1
+        stop
+    Death:
+        TNT1 A 0 A_SpawnItemEx("TripwireBeamPuff",0,0,0,0,0,0,0,1)
+        TNT1 A 0 A_SpawnItemEx("TripwireBeamRay2",0,0,0,1,0,0,180,1|SXF_MULTIPLYSPEED)
+        stop
+    Death2:
+        TNT1 A 0 A_Stop
+        TNT1 A 0 //A_SpawnItemEx("TripwireBeamPuff",0,0,0,0,0,0,0,1)
+        stop
+    Death3:
+        TNT1 A 0 A_SpawnItemEx("TripwireBeamRayFX2",0,0,0,0,0,0,0,1)
+        TNT1 A 1
+        stop
+    
+    }
+}
+
+actor TripwireBeamRay2 : TripwireBeamRay
+{
+    States
+    {
+    Spawn:
+        TNT1 A 0
+        TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+        TNT1 A 0 A_JumpIf(Pitch > Mass,"Death2")
+        TNT1 A 0 A_SetPitch(Pitch+1)
+        TNT1 A 0 A_SpawnItemEx("TripwireBeamRay2",0,0,0,momx,momy,momz,0,552+1)//512+32+8
+        TNT1 A 0 A_Stop
+        TNT1 A 0 A_JumpIf(Pitch > meleeRange,"Death2")
+        TNT1 A 0 A_SpawnItemEx("TripwireBeamRayFX",0,0,0,0,0,0,0,1)
+        TNT1 A 1
+        stop
+    Death:
+        TNT1 A 0 //A_SpawnItemEx("TripwireBeamPuff",0,0,0,0,0,0,0,1)
+        stop
+    Death2:
+        TNT1 A 0 A_Stop
+        TNT1 A 0 //A_SpawnItemEx("TripwireBeamPuff",0,0,0,0,0,0,0,1)
+        stop
+    }
+}
+
+
+actor TripwireBeamPuff : BasicClientside//BulletPuff
+{
+scale 2.5
+DamageType "TripwireBeam"
+Obituary "$OB_TRIPWIREBEAM"
+
+alpha 1.0
+States
+{
+Spawn:
+TNT1 A 0 
+TNT1 A 0 A_GiveInventory("ProjectileFXCode",1)
+HARD E 1 
+stop
+}
+}
+
+actor TripwireBeamRayFX : BasicClientside
+{
+scale 1.0
+renderstyle "add"
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+BASB U 1
+stop
+}
+}
+
+actor TripwireBeamRayFX2 : TripwireBeamRayFX
+{Alpha 0.3 scale 0.5}

@@ -1,0 +1,143 @@
+
+Actor Protoman : ClassBase //replaces Protoman
+{
+Player.DisplayName "Protoman"
+Player.SoundClass "Protoman"
+
+Player.Startitem "IsProtoman"
+Player.Startitem "Protoman_ClassSet"
+
+player.startitem "SetupShop"
+player.startitem "LoadShopInventory"
+player.startitem "RoundSignatureGive"
+player.startitem "AbilityAmmo"
++NOSKIN
+States
+{
+Spawn: 
+PRO_ A 0
+PRO_ B 1 
+PRO_ A 1
+GoTo Spawn+2
+See:
+PRO_ BCDE 5
+GoTo Spawn+1
+Missile:
+PRO_ F 5
+PRO_ G 4
+GoTo Spawn+2
+PainFix:
+PRO_ H 0 
+GoTo PainFrames
+}
+}
+
+
+
+Actor IsProtoman : Once{}
+Const int Cap_ProtoShield = 1;
+Const int Cap_ProtoBlaster = 2;
+
+
+actor ProtomanStarterSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("Zapper",1)
+TNT1 A 0 //ACS_NamedExecuteAlways("GiveSignatureCharge",0,Cap_ProtoShield)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor Protoman_Melee : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("BasicKnife",1)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor Protoman_ClassSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("UseAbility1_Protoman",1)
+TNT1 A 0 A_GiveInventory("Ability1_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_1",Cap_ProtoShield)
+
+//==
+TNT1 A 0 A_GiveInventory("UseAbility2_Protoman",1)
+TNT1 A 0 A_GiveInventory("Ability2_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_2",Cap_ProtoBlaster)
+//==
+Done:
+TNT1 A 0
+stop
+}
+}
+
+//=========|Class Shop|============
+
+actor Protoman_ClassShop : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("BuyProtoShield",1)
+TNT1 A 0 A_GiveInventory("BuyProtoBlaster",1)
+stop
+}
+}
+
+Const int Cost_ProtoShield = 100;
+Const int Cost_ProtoBlaster = 250;
+
+actor BuyProtoShield : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_ProtoShield),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_ProtoShield)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",Cap_ProtoShield,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_1",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyProtoBlaster : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_ProtoBlaster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_ProtoBlaster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",Cap_ProtoBlaster,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_2",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}

@@ -1,0 +1,210 @@
+Const float HZR_SprAng = 3.8;
+Const float HZR_SprAngRev = SRev-HZR_SprAng;
+
+Const float HZR_SprD_Ang = HZR_SprAng/1.5;
+Const float HZR_SprD_AngRev = SRev-(HZR_SprAng/1.5);
+
+actor HoserWep : WepMasterBase
+{
+Tag "Hoser"
+Weapon.AmmoUse 1
+Weapon.AmmoGive 4
+
+Obituary "$OB_HOSER"
+inventory.icon "BLITI"
+scale 2.0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "Hoser_Ammo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+Var int User_Spread;
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+Ready.Wep:
+DW38 A 1 A_WeaponReady(WRF_ALLOWINPUTS)
+"####" A 0 A_Jumpifinventory("Hoser_Ammo",1,"Ready.Core")
+Goto Reload
+//===============
+Deselect:
+TNT1 A 0 A_TakeInventory("NoClipBar",9)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" A 1 A_Lower
+Loop
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,0.7*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" A 1 A_Raise
+Loop
+Fire:
+"####" A 0 A_WeaponReady(WRF_FIRING) //Reset Aim from reload interupt
+"####" A 0 A_JumpIfNoAmmo("NoAmmo")
+"####" A 0 A_Jumpifinventory("ConShotTimer",1,"NoAmmo")
+"####" A 0 A_PlaySoundEx("weapon/HardBuster1","Weapon")
+"####" A 0 A_FireCustomMissile("HoserShot",0,2,0,8)
+"####" A 0 A_FireCustomMissile("HoserShot",HZR_SprAng,0,0,8,0,0)
+"####" A 0 A_FireCustomMissile("HoserShot",HZR_SprD_Ang,0,0,8,0,HZR_SprD_Ang)
+"####" A 0 A_FireCustomMissile("HoserShot",0,0,0,8,0,HZR_SprAng)
+"####" A 0 A_FireCustomMissile("HoserShot",HZR_SprD_Ang,0,0,8,0,HZR_SprD_AngRev)
+"####" A 0 A_FireCustomMissile("HoserShot",HZR_SprAngRev,0,0,8,0,0)
+"####" A 0 A_FireCustomMissile("HoserShot",HZR_SprD_AngRev,0,0,8,0,HZR_SprD_AngRev)
+"####" A 0 A_FireCustomMissile("HoserShot",0,0,0,8,0,HZR_SprAngRev)
+"####" A 0 A_FireCustomMissile("HoserShot",HZR_SprD_AngRev,0,0,8,0,HZR_SprD_Ang)
+
+//--
+"####" A 0 A_Giveinventory("HoserCST")
+"####" A 0 A_Giveinventory("HoserFSPD")
+"####" BC 2 
+"####" A 8 
+"####" A 2  A_WeaponReady(WRF_NOPRIMARY|WRF_NOSWITCH)
+"####" C 0 A_REfire
+goto Ready.Wep
+
+
+    Reload.Hold:
+    "####" "#" 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+    "####" "#" 62 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 A_PlaySoundEx("weapon/Crashland","Weapon")
+    "####" "#" 1 A_Jump(256,"Reload.Rise")
+    wait
+
+/*
+Reload.Hold:
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_JumpIfNoAmmo("Reload.FirstLoop")
+Goto Reload.loop
+
+Reload.FirstLoop:
+"####" A 22 A_WeaponReady(WRF_STARTRELOADING) 
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_Giveinventory("WeaponSingleReloader",1)
+"####" A 1 A_JumpIf(CallACS("CheckAmmoFull")==0,"Reload.Loop")
+Reload.Loop:
+"####" A 14 A_WeaponReady(WRF_CYCLERELOADING) 
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_Giveinventory("WeaponSingleReloader",1)
+"####" A 1 A_JumpIf(CallACS("CheckAmmoFull")==0,"Reload.Loop")
+"####" A 0 A_PlaySoundEx("weapon/Crashland","Weapon")
+goto Reload.Rise2
+*/
+
+NoAmmo:
+"####" A 1
+"####" A 0 A_Jumpifinventory("Hoser_Ammo",1,"Ready")
+Goto Reload
+
+Flash:
+TNT1 A 5 
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}
+
+actor HoserWep2 : HoserWep
+{Weapon.slotnumber 2}
+//[+]========================================================================[+]
+//--------------------------------|Ammo & inventory|---------------------------
+//[+]========================================================================[+]
+actor Hoser_Ammo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 8
+Ammo.BackpackMaxAmount 10
+}
+
+actor HoserCST : PowerupGiver
+{
++INVENTORY.AUTOACTIVATE
+Powerup.Duration 14
+powerup.type "ConShotTimer"
+}
+
+actor HoserFSPD : FiringSpeed
+{
+Powerup.Duration 12
+speed 0.8
+}
+//[+]========================================================================[+]
+//--------------------------------|Projectiles |--------------------------------
+//[+]========================================================================[+]
+
+actor HoserShot : fastProjectileBase
+{
+Obituary "$OB_HOSER"
+DamageType "HoserP"
+Damage (13)
+States
+{
+Spawn:
+TNT1 A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+Goto Spawn2
+Spawn2:
+TNT1 A 0 A_CountDown
+TNT1 A 1 A_SpawnItemEx("HoserTrail",0,0,0,momx,momy,momz,0,9)
+Goto Spawn2
+Death:
+AQBA L 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 0 A_PlaySoundEx("Misc/Splash","Weapon")
+WABU B 5 A_Spawnitemex("WaterGunSplashFX",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+
+actor HoserTrail : BasicExplosion
+{
+Obituary "$OB_HOSER"
+States
+{
+Spawn:
+TNT1 A 0
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_SpawnItemEx("HoserTrailX1",0,0,0,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("HoserTrailX",0,0,0,-momx*0.1,-momy*0.1,-momz*0.1,0,9)
+TNT1 A 0 A_SpawnItemEx("HoserTrailX",0,0,0,-momx*0.2,-momy*0.2,-momz*0.2,0,9)
+TNT1 A 0 A_SpawnItemEx("HoserTrailX",0,0,0,-momx*0.3,-momy*0.3,-momz*0.3,0,9)
+TNT1 A 0 A_SpawnItemEx("HoserTrailX",0,0,0,-momx*0.4,-momy*0.4,-momz*0.4,0,9)
+TNT1 A 0 A_SpawnItemEx("HoserTrailX",0,0,0,-momx*0.5,-momy*0.5,-momz*0.5,0,9)
+TNT1 A 0 A_SpawnItemEx("HoserTrailX",0,0,0,-momx*0.6,-momy*0.6,-momz*0.6,0,9)
+
+TNT1 A 0 A_SpawnItemEx("WaterGunDripFX_1",0,random2(16),random2(16),0,0,0,0,1)
+//TNT1 A 0 A_SpawnItemEx("WaterGunDripFX_1",0,random2(16),random2(16),-momx*0.2,-momy*0.2,-momz*0.2,0,9)
+TNT1 A 1 
+stop
+}
+}
+
+actor HoserTrailX : FXActor_A
+{
+scale 2.0
+Alpha 0.6
+States
+{
+Spawn:
+CRBM A 0
+WATS B 1
+//BSTG AAAAA 1 A_Fadeout
+stop
+}
+}
+
+actor HoserTrailX1 : FXActor_A
+{
+scale 2.5
+Alpha 1.0
+States
+{
+Spawn:
+BUST A 0
+WATS B 1
+stop
+}
+}

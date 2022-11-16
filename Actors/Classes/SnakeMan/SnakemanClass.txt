@@ -1,0 +1,143 @@
+
+Actor Snakeman : ClassBase //replaces Snakeman
+{
+Player.DisplayName "Snakeman"
+Player.SoundClass "Snakeman"
+
+Player.Startitem "IsSnakeman"
+Player.Startitem "Snakeman_ClassSet"
+
+player.startitem "SetupShop"
+player.startitem "LoadShopInventory"
+player.startitem "RoundSignatureGive"
+player.startitem "AbilityAmmo"
++NOSKIN
+States
+{
+Spawn: 
+SNAM A 0
+SNAM B 1 
+SNAM A 1
+GoTo Spawn+2
+See:
+SNAM BCDE 5
+GoTo Spawn+1
+Missile:
+SNAM F 5
+SNAM G 4
+GoTo Spawn+2
+PainFix:
+SNAM H 0 
+GoTo PainFrames
+}
+}
+
+
+
+Actor IsSnakeman : Once{}
+Const int Cap_SearchingSnake = 1;
+Const int Cap_SnakeWire = 3;
+
+
+actor SnakemanStarterSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("Zapper",1)
+TNT1 A 0 //ACS_NamedExecuteAlways("GiveSignatureCharge",0,Cap_SearchingSnake)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor Snakeman_Melee : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("BasicKnife",1)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor Snakeman_ClassSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("UseAbility1_Snakeman",1)
+TNT1 A 0 A_GiveInventory("Ability1_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_1",Cap_SearchingSnake)
+
+//==
+TNT1 A 0 A_GiveInventory("UseAbility2_Snakeman",1)
+TNT1 A 0 A_GiveInventory("Ability2_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_2",Cap_SnakeWire)
+//==
+Done:
+TNT1 A 0
+stop
+}
+}
+
+//=========|Class Shop|============
+
+actor Snakeman_ClassShop : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("BuySearchingSnake",1)
+TNT1 A 0 A_GiveInventory("BuySnakeWire",1)
+stop
+}
+}
+
+Const int Cost_SearchingSnake = 350;
+Const int Cost_SnakeWire = 100;
+
+actor BuySearchingSnake : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_SearchingSnake),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_SearchingSnake)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",Cap_SearchingSnake,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_1",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuySnakeWire : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_SnakeWire),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_SnakeWire)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",Cap_SnakeWire,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_2",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}

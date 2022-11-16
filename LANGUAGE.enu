@@ -1,0 +1,287 @@
+[enu default]
+// -=- Weapon obituaries -=-
+OB_MILITARYBUSTER = "%k Eliminated %o with the MILITARY BUSTER";
+OB_WINDPRESSUREBUSTER = "%k Eliminated %o with the WIND PRESSURE BUSTER";
+OB_ARROWBUSTER = "%k Eliminated %o with the ARROW BUSTER";
+OB_SHADOWBUSTER = "%k Eliminated %o with the SHADOW BUSTER";
+OB_LAZERRIFLE = "%k Eliminated %o with the LAZER RIFLE";
+OB_TRIANGLEGUN = "%k Eliminated %o with the TRIANGLE GUN";
+OB_HIGHSPEEDRIFLE = "%k Eliminated %o with the HIGH SPEED RIFLE";
+OB_SPIKEGATLING = "%k Eliminated %o with the SPIKE GATLING";
+OB_SHOTGUN = "%k Eliminated %o with the SHOTGUN";
+OB_GASEMITTER = "%k Eliminated %o with the GAS EMITTER";
+OB_COMPRESSEDSPRAYER = "%k Eliminated %o with the COMPRESSED SPRAYER";		
+OB_BURNINGSPRAYER = "%k Eliminated %o with the BURNING SPRAYER";		
+OB_SNOWYSPRAYER = "%k Eliminated %o with the SNOWY SPRAYER";		
+OB_CRUSHINGSPRAYER = "%k Eliminated %o with the CRUSHING SPRAYER";		
+OB_ENERGYCANNON = "%k Eliminated %o with the ENERGY CANNON";		
+OB_MEGACANNON = "%k Eliminated %o with the MEGA CANNON";		
+OB_LIGHTWAVECANNON = "%k Eliminated %o with the LIGHTWAVE CANNON";		
+OB_DRILLHEADCANNON = "%k Eliminated %o with the DRILLHEAD CANNON";		
+OB_STANDARDSABER = "%k Eliminated %o with the STANDARD SABER";		
+OB_BEAMRAPIER = "%k Eliminated %o with the BEAM RAPIER";		
+OB_TRIANGULARSABER = "%k Eliminated %o with the TRIANGULAR SABER";
+
+OB_FIREBALLBUSTER = "%k Eliminated %o with the FireballBuster";
+OB_ATOMICBUSTER = "%k Eliminated %o with the AtomicBuster";
+OB_MEDDYGUN = "%k Eliminated %o with the MeddyGun";
+OB_VIPERRIFLE = "%k Eliminated %o with the ViperRifle";
+OB_THRICEGUN = "%k Eliminated %o with the ThriceGun";
+OB_MEDIBUSTER = "%k Eliminated %o with the MediBuster";
+OB_SCREWSHOOTER = "%k Eliminated %o with the ScrewShooter";
+OB_BOLTDRIVER = "%k Eliminated %o with the BoltDriver";
+OB_FLOROMASPRAYER = "%k Eliminated %o with the FloromaSprayer";
+OB_REPAIRLAUNCHER = "%k Eliminated %o with the Repair Launcher";
+OB_REPLISLASHER = "%k Eliminated %o with the Replislasher";
+OB_ELECTRIGGERV = "%k Eliminated %o with the ElectriggerV";
+OB_VIOLETZAPPER = "%k Eliminated %o with the VioletZapper";
+OB_HAWKPRECISIONBUSTER = "%k Eliminated %o with the Hawk Precision Buster";
+OB_ABSOLUTEFREEZE = "%k Eliminated %o with the Absolute Freeze";
+OB_TURBOLAUNCHER = "%k Eliminated %o with the Turbo Launcher";
+OB_ROASTER = "%k Eliminated %o with the Roaster";
+OB_TOSSSHIELD = "%k Eliminated %o with the Toss Shield";
+OB_ANCIENTRELIC = "%k Eliminated %o with the Ancient Relic";
+OB_AQUABUSTER = "%k Eliminated %o with the Aqua Buster";
+
+OB_COLDFRONT = "%k Eliminated %o with the Coldfront";
+OB_FIREBRAND = "%k Eliminated %o with the Firebrand";
+OB_HOSER = "%k Eliminated %o with the Hoser";
+
+
+OB_MININADE = "%o was blown up by %k's Mininade";
+OB_DYNAMITE = "%o Stumbled onto %k's Dynamite";
+OB_MINIMOLLY = "%o was Burned up up by %k's Mini Molly";
+
+//Join Menu
+MNU_JOIN1 = "Choose your Class!"; //This doesn't want to work for some reason
+MNU_JOIN11 = "\c[MenuGreen]Choose your \c[MenuRed]Class!";
+MNU_JOIN2 = "\c[MenuCyan]Auto Select \c[MenuGreen]picks a team for you.";
+
+MNU_JOIN3 = "\c[MenuRed]Class \c-Select";
+MNU_JOIN4 = "\c[MenuGreen]Type name::";
+MNU_JOIN5 = "\c[MenuGreen]Archetypes";
+MNU_JOIN6 = "\c[MenuCyan]Auto Select";//"\c[MenuBlue]Auto\c--Select";
+MNU_JOIN7 = "\c[MenuCyan]Original Selection";
+
+MNU_JOIN7 = "\c[MenuWhite]Make sure you have the following Keys\n" 
+            "Bound for this mod.";
+
+RELOADNOTICE = "\c[MenuGreen]Remember to Bind the reload and ability Key!";
+DDNOTICE = "\c[MenuGreen]Damage Display Options (if Wad is loaded)";
+PBNOTICE = "\c[MenuGreen]Ping System Options (if Wad is loaded)";
+SHOPNOTICE = "\c[MenuGreen]Shop Access";
+SHOPENTER = "\c[MenuCyan]Enter the Shop!";
+
+//Shop
+PL_PICKUPOFF = "Loadout capacity reached. Pickups Off.";
+PL_PICKUPON = "Pickups On.";
+
+SHOP_OPEN = "Shop's Open! Open the shop menu!";
+SHOP_BUY = "Purchase Success!";
+SHOP_BUYFAIL_MONEY = "Purchase Fail! Not Enough Money!";
+SHOP_BUYFAIL_POSSESS = "Purchase Fail! Already Possessed!";
+SHOP_BUYFAIL_SPACE = "Purchase Fail! Can't carry any more!";
+SHOP_BUYFAIL_NOBUY = "Not Available for Purchase!";
+
+//ShopListings
+SHOP_StandardBusterWep = "\cgMega Buster\cj :: Free";
+SHOP_MilitaryBusterWep = "\cnMilitary Buster\cj :: 500";
+SHOP_LazerRifleWep = "\cdLazer Rifle\cj :: 2600";
+SHOP_ShotgunWep = "\cdShotgun\cj :: 800";
+
+SHOP_WindPressureBusterWep = "\cnWindPress. Buster\cj :: 450";
+SHOP_ArrowBusterWep = "\cdArrow Buster\cj :: 1600";
+SHOP_ShadowBusterWep = "\cnShadow Buster\cj :: 400";
+SHOP_HighSpeedRifleWep = "\cdHi-SPD Rifle\cj :: 1800";
+SHOP_GasEmitterWep = "\cnGas Emitter\cj :: 800"; //
+SHOP_TriangleGunWep = "\cdTriangle Gun\cj :: 1800";
+SHOP_MegaCannonWep = "\cnMega Cannon\cj :: 4500";
+SHOP_StandardSaberWep = "\cnStandard Saber\cj :: 1000";
+SHOP_FireballBusterWep = "\cnFireball Buster\cj :: 400";
+SHOP_ElectriggerVWep = "\cnElectriggerV\cj :: 1600";
+SHOP_VioletZapperWep = "\cdViolet Zapper\cj :: 2400";
+SHOP_HawkPrecisionBusterWep = "\cdHawkPrec. Bstr\cj :: 3600";
+SHOP_AquaBusterWep = "\cnAqua Buster\cj :: 150";
+
+SHOP_ColdFrontWep = "\cdColdFront\cj :: 2000";
+SHOP_FireBrandWep = "\cdFireBrand\cj :: 2400";
+SHOP_HoserWep = "\cdHoser\cj :: 1850";
+SHOP_SpikeGatlingWep = "\cdSpike Gatling\cj :: 3500";
+
+
+SHOP_LightArmor = "\cFLight Armor\cj :: 400";
+SHOP_HeavyArmor = "\cFHeavy Armor\cj :: 1000";
+SHOP_MiniSmoke = "\cFMini Smoke\cj :: 150";
+SHOP_MiniNade = "\cFMini Nade\cj :: 150";
+SHOP_Dynamite = "\cFDynamite\cj :: 150";
+SHOP_ConcreteNade = "\cFConcrete Nade\cj :: 250";
+SHOP_WireAdaptor = "\cFWire Adaptor\cj :: 350";
+SHOP_Item1 = "\cFItem 1\cj :: 350";
+SHOP_MiniMolly = "\cFMiniMolly\cj :: 150";
+SHOP_MiniFlash = "\cFMiniFlash\cj :: 150";
+
+//Shop Descriptions
+SHOPDESC_StandardBusterwep = "\c[MenuWhite] Stock, straight shooting, semi-automatic arm cannon ";
+SHOPDESC_MilitaryBusterwep = "\c[MenuWhite] Military Grade, straight shooting, semi-automatic arm cannon that bosts stronger shots. ";
+SHOPDESC_LazerRiflewep = "\c[MenuWhite] Powerful beam rifle with excellent range and fire rate ";
+SHOPDESC_Shotgunwep = "\c[MenuWhite] Fires a spread of rounds that travels a short distance, high damage up close ";
+SHOPDESC_WindPressureBusterwep = "\c[MenuWhite] lightweight, fast firing, and quick to operate. fires gusts of wind that deal low damage. ";
+SHOPDESC_ArrowBusterwep = "\c[MenuWhite] Sniper style buster that charges quickly and fires beams that deal increased damage on successive hits, press \cgreload\c[MenuWhite] to toggle 2.5x zoom ";
+SHOPDESC_ShadowBusterwep = "\c[MenuWhite] Fires piercing shadow blades that ricochet off walls ";
+SHOPDESC_HighSpeedRiflewep = "\c[MenuWhite] Fast and lightweight automatic rifle, range is short but allows for quick movement ";
+SHOPDESC_TriangleGunwep = "\c[MenuWhite] Fires a 3 shot burst with stable precision ";
+SHOPDESC_GasEmitterwep = "\c[MenuWhite] Releases clusters of poisonous gas particles that glide along surfaces and deal constant damage ";
+SHOPDESC_MegaCannonwep = "\c[MenuWhite] Powerfull rocket launcher that deals radius damage, direct hits can demolish anyone! ";
+SHOPDESC_StandardSaberwep = "\c[MenuWhite] Swift and deadly beam saber, range is limited but you move quickly and need no ammo ";
+SHOPDESC_FireballBusterwep = "\c[MenuWhite] Semi-auto arm cannon that fires bouncing fireballs. ";
+SHOPDESC_ElectriggerVwep = "\c[MenuWhite] Automatic weapon that fires an long ranged electric beam that can chain to other targets. ";
+SHOPDESC_VioletZapperwep = "\c[MenuWhite] Powerful Rifle that fires electric bolts with great precision and power. ";
+SHOPDESC_HawkPrecisionBusterwep = "\c[MenuWhite] Sniper Style Buster that fires a high damage beam after a longer charge, press \cgreload\c[MenuWhite] to toggle 3.5x zoom ";
+SHOPDESC_AquaBusterwep = "\c[MenuWhite] Launches a spread shot of water rounds, deals high damage up close. ";
+
+SHOPDESC_ColdFrontwep = "\c[MenuWhite] Powerful Semi auto Icicle rifle with excellent range and precision ";
+SHOPDESC_Firebrandwep = "\c[MenuWhite] Powerful Flame rifle with excellent Mobility and responsiveness ";
+SHOPDESC_Hoserwep = "\c[MenuWhite] Automatic spread weapon that fires heavy sprays of water, deals high damage up close ";
+SHOPDESC_SpikeGatlingWep = "\c[MenuWhite] Heavy weapon that fires a constant volley of spike bullets, runs on a heat system. ";
+
+
+SHOPDESC_LightArmor = "\c[MenuWhite]Armor that Blocks 25 points of damage";
+SHOPDESC_HeavyArmor = "\c[MenuWhite]Armor that Blocks 50 points of damage";
+SHOPDESC_MiniSmoke = "\c[MenuWhite]A small smoke grenade that can create an obscuring field of smoke";
+SHOPDESC_MiniNade = "\c[MenuWhite]A small frag grenade that deal explosive damage at a delay";
+SHOPDESC_Dynamite = "\c[MenuWhite]A small Sticky explosive that alarms and detonates when enemies approach it";
+SHOPDESC_ConcreteNade = "\c[MenuWhite]Creates a 5x3x3 concrete wall to block paths and create cover";
+SHOPDESC_WireAdaptor = "\c[MenuWhite]Grappling hook that can get you across long distances";
+SHOPDESC_Item1 = "\c[MenuWhite]modified gadget that sends a line of up to 15 floating platforms through a guided projectile";
+SHOPDESC_MiniMolly = "\c[MenuWhite]A small Incendiary grenade that covers the ground in fire that deals constant damage";
+SHOPDESC_MiniFlash = "\c[MenuWhite]A small flash grenade that blinds anyone looking at it when it detonates.";
+
+//Class Shop Descriptions
+
+ABL1_TACTMEGAMAN = "CombatSlide";
+ABL2_TACTMEGAMAN = "RushCall";
+ABL1COST_TACTMEGAMAN = "200";
+ABL2COST_TACTMEGAMAN = "200";
+ABL3COST_TACTMEGAMAN = "250";
+
+
+SHOP_RushCall = "\cFRush Call\cj :: 200";
+SHOPDESC_RushCall = "\c[MenuWhite]Call Rush to give you a boost up High Places";
+
+SHOP_CombatSlide = "\cFCombat Slide\cj :: 200";
+SHOPDESC_CombatSlide = "\c[MenuWhite]Do a quick slide! Recovers after 2 frags!";
+
+
+ABL1_ICEMAN = "FogGrenade";
+ABL2_ICEMAN = "IceCube";
+ABL1COST_ICEMAN = "200";
+ABL2COST_ICEMAN = "100";
+
+SHOP_FogGrenade = "\cFFog Grenade\cj :: 200";
+SHOPDESC_FogGrenade = "\c[MenuWhite]Toss a grenade that create a freezing, vision blocking fog, slows anyone that moves through it!";
+
+SHOP_IceCube = "\cFIce Cube\cj :: 100";
+SHOPDESC_IceCube = "\c[MenuWhite]Create a 3x3x3 block of ice that can absorb hits";
+
+
+ABL1_BOMBMAN = "HyperBomb";
+ABL2_BOMBMAN = "CrossBomb";
+ABL1COST_BOMBMAN = "350";
+ABL2COST_BOMBMAN = "350";
+
+SHOP_HyperBomb = "\cFHyper Bomb\cj :: 350";
+SHOPDESC_HyperBomb = "\c[MenuWhite]Powerful Thrown Explosives! left click to lob it or right click to roll it!";
+
+SHOP_CrossBomb = "\cFCross Bomb \cj :: 350 ";
+SHOPDESC_CrossBomb = "\c[MenuWhite]Explposive that creates a line of fire in a cross shaped pattern.";
+
+
+ABL1_FIREMAN = "FireField";
+ABL2_FIREMAN = "MeltCreeper";
+ABL1COST_FIREMAN = "450";
+ABL2COST_FIREMAN = "200";
+
+SHOP_FireField = "\cFFire Field\cj :: 450";
+SHOPDESC_FireField = "\c[MenuWhite]Throw an ember that ignites the ground in an area!";
+
+SHOP_MeltCreeper = "\cFMelt Creeper\cj :: 200";
+SHOPDESC_MeltCreeper = "\c[MenuWhite]Cast a wall of hazardous fire, you can control the direction of the wall as it forms.";
+
+ABL1_CRYSTALMAN = "CrystalEyeCam";
+ABL2_CRYSTALMAN = "PingCrystal";
+ABL1COST_CRYSTALMAN = "-1";
+ABL2COST_CRYSTALMAN = "200";
+
+SHOP_CRYSTALEYECAM = "\cFCamera Drone\cj :: N/A";
+SHOPDESC_CRYSTALEYECAM = "\c[MenuWhite]Equips drone that watches all\n\c[MenuWhite]Hold to readjust its aim\n\c[MenuWhite]Reactivate to pop flash.";
+
+SHOP_PINGCRYSTAL = "\cFPing Crystal \cj :: 200 ";
+SHOPDESC_PINGCRYSTAL = "\c[MenuWhite] Toss a bouncing crystal that reveals enemies every time it bounces off a surface.";
+
+
+ABL1_SNAKEMAN = "SearchingSnake";
+ABL2_SNAKEMAN = "SnakeWire";
+ABL1COST_SNAKEMAN = "350";
+ABL2COST_SNAKEMAN = "100";
+
+SHOP_SearchingSnake = "\cFSearching Snake\cj :: 350";
+SHOPDESC_SearchingSnake = "\c[MenuWhite]Deploy a R.C snake drone that can climb short walls, Right click to recall it or left click to launch a dart that marks opponents";
+
+SHOP_SnakeWire = "\cF Snake Wire \cj :: 100 ";
+SHOPDESC_SnakeWire = "\c[MenuWhite] Specially designed grappling hooks that fly faster, further, and pull further than normal wire adaptors.";
+
+ABL1_SHADOWMAN = "NinjaSmoke";
+ABL2_SHADOWMAN = "Caltrops";
+ABL1COST_SHADOWMAN = "100";
+ABL2COST_SHADOWMAN = "100";
+
+SHOP_NinjaSmoke = "\cFNinja Smoke\cj :: 100";
+SHOPDESC_NinjaSmoke = "\c[MenuWhite]A specialized smoke bomb that briefly cloaks the user and allies if they enter it, making them invisible and silences their footsteps.";
+
+SHOP_Caltrops = "\cFCaltrops \cj :: 100 ";
+SHOPDESC_Caltrops = "\c[MenuWhite] Throw a cluster of spikes that stagger's those who step on them and disrupts their aim.";
+
+ABL1_BRIGHTMAN = "BrightBulb";
+ABL2_BRIGHTMAN = "Illuminator";
+ABL1COST_BRIGHTMAN = "350";
+ABL2COST_BRIGHTMAN = "350";
+
+SHOP_BrightBulb = "\cFBright Bulb\cj :: 250";
+SHOPDESC_BrightBulb = "\c[MenuWhite]Launch an overcharged lightbulb that explodes and blinds foes that see it. RMB fires a bulb with it's fuze started for pop flashing.";
+
+SHOP_Illuminator = "\cFIlluminator \cj :: 350 ";
+SHOPDESC_Illuminator = "\c[MenuWhite] Land mines that when triggered, release a flare that stuns and pings nearby enemies.";
+
+ABL1_PROTOMAN = "ProtoShield";
+ABL2_PROTOMAN = "ProtoBlaster";
+ABL1COST_PROTOMAN = "100";
+ABL2COST_PROTOMAN = "350";
+
+SHOP_ProtoShield = "\cFProto Shield\cj :: 100";
+SHOPDESC_ProtoShield = "\c[MenuWhite]Don a shield that blocks frontal attacks and shoot back with your proto buster. you can switch back to your original weapon at any time.";
+
+SHOP_ProtoBlaster = "\cFProto Blaster \cj :: 250 ";
+SHOPDESC_ProtoBlaster = "\c[MenuWhite] launch a condensed burst of engergy that erupts 4 times after landing on the ground.";
+
+
+ABL1_CRASHMAN = "CrashBomb";
+ABL2_CRASHMAN = "PiercerBomb";
+ABL1COST_CRASHMAN = "100";
+ABL2COST_CRASHMAN = "350";
+
+SHOP_CrashBomb = "\cFCrash Bomb\cj :: 250";
+SHOPDESC_CrashBomb = "\c[MenuWhite]Launch bombs that clamp onto surfaces and players and detonate after a period of time has passed";
+
+SHOP_PiercerBomb = "\cFPiercer Bomb \cj :: 300 ";
+SHOPDESC_PiercerBomb = "\c[MenuWhite] Launch special crash bombs that can bore through walls and explode out of the other end, has a limit in how far it can drill through.";
+
+ABL1_FLAMEMAN = "FlameBlast";
+ABL2_FLAMEMAN = "FlameManAbility2";
+ABL1COST_FLAMEMAN = "100";
+ABL2COST_FLAMEMAN = "-1";
+
+SHOP_FlameBlast = "\cFFlame Blast\cj :: 350";
+SHOPDESC_FlameBlast = "\c[MenuWhite]Launch an incendiary projectile that creates a horizontal line of fire, use M2 to launch a vertical line of fire instead.";
+
+SHOP_FlameManAbility2 = "\cF---- \cj :: 250 ";
+SHOPDESC_FlameManAbility2 = "\c[MenuWhite] No Ability.";

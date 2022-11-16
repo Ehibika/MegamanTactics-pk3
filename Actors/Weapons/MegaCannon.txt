@@ -1,0 +1,230 @@
+actor MegaCannonWep : WepMasterBase
+{
+
+Tag "MegaCannon"
+Weapon.AmmoUse 1
+Weapon.AmmoGive 4
+Obituary "$OB_MEGACANNON"
+inventory.icon "TAGMI"
+scale 2.0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "MegaCannon_Ammo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+Var int User_Spread;
+States
+{
+Spawn:
+WEAP X 1
+stop
+
+Ready:
+Ready.Wep:
+0G_H A 1 A_WeaponReady(WRF_ALLOWINPUTS)
+"####" A 0 A_Jumpifinventory("MegaCannon_Ammo",1,"Ready.Core")
+Goto Reload
+//===============
+
+Deselect:
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+0G_H A 1 A_Lower
+Loop
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,Launcher_MSPD*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+0G_H A 1 A_Raise
+Loop
+
+Fire:
+0G_H B 0 A_JumpIfNoAmmo("NoAmmo")
+0G_H A 0 A_Jumpifinventory("ConShotTimer",1,"Fire.Buffer")
+0G_H A 0 A_PlaySoundEx("weapon/AutoFirework","Weapon")
+0G_H B 0 A_FireCustomMissile("MegaCannonShot",0,2,0,2)
+
+0G_H B 4 Offset(4,28)
+0G_H C 8 Offset(8,24)
+0G_H B 4 Offset(4,28)
+0G_H A 0 A_Giveinventory("MegaCannonCST",1)
+"####" A 0 A_Refire("Fire")
+Goto Ready.Wep
+
+Fire.Buffer:
+"####" A 1 A_WeaponReady(WRF_NOPRIMARY|WRF_ALLOWRELOAD)
+"####" A 0 A_Refire("Fire")
+Goto Ready.Wep
+
+NoAmmo:
+"####" A 1
+"####" A 0 A_Jumpifinventory("MegaCannon_Ammo",1,"Ready")
+Goto Reload
+
+Reload.Hold:
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_JumpIfNoAmmo("Reload.FirstLoop")
+Goto Reload.loop
+
+Reload.FirstLoop:
+"####" A 35 A_WeaponReady(WRF_RELOADING) 
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_Giveinventory("WeaponSingleReloader",1)
+"####" A 1 A_JumpIf(CallACS("CheckAmmoFull")==0,"Reload.Loop")
+Reload.Loop:
+"####" A 32 A_WeaponReady(WRF_CYCLERELOADING) 
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 0 A_Giveinventory("WeaponSingleReloader",1)
+"####" A 1 A_JumpIf(CallACS("CheckAmmoFull")==0,"Reload.Loop")
+"####" A 0 A_PlaySoundEx("weapon/Crashland","Weapon")
+goto Reload.Rise2
+
+Flash:
+TNT1 A 5 
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}
+
+actor MegaCannonWep2 : MegaCannonWep
+{Weapon.slotnumber 2}
+//[+]========================================================================[+]
+//--------------------------------|Ammo & inventory|---------------------------
+//[+]========================================================================[+]
+actor MegaCannon_Ammo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 4
+Ammo.BackpackMaxAmount 6
+}
+
+actor MegaCannonCST : PowerupGiver
+{
++INVENTORY.AUTOACTIVATE
+Powerup.Duration 28
+powerup.type "ConShotTimer"
+}
+
+Actor MegaCannonProtect : powerprotection
+{
+Powerup.duration 5
+Damagefactor "MegaCannonDirect", 0
+Damagefactor "MegaCannon", 0
+}
+
+//[+]========================================================================[+]
+//--------------------------------|Projectiles |--------------------------------
+//[+]========================================================================[+]
+Const int MegaCannon_DMG = 50;
+Const int MegaCannon_RAD = 160;
+Const int MegaCannon_RADMin = 64;
+actor MegaCannonShot : FastProjectileBase
+{
+Speed 28
+Damage (150)
+Obituary "$OB_MEGACANNON"
+damagetype "MegaCannonDirect"
+radius 12
+height 12
+Reactiontime 25
+scale 3.5
+States
+{
+Spawn:
+TNT1 A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+Spawn2:
+DIVE BB 1 A_SpawnItemEx("MegaShotTrail",0,0,0,0,0,0,0,9)
+TNT1 A 0 A_Countdown
+DIVE AA 1 A_SpawnItemEx("MegaShotTrail",0,0,0,0,0,0,0,9)
+TNT1 A 0 A_Countdown
+loop
+
+Death:
+AQBA L 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 0 A_SpawnItemEx("MegaExplosion",0,0,0,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("MegaExplosion2",0,0,0,0,0,0,0,1)
+//TNT1 A 0 A_SpawnItemEx("MegaSource",0,0,-32,0,0,0,0,1)
+//NAPA D 0 ACS_NamedExecuteWithResult("Save_Boom")
+//NAPA D 0 A_RadiusGive("MegaCannon_Knockback",MegaCannon_RAD,RGF_PLAYERS)
+stop
+}
+}
+
+actor MegaExplosion : BasicExplosion //now just the FX due to desynch
+{
+scale 4.0
+Obituary "$OB_MEGACANNON"
+damagetype "MegaCannon"
+States
+{
+Spawn:
+MINB A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_Explode(MegaCannon_DMG,MegaCannon_RAD,1,0,MegaCannon_RADMin)
+NAPC A 0 A_PlaySoundEx("weapon/napalm", "Weapon")
+ASEX ABCDDEEF 1 
+stop
+}
+}
+
+actor MegaExplosion2 : BasicExplosion //now just the FX due to desynch
+{
+scale 3.0
+States
+{
+Spawn:
+MINB A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+MXP2 ABCDDEEFGHIJKLMNOPQRST 1 
+stop
+}
+}
+
+actor MegaSource : BasicExplosion //
+{
++SPECIALFLOORCLIP
+States
+{
+Spawn:
+MINB A 0 
+MINB A 0 ACS_NamedExecuteAlways("BLASTKNOCKBACK",0,90,32,MegaCannon_RAD)
+TNT1 AA 1 
+stop
+}
+}
+
+actor MegaCannon_Knockback : CustomInventory
+{
+States
+{
+Pickup:
+TNT1 A 0 A_JumpIf(CallACS("Boom_IsMine"),"Pickup3")
+TNT1 A 0 A_JumpIf(CallACS("Boom_IsEnemy"),"Pickup2")
+stop
+Pickup2:
+TNT1 A 0 ACS_NamedExecuteWithResult("BLASTKNOCKBACK2",BlastThrust,BlastThrustRad)
+stop
+Pickup3:
+TNT1 A 0 ACS_NamedExecuteWithResult("BLASTKNOCKBACK2",BlastThrust,BlastThrustRad,true)
+stop
+}
+}
+
+
+actor MegaShotTrail : BasicClientside
+{
+scale 1.5
+renderstyle "Translucent"
+Gravity 0.5
+ReactionTime 8
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 1
+MUDB MNO 1 
+stop
+}
+}

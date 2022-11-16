@@ -1,0 +1,64 @@
+
+actor NeumodianWepBase2 : NeumodianWepBase1
+{
+    States
+    {
+ 
+    Reload:
+    "####" "#" 1 A_WeaponReady(WRF_PRERELOADING)
+    //"####" "#" 1 A_Refire("Reload")
+    "####" "#" 1 A_Jump(256,"Reload.Drop")
+    wait
+    Reload.Drop:
+    "####" "#" 0 Offset(0,32)
+    "####" "#" 1 A_WeaponReady(WRF_STARTRELOADING)
+    "####" "#" 0 Offset(0,46)
+    "####" "#" 1 A_WeaponReady(WRF_STARTRELOADING)
+    "####" "#" 0 Offset(0,58)
+    "####" "#" 1 A_WeaponReady(WRF_STARTRELOADING)
+    "####" "#" 0 Offset(0,70)
+    "####" "#" 1 A_WeaponReady(WRF_STARTRELOADING)
+    "####" "#" 0 Offset(0,82)
+    "####" "#" 1 A_WeaponReady(WRF_STARTRELOADING)
+    "####" "#" 1 A_Jump(256,"Reload.Hold")
+    wait
+
+    Reload.Hold:
+    "####" "#" 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+    "####" "#" 52 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 A_PlaySoundEx("weapon/Crashland","Weapon")
+    "####" "#" 1 A_Jump(256,"Reload.Rise")
+    wait
+    
+    Reload.Rise:
+    "####" "#" 0 Offset(0,82)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 Offset(0,70)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 Offset(0,58)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 Offset(0,46)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 Offset(0,32)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 A_Giveinventory("WeaponReloader")
+    "####" "#" 1 A_Refire("Fire")
+    "####" "#" 1 A_Jump(256,"Ready.Wep")
+    wait
+
+    Reload.Rise2: //Cycling reloads
+    "####" "#" 0 Offset(0,82)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 Offset(0,70)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 Offset(0,58)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 Offset(0,46)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 0 Offset(0,32)
+    "####" "#" 1 A_WeaponReady(WRF_RELOADING)
+    "####" "#" 1 A_Refire("Fire")
+    "####" "#" 1 A_Jump(256,"Ready.Wep")
+    wait
+    }
+}

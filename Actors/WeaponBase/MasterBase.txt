@@ -1,0 +1,57 @@
+
+
+actor WepMasterBase : Weapon
+{
+Weapon.AmmoUse 1
+Weapon.AmmoGive 3
+Weapon.SlotNumber 1
+Weapon.SlotPriority 0
+scale 2.0
+Obituary "OB_GENERIC"
+inventory.icon "BUSTI"
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "BusterAmmo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+BUSR B 0 A_Jumpifinventory("WilyTeamFlag",1,"Ready.Wep")
+BUST B 0 
+Ready.Wep:
+"####" B 1 A_WeaponReady
+Goto Ready
+Deselect:
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" B 1 A_Lower
+Loop
+Select:
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" B 1 A_Raise
+Loop
+Fire:
+"####" B 1 
+goto Ready
+
+Altfire:
+"####" B 1 
+goto Ready
+
+NoAmmo:
+"####" "#" 1
+"####" "#" 0 A_Jump(256,"Ready")
+Goto Ready
+
+Flash:
+TNT1 A 1
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}

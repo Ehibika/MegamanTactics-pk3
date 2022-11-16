@@ -1,0 +1,231 @@
+actor Ability1_Crashman : AbilityMasterBase
+{
+Weapon.AmmoUse2 1
+Weapon.AmmoGive2 0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+Obituary "$OB_MEGABUSTER"
+Tag "HyperBomb Ability"
+weapon.ammotype1 "AbilityAmmo"
+inventory.icon "CRASSI"
+Dropitem ""
++WEAPON.NOAUTOFIRE
++WEAPON.ALLOW_WITH_RESPAWN_INVUL
+Weapon.SlotPriority 5
+States
+{
+
+Ready:
+CRAA F 0 
+"####" F 1 Offset(0,110)
+"####" F 1 Offset(0,96)
+"####" F 1 Offset(0,82)
+"####" F 1 Offset(0,70)
+"####" F 1 Offset(0,58)
+"####" F 1 Offset(0,46)
+"####" F 1 Offset(0,32)
+"####" EDCBA 1
+Ready1:
+"####" A 0 //A_FireCustomMissile("HyperBombAimPath",0,0,0,0,0,Aim_ArcOverHead+(Aim_ArcScale*Sin(-pitch)))
+"####" A 1 A_WeaponReady(WRF_NOSECONDARY)
+goto Ready1
+
+
+Fire:
+"####" C 0 A_PlaySoundEx("weapon/crackerthrow","Weapon")
+"####" B 0 A_FireCustomMissile("CrashBombBoss",0,4,4,0)
+"####" B 0 A_TakeInventory("AbilityCharge_1",1)
+"####" B 0 
+"####" E 0 A_GiveInventory("SignatureRecharge_20") //
+"####" GHF 2
+"####" A 0 A_JumpIfInventory("AbilityCharge_1",1,"Fire.Reset")
+
+"####" F 1 Offset(0,32)
+"####" F 1 Offset(0,46)
+"####" F 1 Offset(0,58)
+"####" F 1 Offset(0,70)
+"####" F 1 Offset(0,82)
+"####" F 1 Offset(0,96)
+"####" F 1 Offset(0,110)
+"####" B 0 A_Jump(256,"End")
+goto End
+
+Fire.Reset:
+"####" EDCBA 1
+goto Ready1
+
+End:
+"####" F 1 A_TakeInventory("AbilityActiveFlag",9)
+"####" F 0 
+Goto End
+}
+}
+//====
+
+actor UseAbility1_Crashman : CustomInventory
+{
+states
+{
+Use:
+WEA2 A 0 A_GiveInventory("CrashBombAbility",1)
+fail
+}
+}
+
+actor CrashBombAbility : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",1,"Pickup2")
+stop
+
+Pickup2:
+TNT1 A 0 ACS_NamedExecuteAlways("RunClassAbility",0,1)
+stop
+}
+}
+//=================
+//=================
+
+
+actor CrashBombBoss : CrashBomb
+{
+var int user_Timer;
++HITTRACER
+scale 2.5
+speed 120
+Mass 18 //timer
+Gravity 1.0
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+Spawn2:
+CRAS A 5
+CRAS B 0 A_ChangeFlag("NOGRAVITY",0)
+Spawn3:
+CRAS A 1
+loop
+Death:
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+CRAS B 0 A_ChangeFlag("NOGRAVITY",1)
+CRAS A 0 A_JumpIf(z-floorz<5, "Floor")
+CRAS A 0 A_JumpIf(z-ceilingz==0-6, "Ceiling")
+CRAS B 3 A_PlaySound("weapon/crashland")
+CRAS C 3
+Death.Time:
+CRAS DC 3
+TNT1 A 0 A_SetUserVar("user_Timer", user_Timer+1)
+CRAS A 0 A_JumpIf(user_Timer>=Mass, "Detonate")
+Goto Death.Time
+
+Floor:
+CRAS E 3 A_PlaySound("weapon/crashland")
+CRAS F 3
+Floor.Time:
+CRAS GF 3
+TNT1 A 0 A_SetUserVar("user_Timer", user_Timer+1)
+CRAS A 0 A_JumpIf(user_Timer>=Mass, "Detonate")
+Goto Floor.Time
+
+Ceiling:
+CRAS H 3 A_PlaySound("weapon/crashland")
+CRAS I 3
+Ceiling.Time:
+CRAS JI 3
+TNT1 A 0 A_SetUserVar("user_Timer", user_Timer+1)
+CRAS A 0 A_JumpIf(user_Timer>=Mass, "Detonate")
+Goto Ceiling.Time
+
+Crash:
+XDeath:
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+CRAS B 0 A_ChangeFlag("NOGRAVITY",1)
+CRAS B 0 A_PlaySound("weapon/crashland")
+CRAS B 0 A_ChangeFlag("THRUACTORS",1)
+
+TNT1 A 0 A_Explode(30,32,0)
+CRAS CCC 1 A_Warp(AAPTR_TRACER,-4,0,28,0,WARPF_COPYINTERPOLATION)
+
+Latch.Time:
+CRAS DDD 1 A_Warp(AAPTR_TRACER,-16,0,28,0,WARPF_COPYINTERPOLATION)
+CRAS CCC 1 A_Warp(AAPTR_TRACER,-16,0,28,0,WARPF_COPYINTERPOLATION)
+TNT1 A 0 A_SetUserVar("user_Timer", user_Timer+1)
+CRAS A 0 A_JumpIf(user_Timer>=Mass, "Detonate")
+Goto Latch.Time
+
+Detonate:
+CRAS A 0 A_PlaySound("weapon/crashexplode")
+CRAS A 0 A_SpawnItemEx("CrashBombExplode2",0,0,0,0,0,0,0,1)
+TNT1 AAAA 9 A_Explode(24,210,0)
+stop
+}
+}
+
+actor CrashBombExplode2 : BasicHelper
+{
+Mass 100
+ReactionTime 9
+var int user_angle;
+var int user_Pitch;
+var int user_Tick;
+states
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCodeSyncTarget",1)
+Goto Spawnloop
+
+SpawnLoop:
+TNT1 A 0 A_SpawnItemEx("CrashBombExplode2_FX",cos(user_Pitch)*Mass,0,(sin(user_Pitch)*Mass),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SetUserVar("user_angle", random(1,360))
+TNT1 A 0 A_SetUserVar("user_Pitch", random(-45,45))
+
+TNT1 A 0 A_SpawnItemEx("CrashBombExplode2_FX",cos(user_Pitch)*Mass,0,(sin(user_Pitch)*Mass),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SetUserVar("user_angle", random(1,360))
+TNT1 A 0 A_SetUserVar("user_Pitch", random(-45,45))
+
+TNT1 A 0 A_SpawnItemEx("CrashBombExplode2_FX",cos(user_Pitch)*Mass,0,(sin(user_Pitch)*Mass),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SetUserVar("user_angle", random(1,360))
+TNT1 A 0 A_SetUserVar("user_Pitch", random(-45,45))
+
+TNT1 A 0 A_SpawnItemEx("CrashBombExplode2_FX",cos(user_Pitch)*Mass,0,(sin(user_Pitch)*Mass),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SetUserVar("user_angle", random(1,360))
+TNT1 A 0 A_SetUserVar("user_Pitch", random(-45,45))
+
+TNT1 A 4 A_CountDown
+Loop 
+
+Death:
+TNT1 A 1 
+stop
+}
+}
+
+actor CrashBombExplode2_FX : BasicGraphicEffect
+{
+    +FORCEXYBILLBOARD
+    +BRIGHT
+    States
+    {
+    Spawn:
+    TNT1 A 0
+    TNT1 A 0 A_Jump(256,"Spawn1","Spawn2","Spawn3","Spawn4")
+    Spawn1:
+    CRAS KKLM 1
+    stop
+
+    Spawn2:
+    CRAS NNOP 1
+    stop
+
+    Spawn3:
+    CRAS QQRS 1
+    stop
+
+    Spawn4:
+    CRAS TTVW 1
+    stop
+    }
+}

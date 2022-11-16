@@ -1,0 +1,187 @@
+const float TRGG_SPD = 1.8; 
+const float TRGG_SPD2 = 3.1; 
+
+
+actor TriangleGunWep : WepMasterBase
+{
+Tag "TriangleGun"
+Weapon.AmmoUse 1
+Weapon.AmmoGive 15
+
+Obituary "$OB_TRIANGLEGUN"
+inventory.icon "THRII"
+scale 2.0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "TriangleGun_Ammo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+Var int User_Spread;
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+Ready.Wep:
+DW05 A 1 A_WeaponReady(WRF_ALLOWINPUTS)
+"####" A 0 A_Jumpifinventory("TriangleGun_Ammo",1,"Ready.Core")
+Goto Reload
+//===============
+Deselect:
+TNT1 A 0 A_TakeInventory("NoClipBar",9)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" A 1 A_Lower
+Loop
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,0.85*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" A 1 A_Raise
+Loop
+Fire:
+"####" A 0 A_JumpIfNoAmmo("NoAmmo")
+"####" A 0 A_Jumpifinventory("ConShotTimer",1,"NoAmmo")
+"####" A 0 A_PlaySoundEx("weapon/HardBuster3","Weapon")
+"####" A 0 A_Giveinventory("TriangleGun_RoundHandler")
+"####" BC 1 A_WeaponReady(WRF_FIRING)
+"####" A 0 A_PlaySoundEx("weapon/HardBuster3","Weapon")
+"####" A 0 A_Giveinventory("TriangleGun_RoundHandler")
+"####" BC 1 A_WeaponReady(WRF_FIRING)
+"####" A 0 A_PlaySoundEx("weapon/HardBuster3","Weapon")
+"####" A 0 A_Giveinventory("TriangleGun_RoundHandler")
+"####" BC 1 
+"####" B 0 A_Giveinventory("WepRecoil")
+"####" A 0 A_Giveinventory("TriangleGunCST")
+"####" A 0 A_Giveinventory("FiringSpeed")
+
+Hold:
+"####" A 1 A_WeaponReady(WRF_ALLOWONLYINPUTS)
+"####" A 0 A_Jumpifinventory("isBot",1,"BotRefire")
+"####" A 0 A_Refire
+goto Ready.Wep
+
+NoAmmo:
+"####" A 1
+"####" A 0 A_Jumpifinventory("TriangleGun_Ammo",1,"Ready")
+Goto Reload
+
+Flash:
+TNT1 A 5 
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}
+
+actor TriangleGun_RoundHandler : RoundHandlerBase
+{
+States
+{
+GoodAcc:
+"####" B 0 A_Jumpifinventory("ShotCount",2,"DefaultAcc")
+"####" B 0 A_FireCustomMissile("TriangleGunShot",fRandom(-(Aim_GoodSpread),(Aim_GoodSpread)),1,Aim_WepHor,Aim_WepHei,0,fRandom(-(Aim_GoodSpread),(Aim_GoodSpread)))
+stop
+//===============
+"####" A 0 A_FireCustomMissile("TriangleGunShot",fRandom(-(TRGG_SPD),(TRGG_SPD)),1,AIM_WEPHOR,AIM_WEPHEI,0,fRandom(-(TRGG_SPD),(TRGG_SPD)))
+Stop
+BadAcc:
+"####" A 0 A_FireCustomMissile("TriangleGunShot",fRandom(-(TRGG_SPD2),(TRGG_SPD2)),1,AIM_WEPHOR,AIM_WEPHEI,0,fRandom(-(TRGG_SPD2),(TRGG_SPD2)))
+stop
+}
+}
+//[+]========================================================================[+]
+//--------------------------------|Ammo & inventory|---------------------------
+//[+]========================================================================[+]
+actor TriangleGun_Ammo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 15
+Ammo.BackpackMaxAmount 24
+}
+
+actor TriangleGunCST : PowerupGiver
+{
++INVENTORY.AUTOACTIVATE
+Powerup.Duration 7
+powerup.type "ConShotTimer"
+}
+//[+]========================================================================[+]
+//--------------------------------|Projectiles |--------------------------------
+//[+]========================================================================[+]
+
+actor TriangleGunShot : fastProjectileBase
+{
+
+//+RIPPER
+//var int user_PierceRipper[1];
+//var int user_RippedPlayer[64];
+
+Obituary "$OB_TRIANGLEGUN"
+DamageType "TriangleGun"
+Damage (32)
+States
+{
+Spawn:
+TNT1 A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+Goto Spawn2
+Spawn2:
+TNT1 A 0 A_SpawnItemEx("TriangleGunTrail",0,0,0,momx,momy,momz,0,9)
+Spawn3:
+TNT1 A 0 A_CountDown
+TNT1 A 1 
+Goto Spawn2
+Death:
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 1 A_Spawnitemex("BasicShotPuff",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+
+actor TriangleGunTrail : BasicExplosion
+{
+Obituary "$OB_TRIANGLEGUN"
+States
+{
+Spawn:
+TNT1 A 0
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_SpawnItemEx("TriangleGunTrailX1",0,0,0,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("TriangleGunTrailX",0,0,0,-momx*0.1,-momy*0.1,-momz*0.1,0,9)
+TNT1 A 0 A_SpawnItemEx("TriangleGunTrailX",0,0,0,-momx*0.2,-momy*0.2,-momz*0.2,0,9)
+TNT1 A 0 A_SpawnItemEx("TriangleGunTrailX",0,0,0,-momx*0.3,-momy*0.3,-momz*0.3,0,9)
+TNT1 A 0 A_SpawnItemEx("TriangleGunTrailX",0,0,0,-momx*0.4,-momy*0.4,-momz*0.4,0,9)
+TNT1 A 1 
+stop
+}
+}
+
+actor TriangleGunTrailX : FXActor_B
+{
+scale 2.5
+Alpha 0.9
+States
+{
+Spawn:
+CRBM A 0
+AXLB A 1
+//BSTG AAAAA 1 A_Fadeout
+stop
+}
+}
+
+actor TriangleGunTrailX1 : FXActor_A
+{
+scale 2.5
+Alpha 0.9
+States
+{
+Spawn:
+BUST A 0
+AXLB A 1
+stop
+}
+}

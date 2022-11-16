@@ -1,0 +1,18 @@
+OptionValue WepOptionsB
+{
+0, "Mega Buster"
+1, "Wind Pressure Buster"
+2, "Aqua Buster"
+3, "Military Buster"
+4, "Shotgun"
+5, "Arrow Buster"
+6, "Triangle Gun"
+7, "HighSpeed Rifle"
+8, "Lazer Rifle"
+9, "Violet Zapper"
+10, "Hawk Precision Buster"
+11, "Coldfront"
+12, "Firebrand"
+13, "Hoser"
+14, "Spike Gatling"
+}

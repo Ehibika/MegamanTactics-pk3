@@ -1,0 +1,221 @@
+actor Ability2_Iceman : AbilityMasterBase
+{
+Weapon.AmmoUse2 1
+Weapon.AmmoGive2 0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+Obituary "$OB_MEGABUSTER"
+Tag "whatanicetag"
+weapon.ammotype1 "AbilityAmmo"
+inventory.icon "IWALL"
++WEAPON.ALLOW_WITH_RESPAWN_INVUL
+States
+{
+
+Ready:
+ICEB D 0 
+"####" A 1 Offset(0,110)
+"####" A 1 Offset(0,96)
+"####" A 1 Offset(0,82)
+"####" A 1 Offset(0,70)
+"####" A 1 Offset(0,58)
+"####" A 1 Offset(0,46)
+"####" A 1 Offset(0,32)
+Ready2:
+"####" D 0 A_FireCustomMissile("IceCubeAimPath",0,1,0,0,0,Aim_ArcOverHead+(Aim_ArcScale*Sin(-pitch)))
+"####" D 1 A_WeaponReady
+goto Ready2
+
+Fire:
+AltFire:
+ICEB D 0 A_PlaySoundEx("weapon/chillshot","Weapon")
+"####" D 0 A_FireCustomMissile("IceCubeSpawner",0,1,0,0,0,Aim_ArcOverHead+(Aim_ArcScale*Sin(-pitch)))
+"####" E 0 A_TakeInventory("AbilityCharge_2",1)
+"####" E 0 
+"####" EF 3
+"####" F 1 Offset(0,32)
+"####" F 1 Offset(0,58)
+"####" F 1 Offset(0,82)
+"####" F 1 Offset(0,96)
+"####" F 0 A_Jump(256,"End")
+goto End
+
+End:
+"####" C 1 A_TakeInventory("AbilityActiveFlag",9)
+"####" C 0 
+Goto End
+}
+}
+//====
+
+actor UseAbility2_Iceman : CustomInventory
+{
+states
+{
+Use:
+WEA2 A 0 A_GiveInventory("IceCubeAbility",1)
+fail
+}
+}
+
+actor IceCubeAbility : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",1,"Pickup2")
+stop
+
+Pickup2:
+TNT1 A 0 ACS_NamedExecuteAlways("RunClassAbility",0,2)
+stop
+
+Nope:
+TNT1 A 0 ACS_Execute(979,0)
+stop
+}
+}
+//=================
+// A PROJECTILE
+//=================
+
+actor IceCubeAimPath : GolfBallAimInstantStarter { Speed 32 Gravity 1}
+
+
+actor IceCubeSpawner
+{
+PROJECTILE
++THRUACTORS
+-NOGRAVITY
+Damage (0)
+scale 2.5
+radius 4
+height 4
+speed 32
+states
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+Spawn2:
+CHIL CD 2
+loop
+Death:
+TNT1 A 0 A_SpawnItemEx("IceCubeBlockSpawner")
+stop
+}
+}
+
+
+
+actor IceCubeBlockSpawner : BasicExplosion
+{
+Scale 5.5
+States
+{
+Spawn:
+NAPC A 0 
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 1// ACS_NamedExecuteAlways("GridSnapper",0)
+TNT1 A 0 ACS_NamedExecuteAlways("AngleSnapper",0)
+ICWL H 0 A_PlaySoundEx("weapon/icewallspawn","Weapon")
+TNT1 A 1 A_JumpIf(Ceilingz-z <= 32,"Ceil")
+TNT1 A 1 A_JumpIf(z-Floorz >= 16,"Wall")
+
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",-32,0,0,0,0,0,0,SXF_NOCHECKPOSITION)
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION)
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",32,0,0,0,0,0,0,SXF_NOCHECKPOSITION)
+stop
+
+Wall:
+TNT1 A 2 
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",-32,0,-32,0,0,0,0,SXF_NOCHECKPOSITION)
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",0,0,-32,0,0,0,0,SXF_NOCHECKPOSITION)
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",32,0,-32,0,0,0,0,SXF_NOCHECKPOSITION)
+stop
+
+Ceil:
+TNT1 A 2 
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",-32,0,-64,0,0,0,0,SXF_NOCHECKPOSITION)
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",0,0,-64,0,0,0,0,SXF_NOCHECKPOSITION)
+TNT1 A 0 A_Spawnitemex("IceCubeWallSpawnerSlice",32,0,-64,0,0,0,0,SXF_NOCHECKPOSITION)
+stop
+}
+}
+
+actor IceCubeWallSpawnerSlice
+{
+  Radius 1
+  Height 1
+  +NOGRAVITY
+  +NOINTERACTION
+  States
+  {
+  Spawn:
+    TNT1 A 0
+    TNT1 A 0
+    TNT1 A 0 A_Spawnitemex("IceCubeWallSpawner5up",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION)
+    TNT1 A 0 A_Spawnitemex("IceCubeWallSpawner5up",0,0,32,0,0,0,0,SXF_NOCHECKPOSITION)
+    TNT1 A 0 A_Spawnitemex("IceCubeWallSpawner5up",0,0,64,0,0,0,0,SXF_NOCHECKPOSITION)
+    stop
+  }
+}
+
+actor IceCubeWallSpawner5up
+{
+  Radius 1
+  Height 1
+  +NOGRAVITY
+  +NOINTERACTION
+  States
+  {
+  Spawn:
+    TNT1 A 0
+    TNT1 A 0
+    //TNT1 A 0 A_SpawnitemEx("IceCubeBlock_MT",0,64,0,0,0,0,0,SXF_NOCHECKPOSITION)
+    TNT1 A 0 A_SpawnitemEx("IceCubeBlock_MT",0,32,0,0,0,0,0,SXF_NOCHECKPOSITION)
+    TNT1 A 0 A_SpawnitemEx("IceCubeBlock_MT",0,0,0,0,0,0,0,SXF_NOCHECKPOSITION)
+    TNT1 A 0 A_SpawnitemEx("IceCubeBlock_MT",0,-32,0,0,0,0,0,SXF_NOCHECKPOSITION)
+    //TNT1 A 0 A_SpawnitemEx("IceCubeBlock_MT",0,-64,0,0,0,0,0,SXF_NOCHECKPOSITION)
+    stop
+  }
+}
+
+actor IceCubeBlock_MT : ConcreteBlock
+{
+PainChance 256
+//ReactionTime 700
+Health 150
+scale 1.0
+States
+{
+Spawn:
+CHIC A 0
+CHIC A 0 A_ClearTarget
+CHIC A 1
+CHIC B 0 A_ChangeFlag(TOUCHY, false)
+CHIC B 0 //A_ChangeFlag(MISSILE, false)
+CHIC B 0 A_ChangeFlag(SOLID, true)
+Spawn2:
+CHIC A 1 //A_CountDown
+CHIC B 0 A_JumpIfHealthLower(75,"Spawn3")
+loop
+Spawn3:
+CHIC B 1 //A_CountDown
+loop
+
+Pain:
+"####" "#" 0 A_Stop//
+"####" "#" 0 A_ChangeFlag("SHOOTABLE",0)
+"####" "#" 0 A_PlaySoundEx("Weapon/ChillBlockCrack", "Voice")
+"####" "#" 2
+"####" "#" 0 A_ChangeFlag("SHOOTABLE",1)
+CHIC B 0 A_JumpIfHealthLower(75,"Spawn3")
+Goto Spawn2
+
+Death:
+TNT1 A 0 A_NoBlocking
+TNT1 AAAAA 0 A_SpawnItemEx("ChillIceCubeShard",0,0,0,random(1,5),random(-10,10),random(8,12),random(-5,5)) 
+TNT1 A 0 A_PlaySound("weapon/ChillBlockBreak",1,0.5)
+stop
+}
+}

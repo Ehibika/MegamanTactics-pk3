@@ -1,0 +1,831 @@
+
+#library "A_Core"
+#include "zcommon.acs"
+#include "8bdmlib.acs"
+
+#LIBDEFINE MAX_PLAYERS 64
+#LIBDEFINE TEAM_NONE -1
+#LIBDEFINE TEAM_COOP -2
+
+#LIBDEFINE XRAYActorTID 580000
+
+#LIBDEFINE BARRIERTID 390000 // 37| Owner TID
+
+#LIBDEFINE DROPITEMTID 4540
+#LIBDEFINE ZDMETER 32 //a meter is 32 map units
+
+#LIBDEFINE BASEBLASTMIN 120
+
+#LIBDEFINE STATUS_MINOR  1
+#LIBDEFINE STATUS_MAJOR  2
+#LIBDEFINE STATUS_SPECIALTY  4
+#LIBDEFINE STATUS_STATS  8
+#LIBDEFINE STATUS_TAUNT  16
+
+int PlayerJumpZ[64];
+int PlayerBaseSpeed[64];
+
+//[+]===============|Setup Scripts|================[+]
+
+//======|Master RE Starter
+script "MegaTactics_Respawn" RESPAWN
+{
+		ACS_NamedExecuteAlways("MegaTactics_Startup",0);	
+}
+
+
+
+
+//======|Master Starter
+Script "MegaTactics_Startup" ENTER 
+{
+//Assigns all players a Species so that MTHRUSPECIES can be used to allow
+//allies to shoot past one another
+
+int pln = playerNumber();
+
+	If(ACS_ExecuteWithResult(975, 1))
+		{
+		switch(GetPlayerInfo(PlayerNumber(), PLAYERINFO_TEAM))
+			{
+			Case 0:
+			SetActorProperty(0,APROP_SPECIES,"LightMember");
+			break;
+			Case 1:
+			SetActorProperty(0,APROP_SPECIES,"WilyMember");
+			break;
+			Case 2:
+			SetActorProperty(0,APROP_SPECIES,"CossackMember");
+			break;
+			Case 3:
+			SetActorProperty(0,APROP_SPECIES,"KingMember");
+			break;
+			}
+		}
+		Else{setactorproperty(0,APROP_SPECIES,strparam(s:"Player",i:playernumber()));}
+	ACS_NamedExecuteAlways("SetClientSpecies",0,GetPlayerInfo(PlayerNumber(), PLAYERINFO_TEAM));
+
+// Stores the players starting Jump Height on spawn
+PlayerJumpZ[pln] = GetActorProperty(0, APROP_JumpZ);
+
+//Enable footsteps
+ACS_NamedExecuteAlways("MT_StepHandler",0);
+
+
+}
+
+
+Script "SetClientSpecies" (int Num) Clientside
+{
+	switch(Num)
+		{
+		Case 0:
+		SetActorProperty(0,APROP_SPECIES,"LightMember");
+		break;
+		Case 1:
+		SetActorProperty(0,APROP_SPECIES,"WilyMember");
+		break;
+		Case 2:
+		SetActorProperty(0,APROP_SPECIES,"CossackMember");
+		break;
+		Case 3:
+		SetActorProperty(0,APROP_SPECIES,"KingMember");
+		break;
+		}
+		ACS_NamedExecuteAlways("core_synccolors", 0);
+}
+
+
+
+// modification of the health based shield hit code that
+//counts the number of hits but doesn't refund health
+script "ShieldHitCounter" (int hits, int customProtect)
+{
+	if(hits == 0)
+	{
+		hits = 1;
+	}
+	else if(hits > 999)
+	{
+		//Log(s:"\cgSCRIPT 982: SPECIFIED HITS VALUE TOO HIGH. TERMINATING.");
+		terminate;
+	}
+	
+	int health = GetActorProperty(0, APROP_HEALTH);
+	int maxHealth = GetActorProperty(0, APROP_SPAWNHEALTH);
+	int healCurrent = health;
+	bool loanHP = false;
+	
+	if(maxHealth == 0)
+	{
+		maxHealth = 100;
+	}
+	
+	TakeInventory("ShieldHits", 999);
+	GiveInventory("ShieldHits", hits);
+	
+	SetPlayerProperty(0, 1, PROP_BUDDHA);
+	
+	if(health < 2)
+	{
+		healCurrent = 2;
+		loanHP = true;
+		SetActorProperty(0, APROP_HEALTH, 2);
+	}
+	
+	while(CheckInventory("ShieldHits")>0 && CheckInventory("StopHitShield")==0)
+	{
+		Delay(1);
+		if(GetActorProperty(0, APROP_HEALTH) > health)
+		{
+			health = GetActorProperty(0, APROP_HEALTH);
+			healCurrent = GetActorProperty(0, APROP_HEALTH);
+		}
+		
+		if(healCurrent > GetActorProperty(0, APROP_HEALTH))
+		{
+			TakeInventory("ShieldHits", 1);
+			/*
+			if(CheckInventory("ShieldHits")>0)
+			{
+				SetActorProperty(0, APROP_HEALTH, healCurrent);
+			}
+			else
+			{
+				SetActorProperty(0, APROP_HEALTH, health);
+			}
+			
+			if(!customProtect)
+			{
+				GiveInventory("HitShieldProtection", 1);
+			}
+			*/
+		}
+	}
+	
+	if(loanHP && GetActorProperty(0, APROP_HEALTH) < maxHealth)
+	{
+		SetActorProperty(0, APROP_HEALTH, GetActorProperty(0, APROP_HEALTH)-1);
+	}
+	
+	if(CheckInventory("ShieldCheck")==0 && CheckInventory("BasicArmor")==0 && !customProtect)
+	{
+		GiveInventory("HitShieldProtection", 1);
+	}
+	
+	SetPlayerProperty(0, 0, PROP_BUDDHA);
+}
+
+
+script "UseClassAbility" (int AbilityNum)
+{
+Str ClassName,Command;
+
+ClassName = GetActorClass(0);
+
+Command = StrParam(s:"UseAbility",i:AbilityNum,s:"_",s:ClassName);
+
+//log(s:Command);
+UseInventory(Command);
+}
+
+
+script "RunClassAbility" (int AbilityNum)
+{
+	str CurrentWeapon = GetWeapon();
+	Str ClassName = GetActorClass(0);
+	Str AbilityWep = StrParam(s:"Ability",i:AbilityNum,s:"_",s:ClassName);
+	Bool AbilitySwap;
+	//log(s:"Start Ability");
+	
+	/*
+	First we check for the AbilityActiveFlag, this indicates if the player is actively
+	using an ability. the script will run in two differend ways depending on if this
+	is a new ability initiation, or an ability swap
+	*/
+	if(!CheckInventory("AbilityActiveFlag")) //New Ability Initiation
+	{
+	GiveInventory("AbilityActiveFlag",1);
+	GiveInventory(AbilityWep,1);
+	SetWeapon(AbilityWep);
+	}
+	else //Ability Swap
+	{
+	Str PastAbilityWep = isCurrentWepAbility(ClassName);
+	GiveInventory(AbilityWep,1);
+	until(CheckWeapon(AbilityWep)) 
+		{
+		SetWeapon(AbilityWep); 
+		delay(1);
+		//TakeInventory(PastAbilityWep,1);
+		AbilitySwap = true;
+		GiveInventory("AbilitySwapFlag",1);
+		}
+	}
+	
+	/*
+	Now for the body of the script
+	*/
+	
+	if(AbilitySwap)
+		{
+		//log(s:"Waiting for past ability");
+		While(CheckInventory("AbilitySwapFlag")) delay(1);
+		//log(s:"Waiting Complete");
+		if(!CheckInventory("AbilityActiveFlag")){GiveInventory("AbilityActiveFlag",1);}
+		}
+
+	While(CheckWeapon(CurrentWeapon)&&CheckInventory("AbilityActiveFlag")) delay(1);
+	//log(s:"Ability Is Active");
+	if(CheckWeapon(AbilityWep)) 
+		{ //log(s:"Ability Confirmed");
+		while(CheckInventory("AbilityActiveFlag")&&!CheckInventory("AbilitySwapFlag")) {delay(1);}
+		if(CheckWeapon(AbilityWep)) {SetWeapon(CurrentWeapon);}
+		}
+	if(!CheckInventory("AbilitySwapFlag")){TakeInventory("AbilityActiveFlag",1);}
+	TakeInventory("AbilitySwapFlag",1);
+	TakeInventory(AbilityWep,1);
+	//log(s:"Ability Is Over");
+	
+}
+
+//item ability
+
+script "RunItemAbility" (int AbilityNum)
+{
+	str CurrentWeapon = GetWeapon();
+	Str ClassName = GetActorClass(0);
+	Str AbilityWep = StrParam(s:"ItemAbility_",i:AbilityNum);
+	Bool AbilitySwap;
+	//log(s:"Start Ability");
+	
+	/*
+	First we check for the AbilityActiveFlag, this indicates if the player is actively
+	using an ability. the script will run in two differend ways depending on if this
+	is a new ability initiation, or an ability swap
+	*/
+	if(!CheckInventory("AbilityActiveFlag")) //New Ability Initiation
+	{
+	GiveInventory("AbilityActiveFlag",1);
+	GiveInventory(AbilityWep,1);
+	SetWeapon(AbilityWep);
+	}
+	else //Ability Swap
+	{
+	Str PastAbilityWep = isCurrentWepAbility(ClassName);
+	GiveInventory(AbilityWep,1);
+	until(CheckWeapon(AbilityWep)) 
+		{
+		SetWeapon(AbilityWep); 
+		delay(1);
+		//TakeInventory(PastAbilityWep,1);
+		AbilitySwap = true;
+		GiveInventory("AbilitySwapFlag",1);
+		}
+	}
+	
+	/*
+	Now for the body of the script
+	*/
+	
+	if(AbilitySwap)
+		{
+		//log(s:"Waiting for past ability");
+		While(CheckInventory("AbilitySwapFlag")) delay(1);
+		//log(s:"Waiting Complete");
+		if(!CheckInventory("AbilityActiveFlag")){GiveInventory("AbilityActiveFlag",1);}
+		}
+
+	While(CheckWeapon(CurrentWeapon)&&CheckInventory("AbilityActiveFlag")) delay(1);
+	//log(s:"Ability Is Active");
+	if(CheckWeapon(AbilityWep)) 
+		{ //log(s:"Ability Confirmed");
+		while(CheckInventory("AbilityActiveFlag")&&!CheckInventory("AbilitySwapFlag")) {delay(1);}
+		if(CheckWeapon(AbilityWep)) {SetWeapon(CurrentWeapon);}
+		}
+	if(!CheckInventory("AbilitySwapFlag")){TakeInventory("AbilityActiveFlag",1);}
+	TakeInventory("AbilitySwapFlag",1);
+	TakeInventory(AbilityWep,1);
+	//log(s:"Ability Is Over");
+	
+}
+
+function Str isCurrentWepAbility (int ClassName)
+{
+str Output = "NO";
+Str ClassAbility;
+str CurrentAbility = GetWeapon();
+For(int i=1;i<=3;i++)
+	{
+	ClassAbility = StrParam(s:"Ability",i:i,s:"_",s:ClassName);
+	if(CurrentAbility == ClassAbility)
+		{
+		Output = ClassAbility;
+		}
+	}
+//check for item abilities
+For(int j=0;j<=3;j++)
+	{
+	ClassAbility = StrParam(s:"ItemAbility_",i:j);
+	if(CurrentAbility == ClassAbility)
+		{
+		Output = ClassAbility;
+		}
+	}
+return Output;
+}
+
+Script "MT_CheckAbilityInput" (int InputType)
+{
+int Output;
+Switch(InputType)
+	{
+	Case 1: Output = (PressingButton(BT_USER1)); /*|| PressingButton(BT_RELOAD));*/ Break;
+	Case 2: Output = (PressingButton(BT_USER2)); /*|| PressingButton(BT_ZOOM));*/ Break;
+	Case 3: Output = PressingButton(BT_USER3); Break;
+	Case 4: Output = PressingButton(BT_USER4); Break;
+	Default: Output = 0; Break;
+	}
+if(!CheckInventory("NetCheck_Freeze")){SetResultValue(Output);}
+else SetResultValue(0);
+}
+
+script "SprayerAlpha"  (int Value) CLIENTSIDE
+{ //applies different alpha for the client of sprayer particles
+    int cln = consolePlayerNumber();
+	int Owner = ACS_NamedExecuteWithResult("core_gettarget")-1000;
+    if(Owner == cln)
+    {
+        SetActorProperty(0,APROP_ALPHA,Value);
+    }
+
+}
+
+Function bool GetMaxEntities(void)
+{
+	int ret = GetCVAR("sv_MaxClients");
+	
+	if(PlayerCount()>ret) // admins can join above the max player limit.
+	{
+		ret = PlayerCount();
+	}
+
+	int output = ret+GetCvar("Sv_MaxEntities");
+	return output;
+}
+
+
+// Returns a number below 0 as 0
+Function int NoNeg (int Numb)
+{
+Int Output;
+
+if(Numb > 0){Output = Numb;}
+else{Output = 0;}
+return Output;
+}
+
+
+//returns the relative pitch of a thing with tid2, from a thing with tid1.
+function int GetTargetPitch (int tid1, int tid2)
+{
+    int x, y, z, xy, a;
+    x = GetActorX(tid2) - GetActorX(tid1);
+    y = GetActorY(tid2) - GetActorY(tid1);
+    z = GetActorZ(tid2) - GetActorZ(tid1);
+    a = VectorAngle(x, y);
+
+    if ((a + 0.125) % 0.5 > 0.25)
+        xy = FixedDiv(y, sin(a));
+    else
+        xy = FixedDiv(x, cos(a));
+
+    return -VectorAngle(xy, z);
+}
+
+Function bool CheckActorTeam(int TID)
+{
+	if(ClassifyActor(TID) & ACTOR_PLAYER) {return GetPlayerInfo(TID-1000, PLAYERINFO_TEAM);}
+
+	if(ClassifyActor(TID) & ACTOR_MONSTER)
+		{
+			if(CheckActorInventory(TID,"LightTeamFlag")) {Return 0;}
+			if(CheckActorInventory(TID,"WilyTeamFlag")) {Return 1;}
+			if(CheckActorInventory(TID,"CossackTeamFlag")) {Return 2;}
+			if(CheckActorInventory(TID,"KingTeamFlag")) {Return 3;}
+		}
+
+		return -1;
+}
+
+
+function void adjustInventory(str item, int amount)
+{
+int currentAmount = CheckInventory(item);
+if(amount>currentAmount) {
+	GiveInventory(item,amount-currentAmount);
+} else if(amount<currentAmount) {
+	TakeInventory(item,currentAmount-amount);
+}
+}
+
+Script "MT_ButtonCheck" (int theButton)
+{
+SetResultValue(PressingButton(theButton));
+}
+
+Script "MT_PressingBothAttack" (void)
+{
+int buttons = GetPlayerInput(-1, INPUT_BUTTONS);
+SetResultValue(PressingButton2(buttons,BT_ATTACK)&&PressingButton2(buttons,BT_ALTATTACK));
+}
+
+Function int MSTDButtonCheck (int NewButtons, int OldButtons, int Which)
+{
+	int ButtonNow = NewButtons & Which;
+	int ButtonOld = OldButtons & Which;
+	If(ButtonNow > ButtonOld){Return 1;}
+	If(ButtonNow < ButtonOld){Return 2;}
+	If(ButtonNow > 0 &&  ButtonOld > 0){Return 3;}
+	Return 0;
+}
+
+
+function bool PressingButton (int theButton)
+{
+return PressingButton2(GetPlayerInput(-1, INPUT_BUTTONS),theButton);
+}
+
+function bool PressingButton2 (int buttons, int theButton)
+{
+return ((buttons&theButton)>0);
+}
+
+Function int ButtonCheck (int Buttons, int OldButtons, int WhichButton)
+{
+int ButtonNow = Buttons & WhichButton;
+int ButtonOld = OldButtons & WhichButton;
+If(ButtonNow > ButtonOld){Return 1;}
+If(ButtonNow < ButtonOld){Return 2;}
+If(ButtonNow > 0 &&  ButtonOld > 0){Return 3;}
+Return 0;
+}
+
+function int SpawnNewWepFunc(str classname) {
+	int u = UniqueTID();
+	int r = SpawnSpotForcedCopyVelocity(classname,0,u,GetActorAngle(0)>>8);
+	//SetActorFlag(u,"DROPPED",CheckFlag(0,"DROPPED"));
+	////SetActorFlagJ(u,"DROPPED",CheckFlag(0,"DROPPED"));
+	Thing_ChangeTID(u,ActivatorTID());
+	return r;
+}
+
+
+function int SpawnSpotForcedCopyVelocity(str classname, int spottid, int tid, int angle) {
+	int r = SpawnSpotForced(classname, spottid, tid, angle);
+	SetActorVelocity(tid,GetActorVelX(0),GetActorVelY(0),GetActorVelZ(0),0,0);
+	return r;
+}
+
+function void SetActorFlagJ(int tid, str flagname, bool value) {
+	GiveActorInventoryZeroIsSelf(tid,StrParam(s:"ChangeFlag",s:flagname,i:value),1);
+}
+
+function void GiveActorInventoryZeroIsSelf(int tid, str inventory_item, int amount) {
+	if(tid==0) GiveInventory(inventory_item,amount);
+	else GiveActorInventory(tid,inventory_item,amount);
+}
+
+
+Function Int ValueMap (int Input, int InputHigh, int InputLow, int OutputHigh, int OutputLow)
+{
+
+int FinalOut;
+int A;
+int B;
+Int C;
+
+int AB;
+int ABC;
+
+A = (Input - InputLow)<<16;
+B = (InputHigh - InputLow)<<16;
+C = (OutputHigh - OutputLow);
+
+AB = fixedDiv(A,B);
+ABC = (AB * C) >> 16;
+FinalOut = ABC + OutputLow;
+//FinalOut = ( ((Input - InputLow)/(InputHigh - InputLow))*(OutputHigh - OutputLow) + OutputLow);
+
+return FinalOut;
+}
+
+Function int GetHealthPercent (int Pointer, int Type, int perval)
+{
+int HealthPercent;
+int PlayerCurrentHealth;
+int PlayerMaxHealth;
+int MaxHPCache;
+int TargTID;
+
+if(Pointer>0){TargTID = ACS_NamedExecuteWithResult("core_getptrtid",Pointer);}
+else if (Pointer<0){TargTID =0;}
+else {TargTID = ActivatorTID();}
+
+if(GetActorProperty(TargTID,APROP_HEALTH)<=0){PlayerCurrentHealth = 1; }
+else{PlayerCurrentHealth = GetActorProperty(TargTID,APROP_Health);}
+
+MaxHPCache = GetActorProperty(TargTID,APROP_SpawnHealth); 
+
+	
+if(MaxHPCache<=0){PlayerMaxHealth = 1; }
+else{PlayerMaxHealth = MaxHPCache;}
+
+// Type 0 = current percentage of health
+// Type 1 = Value of Health at that percentage
+// Type 2 = Current Remaining HP
+
+Switch (Type)
+	{
+	default : HealthPercent = ((PlayerCurrentHealth*100)/PlayerMaxHealth); Break;
+	Case 1 : HealthPercent = (fixeddiv(PlayerMaxHealth,100)*perval) >> 16; Break;
+	Case 2 : HealthPercent = PlayerCurrentHealth; Break;
+	}
+
+return HealthPercent;
+}
+
+
+//Jump Switcher
+script "MT_JumpToggle" (Int Toggle)
+{
+
+int pln = ActivatorTID() - 1000;
+
+if (Toggle >= 1){SetActorProperty(ActivatorTID(),APROP_JUMPZ,PlayerJumpZ[pln]); TakeInventory("CannotJump",99);}
+Else {SetActorProperty(ActivatorTID(),APROP_JUMPZ,0); GiveInventory("CannotJump",1);}
+}
+
+script "MT_AngleGrab" (Void)
+{
+int FiringPlayer= ACS_ExecuteWithResult(257, 0);
+int Output = 360 * (GetActorAngle(FiringPlayer));
+Setresultvalue(Output >> 16);
+//--
+}
+
+function int getSelfTeam(void)
+{
+if (GetCVar("teamplay")==1||GetCVar("teamlms")==1||GetCVar("teampossession")==1
+||GetCVar("teamgame")==1){
+	Return PlayerTeam();
+} else if (GetCVar("cooperative")==1) {
+	Return TEAM_COOP;
+}
+Return TEAM_NONE;
+}
+
+
+function int fDistanceVal(int x, int y, int z)
+{
+	int len;
+	
+	int ang = vectorangle(x,y);
+	if(((ang+0.125)%0.5) > 0.25) len = fixeddiv(y, sin(ang));
+	else len = fixeddiv(x, cos(ang));
+
+	ang = vectorangle(len, z);
+	if(((ang+0.125)%0.5) > 0.25) len = fixeddiv(z, sin(ang));
+	else len = fixeddiv(len, cos(ang));
+	
+	//print(f:len);
+	return len;
+}
+
+function int WrapAround(int i)
+{
+	if(i<-0.5) return i+1.0;
+	if(i>0.5) return i-1.0;
+	return i;
+}
+
+function int fDistanceVal1(int ang, int x, int y)
+{
+	int len;
+	
+	if(((ang+0.125)%0.5) > 0.25) len = fixeddiv(y, sin(ang));
+	else len = fixeddiv(x, cos(ang));
+
+	//print(f:len);
+	return len;
+}
+
+function int fDistanceVal2(int ang, int len, int z)
+{
+	if(((ang+0.125)%0.5) > 0.25) len = fixeddiv(z, sin(ang));
+	else len = fixeddiv(len, cos(ang));
+
+	//print(f:len);
+	return len;
+}
+
+
+function int pitchAdjust(int i)
+{
+	if(i>0.0) return 1.0-i;
+	return -i;
+}
+
+function bool isDifferentTeams (int team, int targetNumber)
+{
+	return (team != GetPlayerInfo(targetNumber, PLAYERINFO_TEAM));
+}
+
+
+script 143 (int ID, int Swap)
+{
+	if(Swap==1){
+		if(ClassifyActor(ID) & ACTOR_PLAYER){
+			if(GetCVar("teamlms")==1||GetCVar("ctf")==1||GetCVar("teamplay")==1||GetCVar("oneflagctf")==1||GetCVar("teampossession")==1||GetCVar("teamgame")==1 ){
+				SetResultValue(GetPlayerInfo(ID-1000,PLAYERINFO_TEAM));
+				terminate;
+			}
+		}
+		SetResultValue(TEAM_NONE);
+		terminate;
+	}
+
+	if(!(ClassifyActor(ActivatorTID()) & ACTOR_PLAYER)){
+		SetActivatorToTarget(0);
+	}
+	if(ClassifyActor(ActivatorTID()) & ACTOR_PLAYER) {
+		if(GetCVar("teamlms")==1||GetCVar("ctf")==1||GetCVar("teamplay")==1||GetCVar("oneflagctf")==1||GetCVar("teampossession")==1||GetCVar("teamgame")==1 ){
+			SetResultValue(PlayerTeam());
+			terminate;
+		}
+	}
+	SetResultValue(TEAM_NONE);
+}
+
+script "MT_IsPlayerAlive" (int TID)
+{
+	SetActivator(TID);
+	if(PlayerNumber() == -1 || CheckInventory("IsDead") || !PlayerInGame(PlayerNumber())){
+		SetResultValue(0);
+	}
+	else{
+		SetResultValue(1);
+	}
+}
+
+Function void SynchWarperRender (int TID)
+{
+SetActorProperty(0,Aprop_Renderstyle,GetActorProperty(TID, Aprop_Renderstyle));
+}
+
+
+function bool checkForActorVar(int tid, str theVar) {
+	SetUserVariable(tid,theVar,1);
+	return (GetUserVariable(tid,theVar)==1);
+}
+
+function int returnActorVarArraySize(int tid, str theVar) {
+	int i = 0;
+	while(true) {
+		SetUserArray(tid, theVar, i, 1);
+		if(GetUserArray(tid, theVar, i) == 0) {
+			break;
+		}
+		i++;
+	}
+	return i;
+}
+
+Function int RoundToNth (int Input, int Nth)
+{
+int output = (Input/Nth)*Nth;
+//Input = Input>>16;
+//Nth = Nth>>16;
+//int output = FixedMul(Round(FixedDiv(Input,Nth)),Nth);
+return output;
+}
+
+Function bool GetRoundGame (int type)
+{
+
+if(Type){return (GetCvar("lastmanstanding")==1||GetCvar("teamlms"));}
+
+return (GetCvar("lastmanstanding")==1||GetCvar("teamlms")||(GetCvar("Sv_BombGame")&&GetCvar("TeamGame")));
+}
+
+
+Function int AToI (str s)
+{
+   str a = "";
+   int i, i2, n;
+   int l = StrLen(s);
+   for (i = 0; i < l; i++)
+   {
+      for (i2 = 0; i2 < 10; i2++)
+      {
+         a = StrParam(i:i2);
+         if (!StrCmpZan(StrParam(c:GetChar(s, i)), a))
+            n += i2 * Power(10, l - i - 1);
+      }
+   }
+   return n;
+}
+
+
+Function str ToLower (str s)
+{
+   int l = StrLen(s);
+   int aChar = GetChar("A", 0);
+   int zChar = GetChar("Z", 0);
+   int sChar;
+   str rs = "";
+   for (int i = 0; i < l; i++)
+   {
+      sChar = GetChar(s, i);
+      if (sChar <= zChar && sChar >= aChar)
+         sChar += 32;
+      rs = StrParam(s:rs, c:sChar);
+   }
+   return rs;
+}
+
+Function str ToUpper (str s)
+{
+   int l = StrLen(s);
+   int aChar = GetChar("a", 0);
+   int zChar = GetChar("z", 0);
+   int sChar;
+   str rs = "";
+   for (int i = 0; i < l; i++)
+   {
+      sChar = GetChar(s, i);
+      if (sChar <= zChar && sChar >= aChar)
+         sChar -= 32;
+      rs = StrParam(s:rs, c:sChar);
+   }
+   return rs;
+}
+
+Function bool StrCmpZan (str s1, str s2)
+{
+   int c1 = GetChar(s1, 0);
+   int c2 = GetChar(s2, 0);
+   if (c1 == c2)
+      return false;
+   return true;
+}
+
+Function bool StrICmpZan (str s1, str s2)
+{
+   s1 = ToLower(s1);
+   s2 = ToLower(s2);
+   int c1 = GetChar(s1, 0);
+   int c2 = GetChar(s2, 0);
+   if (c1 == c2)
+      return false;
+   return true;
+}
+
+Function int Power (int num, int pwr)
+{
+   int n = num;
+   if (pwr == 0)
+      return 1;
+   for (int i = 1; i < pwr; i++)
+      num *= n;
+   return num;
+}
+
+Function bool IsDigit (str charStr)
+{
+   if (StrLen(charStr) > 1)
+      charStr = StrParam(c:GetChar(charStr, 0));
+   str compare = "";
+   for (int i = 0; i < 10; i++)
+   {
+      compare = StrParam(i:i);
+      if (!StrICmpZan(charStr, compare))
+         return true;
+   }
+   return false;
+}
+
+Function bool IsAlpha (str charStr)
+{
+   return !IsDigit(charStr);
+}
+
+function void SetNoSaveCvarInt(str cvar, int value)
+{
+ConsoleCommand(StrParam(s:"set ",s:cvar,s:" ",i:value));
+}
+
+function void SetNoSaveCvarString(str cvar, str value)
+{
+ConsoleCommand(StrParam(s:"set ",s:cvar,s:" \"",s:value,s:"\""));
+}

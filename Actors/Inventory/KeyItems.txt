@@ -1,0 +1,402 @@
+//[+]========================================================[+]
+
+actor PsychicPointReso : Inventory {inventory.amount 1 Inventory.MaxAmount 500}
+actor PsychicPoints : Inventory {inventory.amount 1 Inventory.MaxAmount 5}
+actor HasPSI : Inventory {inventory.amount 1 Inventory.MaxAmount 1}
+
+actor PPRecoveryHandler : WatcherBase // Coolers are a type of watcher actor that handle weapon cooldowns
+{
+States
+{
+Spawn:
+TNT1 A 0 A_JumpIfInTargetInventory("CutterFlag",999,"DeathTake")
+TNT1 A 1
+TNT1 A 0 //Check to stall PP Gain
+TNT1 A 7
+TNT1 A 0 A_JumpIfInTargetInventory("PsychicPointReso",1,2)
+TNT1 A 0 A_SetArg(0,0)
+TNT1 A 0
+TNT1 A 0 A_GiveToTarget("PsychicPointReso",5)
+TNT1 A 0 A_SetArg(0,args[0]+1)
+TNT1 A 0 A_JumpIf(args[0] >= 20, "Spawn.GivePP")
+loop
+Spawn.GivePP:
+TNT1 A 0 A_GiveToTarget("PsychicPoints",1)
+TNT1 A 0 A_SetArg(0,0)
+Goto Spawn 
+
+Death:
+DeathTake:
+TNT1 A 0
+stop
+}
+}
+
+actor PsiKit : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0 A_Giveinventory("HasPSI",1)
+TNT1 A 0 A_Spawnitemex("PPRecoveryHandler")
+stop
+Nope:
+//BUST B 0 A_PlaySoundEx("weapon/heat3","Item")
+TNT1 A 0
+stop
+}
+}
+
+
+actor NoClipBar : Inventory {inventory.amount 1 Inventory.MaxAmount 1}
+actor NoCoolBar : Inventory {inventory.amount 1 Inventory.MaxAmount 1}
+Actor MultiWep : Inventory {inventory.amount 1 Inventory.MaxAmount 1}
+
+actor AbilityActiveFlag : Once{}
+actor AbilitySwapFlag : Once{}
+
+Actor CritAble : powerprotection
+{inventory.amount 1 powerup.duration -1 Damagefactor "NORMAL", 3.0}
+
+Actor FireCritAble : Inventory
+{inventory.amount 1 inventory.maxamount 1}
+
+Actor PoisonCritAble : Inventory
+{inventory.amount 1 inventory.maxamount 1}
+
+actor CritCheck : CustomInventory
+{
++INVENTORY.AUTOACTIVATE
+inventory.amount 1
+inventory.maxamount 8
+States
+{
+Pickup:
+TNT1 A 0
+TNT1 A 0 A_Jumpifinventory("CritAble",1,"Crit")
+TNT1 A 0 //A_Jumpifinventory("CritChargePower",1,"Crit",AAPTR_TARGET)
+TNT1 A 0 
+stop
+Crit:
+TNT1 A 0 A_PlaySoundEx("Weapon/CrossBoltHit", "SoundSlot5",0)
+CENF AAAAAAAAAA 0 A_SpawnItemEx("CentaurFlashFX", 0, 0, 28, 256/24, 256/24, random2(256/24), random(0, 359))
+"####" B 1 //Thrustthingz(0,2,0,1)
+stop
+}
+}
+
+actor FireCritCheck : CustomInventory
+{
++INVENTORY.AUTOACTIVATE
+inventory.amount 1
+inventory.maxamount 8
+States
+{
+Pickup:
+TNT1 A 0
+TNT1 A 0 A_Jumpifinventory("FireCritAble",1,"Crit")
+TNT1 A 0 
+stop
+Crit:
+TNT1 A 0 A_PlaySoundEx("Weapon/CrossBoltHit", "SoundSlot5",0)
+CENF AAAAAAAAAA 0 A_SpawnItemEx("CentaurFlashFX", 0, 0, 28, 256/24, 256/24, random2(256/24), random(0, 359))
+"####" B 1 //Thrustthingz(0,2,0,1)
+stop
+}
+}
+
+actor PoisonCritCheck : CustomInventory
+{
++INVENTORY.AUTOACTIVATE
+inventory.amount 1
+inventory.maxamount 8
+States
+{
+Pickup:
+TNT1 A 0
+TNT1 A 0 A_Jumpifinventory("PoisonCritAble",1,"Crit")
+TNT1 A 0 
+stop
+Crit:
+TNT1 A 0 A_PlaySoundEx("Weapon/CrossBoltHit", "SoundSlot5",0)
+CENF AAAAAAAAAA 0 A_SpawnItemEx("CentaurFlashFX", 0, 0, 28, 256/24, 256/24, random2(256/24), random(0, 359))
+"####" B 1 //Thrustthingz(0,2,0,1)
+stop
+}
+}
+
+actor GravityUp : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0 A_Changeflag("NOGRAVITY",0)
+TNT1 A 0 A_scalevelocity(0.5)
+stop
+Nope:
+//BUST B 0 A_PlaySoundEx("weapon/heat3","Item")
+TNT1 A 0
+stop
+}
+}
+
+
+actor GravityDown : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0 A_Changeflag("NOGRAVITY",1)
+stop
+Nope:
+//BUST B 0 A_PlaySoundEx("weapon/heat3","Item")
+TNT1 A 0
+stop
+}
+}
+
+Actor GrapHookBounce : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0
+TNT1 A 0 //A_Logint(z-floorz)
+TNT1 A 0 A_Jumpif(z-floorz<60,"Nope")
+TNT1 A 0 A_CheckCeiling("Nope")
+TNT1 A 0 A_Stop
+TNT1 A 0 Thrustthingz(0,55,0,1)
+Nope:
+//BUST B 0 A_PlaySoundEx("weapon/heat3","Item")
+TNT1 A 0
+}}
+
+Actor WepBloomitem : Inventory //for spread
+{
+inventory.amount 1
+inventory.maxamount 100
+}
+
+actor BurnProof : inventory{inventory.amount 1 inventory.maxamount 1}
+actor TempBurnProof : Powerup{inventory.amount 1 powerup.duration 140}
+
+actor PoisonProof : inventory{inventory.amount 1 inventory.maxamount 1}
+actor TempPoisonProof : Powerup{inventory.amount 1 powerup.duration 85}
+
+actor FrostProof : inventory{inventory.amount 1 inventory.maxamount 1}
+actor TempFrostProof : Powerup{inventory.amount 1 powerup.duration 85}
+
+actor BlastProtection : PowerProtection //for blastjumps
+{
+inventory.amount 1
+powerup.duration 5
+Damagefactor "Explosion", 0.45
+Damagefactor "ExplosionRED", 0.45
+}
+
+actor shootingspeeddown : powerspeed
+{
+powerup.duration 10
+speed 0.66
+}
+
+actor Mediscan : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0 //ACS_Executealways(MedivisionScript,0)
+TNT1 A 0 ACS_NamedExecutealways("MedivisionScript",0)
+stop
+Nope:
+TNT1 A 0
+stop
+}
+}
+
+actor RangeMarker
+{
+PROJECTILE
++NOINTERACTION
++NOCLIP
++FloorHugger
++CLIENTSIDEONLY
+radius 2
+height 2
+Damage (0)
+scale 5.0
+Reactiontime 35
+Renderstyle "ADD"
+Alpha 0.8
+var int user_Rot;
+var int user_Rot2;
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_setuservar("user_Rot",0)
+spawn2:
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle2",25,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle2",50,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle",100,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle2",150,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle",200,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle2",250,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle",300,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle2",350,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle",400,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle2",450,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle",500,0,5,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle2",550,0,5,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle",600,0,5,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle2",650,0,5,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_SpawnItemEx("RangeMarkParticle",700,0,2,0,0,0,user_Rot+user_Rot2)
+TNT1 A 0 A_setuservar("user_Rot",user_Rot+3)
+TNT1 A 0 A_jumpif(user_Rot >= 360,"RotReset")
+loop
+RotReset:
+TNT1 A 3
+TNT1 A 0 A_setuservar("user_Rot2",user_Rot2+1)
+TNT1 A 0 A_setuservar("user_Rot",0)
+TNT1 A 0 A_jumpif(user_Rot2 >= 3,"RotReset2")
+Goto Spawn2
+RotReset2:
+TNT1 A 0 A_setuservar("user_Rot2",0)
+Goto Spawn2
+Death:
+HARD EDCB 2
+stop
+}
+}
+
+actor RangeMarkParticle : FXActor_A
+{
+PROJECTILE
++NOINTERACTION
++DONTBLAST
++CLIENTSIDEONLY
+Speed 10
+Damage (0)
+radius 7
+height 7
+scale 1.2
+States
+{
+Spawn:
+LASH A 0
+LASH A 0 A_Stop
+LASH A 5
+Death:
+TNT1 A 1 
+stop
+}
+}
+
+actor RangeMarkParticle2 : FXActor_A
+{
+translation "192:192=54:54", "198:198=42:42" , "196:196=170:170"
+PROJECTILE
++NOINTERACTION
++DONTBLAST
++CLIENTSIDEONLY
+Speed 10
+Damage (0)
+radius 7
+height 7
+scale 0.6
+States
+{
+Spawn:
+LASH A 0
+LASH A 0 A_Stop
+LASH A 5
+Death:
+TNT1 A 1 
+stop
+}
+}
+
+
+//[+]========================================================================[+]
+//--------------------------------|Targeting Script|---------------------------
+//[+]========================================================================[+]
+actor TargetingFlag : Inventory{inventory.amount 1 inventory.maxamount 64}
+actor TargetingRangeFlag : Inventory{inventory.amount 1 inventory.maxamount 3000}
+Actor TargActive : Powerup{inventory.amount 1 powerup.duration 0x7FFFFFFF}
+Actor TargScriptActive : Powerup{inventory.amount 1 powerup.duration 3}
+Actor TargHolder : Powerup{inventory.amount 1 powerup.duration 7}
+Actor TargContractor : once{}
+actor WepScanFlag : once{}
+Actor NoTargFlag : Powerup{inventory.amount 1 powerup.duration 7}
+
+
+
+
+//this exists to be replaced by the respawn script, for now this helps
+//reduce the yellow errors
+actor RespawnCamera : Inventory
+{
+inventory.amount 1
+inventory.maxamount 1
+}
+
+
+Actor AltHoldDelay : Powerup
+{inventory.amount 1 powerup.duration 4}
+
+/*
+actor DiscordActive : Inventory
+{
+inventory.amount 1
+inventory.maxamount 1
+}
+
+actor DiscordDeactivate : Inventory
+{
+inventory.amount 1
+inventory.maxamount 1
+}
+
+actor Discorded : PowerProtection
+{
+Powerup.Duration 0x7FFFFFFF
+damagefactor "Normal", 1.3
+}
+
+actor LOSAmmo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 300
++INVENTORY.IGNORESKILL
+}
+*/

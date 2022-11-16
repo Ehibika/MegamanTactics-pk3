@@ -1,0 +1,589 @@
+actor WepsShop : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("BuyStandardBusterWep",1)
+TNT1 A 0 A_GiveInventory("BuyMilitaryBusterWep",1)
+TNT1 A 0 A_GiveInventory("BuyLazerRifleWep",1)
+TNT1 A 0 A_GiveInventory("BuyShotgunWep",1)
+TNT1 A 0 A_GiveInventory("BuyWindPressureBusterWep",1)
+TNT1 A 0 A_GiveInventory("BuyArrowBusterWep",1)
+TNT1 A 0 A_GiveInventory("BuyShadowBusterWep",1)
+TNT1 A 0 A_GiveInventory("BuyHighSpeedRifleWep",1)
+TNT1 A 0 A_GiveInventory("BuyTriangleGunWep",1)
+TNT1 A 0 A_GiveInventory("BuyGasEmitterWep",1)
+TNT1 A 0 A_GiveInventory("BuyMegaCannonWep",1)
+TNT1 A 0 A_GiveInventory("BuyStandardSaberWep",1)
+TNT1 A 0 A_GiveInventory("BuyFireballBusterWep",1)
+TNT1 A 0 A_GiveInventory("BuyElectriggerVWep",1)
+TNT1 A 0 A_GiveInventory("BuyVioletZapperWep",1)
+TNT1 A 0 A_GiveInventory("BuyHawkPrecisionBusterWep",1)
+TNT1 A 0 A_GiveInventory("BuyAquaBusterWep",1)
+TNT1 A 0 A_GiveInventory("BuyFireBrandWep",1)
+TNT1 A 0 A_GiveInventory("BuyColdfrontWep",1)
+TNT1 A 0 A_GiveInventory("BuyHoserWep",1)
+TNT1 A 0 A_GiveInventory("BuySpikeGatlingWep",1)
+
+stop
+}
+}
+
+actor MT_TakeWeps : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_TakeInventory("StandardBusterWep",9)
+TNT1 A 0 A_TakeInventory("MilitaryBusterWep",9)
+TNT1 A 0 A_TakeInventory("LazerRifleWep",9)
+TNT1 A 0 A_TakeInventory("ShotgunWep",9)
+TNT1 A 0 A_TakeInventory("WindPressureBusterWep",9)
+TNT1 A 0 A_TakeInventory("ArrowBusterWep",9)
+TNT1 A 0 A_TakeInventory("ShadowBusterWep",9)
+TNT1 A 0 A_TakeInventory("HighSpeedRifleWep",9)
+TNT1 A 0 A_TakeInventory("TriangleGunWep",9)
+TNT1 A 0 A_TakeInventory("GasEmitterWep",9)
+TNT1 A 0 A_TakeInventory("MegaCannonWep",9)
+TNT1 A 0 A_TakeInventory("StandardSaberWep",9)
+TNT1 A 0 A_TakeInventory("FireballBusterWep",9)
+TNT1 A 0 A_TakeInventory("ElectriggerVWep",9)
+TNT1 A 0 A_TakeInventory("VioletZapperWep",9)
+TNT1 A 0 A_TakeInventory("HawkPrecisionBusterWep",9)
+TNT1 A 0 A_TakeInventory("AquaBusterWep",9)
+TNT1 A 0 A_TakeInventory("FirebrandWep",9)
+TNT1 A 0 A_TakeInventory("ColdfrontWep",9)
+TNT1 A 0 A_TakeInventory("HoserWep",9)
+TNT1 A 0 A_TakeInventory("SpikeGatlingWep",9)
+stop
+}
+}
+
+Const int Cost_StandardBuster = 0;
+Const int Cost_MilitaryBuster = 500;
+Const int Cost_LazerRifle = 2600;
+Const int Cost_ShotGun = 800;
+
+Const int Cost_WindPressureBuster = 450;
+Const int Cost_ArrowBuster = 1600;
+Const int Cost_ShadowBuster = 400;
+Const int Cost_HighSpeedRifle = 1800;
+Const int Cost_TriangleGun = 1800;
+Const int Cost_GasEmitter = 800;
+Const int Cost_MegaCannon = 4500;
+Const int Cost_StandardSaber = 800;
+Const int Cost_FireballBuster = 400;
+Const int Cost_ElectriggerV = 1600;
+Const int Cost_VioletZapper = 2400;
+Const int Cost_HawkPrecisionBuster = 3600;
+Const int Cost_AquaBuster = 150;
+Const int Cost_Firebrand = 2400;
+Const int Cost_Coldfront = 2000;
+Const int Cost_Hoser = 1850;
+Const int Cost_SpikeGatling = 3200;
+
+actor BuyStandardBusterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_StandardBuster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_StandardBuster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("StandardBusterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+TNT1 A 0 ACS_NamedExecuteWithResult("RefundWep",0)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("StandardBusterWep",1)
+TNT1 A 0 A_SelectWeapon("StandardBusterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyMilitaryBusterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_MilitaryBuster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_MilitaryBuster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("MilitaryBusterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("MilitaryBusterWep",1)
+TNT1 A 0 A_SelectWeapon("MilitaryBusterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+
+actor BuyLazerRifleWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_LazerRifle),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_LazerRifle)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("LazerRifleWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("LazerRifleWep",1)
+TNT1 A 0 A_SelectWeapon("LazerRifleWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyShotgunWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_Shotgun),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_Shotgun)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("ShotgunWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("ShotgunWep",1)
+TNT1 A 0 A_SelectWeapon("ShotgunWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyWindPressureBusterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_WindPressureBuster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_WindPressureBuster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("WindPressureBusterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("WindPressureBusterWep",1)
+TNT1 A 0 A_SelectWeapon("WindPressureBusterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyArrowBusterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_ArrowBuster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_ArrowBuster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("ArrowBusterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("ArrowBusterWep",1)
+TNT1 A 0 A_SelectWeapon("ArrowBusterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyShadowBusterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_ShadowBuster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_ShadowBuster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("ShadowBusterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("ShadowBusterWep",1)
+TNT1 A 0 A_SelectWeapon("ShadowBusterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyHighSpeedRifleWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_HighSpeedRifle),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_HighSpeedRifle)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("HighSpeedRifleWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("HighSpeedRifleWep",1)
+TNT1 A 0 A_SelectWeapon("HighSpeedRifleWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyTriangleGunWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_TriangleGun),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_TriangleGun)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("TriangleGunWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("TriangleGunWep",1)
+TNT1 A 0 A_SelectWeapon("TriangleGunWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyGasEmitterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_GasEmitter),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_GasEmitter)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("GasEmitterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("GasEmitterWep",1)
+TNT1 A 0 A_SelectWeapon("GasEmitterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyMegaCannonWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_MegaCannon),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_MegaCannon)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("MegaCannonWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("MegaCannonWep",1)
+TNT1 A 0 A_SelectWeapon("MegaCannonWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyStandardSaberWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_StandardSaber),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_StandardSaber)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("StandardSaberWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("StandardSaberWep",1)
+TNT1 A 0 A_SelectWeapon("StandardSaberWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyFireballBusterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_FireballBuster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_FireballBuster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("FireballBusterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("FireballBusterWep",1)
+TNT1 A 0 A_SelectWeapon("FireballBusterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyElectriggerVWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_ElectriggerV),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_ElectriggerV)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("ElectriggerVWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("ElectriggerVWep",1)
+TNT1 A 0 A_SelectWeapon("ElectriggerVWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyVioletZapperWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_VioletZapper),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_VioletZapper)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("VioletZapperWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("VioletZapperWep",1)
+TNT1 A 0 A_SelectWeapon("VioletZapperWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyHawkPrecisionBusterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_HawkPrecisionBuster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_HawkPrecisionBuster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("HawkPrecisionBusterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("HawkPrecisionBusterWep",1)
+TNT1 A 0 A_SelectWeapon("HawkPrecisionBusterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyAquaBusterWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_AquaBuster),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_AquaBuster)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AquaBusterWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)
+DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("AquaBusterWep",1)
+TNT1 A 0 A_SelectWeapon("AquaBusterWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+
+actor BuyFirebrandWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_Firebrand),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_Firebrand)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("FirebrandWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("FirebrandWep",1)
+TNT1 A 0 A_SelectWeapon("FirebrandWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+
+actor BuyColdfrontWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_Coldfront),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_Coldfront)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("ColdfrontWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("ColdfrontWep",1)
+TNT1 A 0 A_SelectWeapon("ColdfrontWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+
+actor BuyHoserWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_Hoser),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_Hoser)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("HoserWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("HoserWep",1)
+TNT1 A 0 A_SelectWeapon("HoserWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+
+actor BuySpikeGatlingWep : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_SpikeGatling),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_SpikeGatling)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("SpikeGatlingWep",1,"Possessed")
+//DUST B 0 ACS_NamedExecuteAlways("DropYourSidearm",0,WP_Zapper)
+DUST B 0 A_GiveInventory("MT_TakeWeps",1)DUST B 0 A_GiveInventory("WepPickupBuffer",1)
+TNT1 A 0 A_GiveInventory("SpikeGatlingWep",1)
+TNT1 A 0 A_SelectWeapon("SpikeGatlingWep")
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}

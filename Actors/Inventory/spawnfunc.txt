@@ -1,0 +1,109 @@
+// Modders can replace these to allow these actors to execute scripts/functions without mass replicating inventory code
+
+actor MM8BDMWepSpawnFunc : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_JumpIf(CallACS("CheckModeForSpawn"),"Pickup.Deny")
+
+TNT1 A 0 A_JumpIf(CheckClass("BlackHoleWep"),"Pickup.Megahealth")
+TNT1 A 0 A_JumpIf(CheckClass("BlackHoleBombWep"),"Pickup.Megahealth")
+TNT1 A 0 A_JumpIf(CheckClass("AstroCrushWep"),"Pickup.Megahealth")
+goto Pickup.BigHealth
+
+Pickup.BigHealth:
+TNT1 A 0 ACS_NamedExecuteWithResult("Spawn_BigHealth_MSTD")
+TNT1 A 0 Thing_Remove(0)
+stop
+
+Pickup.Megahealth:
+TNT1 A 0 ACS_NamedExecuteWithResult("Spawn_Megahealth_MSTD")
+TNT1 A 0 Thing_Remove(0)
+stop
+
+Pickup.Deny:
+TNT1 A 0 Thing_Remove(0)
+stop
+}
+}
+
+actor MM8BDMItemSpawnFunc : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_JumpIf(CallACS("CheckModeForSpawn"),"Pickup.Deny")
+
+TNT1 A 0 A_JumpIf(CheckClass("BigHealth"),"Pickup.BigHealth")
+TNT1 A 0 A_JumpIf(CheckClass("SmallHealth"),"Pickup.Deny")
+TNT1 A 0 A_JumpIf(CheckClass("MegaHealth"),"Pickup.BigHealth")
+
+TNT1 A 0 A_JumpIf(CheckClass("BigWeaponEnergy"),"Pickup.AmmoToBigHealth")
+TNT1 A 0 A_JumpIf(CheckClass("WeaponEnergy"),"Pickup.Deny")
+TNT1 A 0 A_JumpIf(CheckClass("MegaWeaponEnergy"),"Pickup.AmmoToBigHealth")
+
+TNT1 A 0 A_JumpIf(CheckClass("ETank"),"Pickup.BigHealth")
+TNT1 A 0 A_JumpIf(CheckClass("MTank"),"Pickup.BigHealth")
+TNT1 A 0 A_JumpIf(CheckClass("WTank"),"Pickup.BigHealth")
+
+goto Pickup.BigHealth
+
+Pickup.Megahealth:
+TNT1 A 0 ACS_NamedExecuteWithResult("Spawn_Megahealth_MSTD")
+TNT1 A 0 Thing_Remove(0)
+stop
+
+Pickup.BigHealth:
+TNT1 A 0 ACS_NamedExecuteWithResult("Spawn_BigHealth_MSTD")
+TNT1 A 0 Thing_Remove(0)
+stop
+
+Pickup.SmallHealth:
+TNT1 A 0 ACS_NamedExecuteWithResult("Spawn_SmallHealth_MSTD")
+TNT1 A 0 Thing_Remove(0)
+stop
+
+Pickup.AmmoToBigHealth:
+TNT1 A 0 //A_JumpIf(CallACS("CheckForAmmoHealth",1)==0,"Pickup.Deny")
+TNT1 A 0 ACS_NamedExecuteWithResult("Spawn_BigHealth2_MSTD")
+TNT1 A 0 Thing_Remove(0)
+stop
+
+Pickup.AmmoToSmallHealth:
+TNT1 A 0 //A_JumpIf(CallACS("CheckForAmmoHealth",0)==0,"Pickup.Deny")
+TNT1 A 0 ACS_NamedExecuteWithResult("Spawn_SmallHealth2_MSTD")
+TNT1 A 0 Thing_Remove(0)
+stop
+
+
+Pickup.Allow:
+TNT1 A 0
+stop
+
+Pickup.Deny:
+TNT1 A 0 Thing_Remove(0)
+stop
+
+}
+}
+
+actor PartyBallSpawnFunc : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 Thing_Remove(0)
+stop
+}
+}
+
+actor MM8BDMFlagSpawnFunc : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //Thing_Remove(0)
+stop
+}
+}

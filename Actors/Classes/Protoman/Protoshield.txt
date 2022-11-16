@@ -1,0 +1,197 @@
+actor Ability1_Protoman : AbilityMasterBase
+{
+Weapon.AmmoUse2 1
+Weapon.AmmoGive2 0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+Obituary "$OB_MEGABUSTER"
+Tag "ProtoShield Ability"
+weapon.ammotype1 "AbilityAmmo"
+inventory.icon "SMKGSI"
+Dropitem ""
++WEAPON.ALLOW_WITH_RESPAWN_INVUL
+-WEAPON.NOAUTOFIRE
+States
+{
+
+Ready:
+PROC J 0 
+"####" J 1 Offset(0,110)
+"####" J 1 Offset(0,96)
+"####" J 1 Offset(0,82)
+"####" J 1 Offset(0,70)
+"####" J 1 Offset(0,58)
+"####" J 1 Offset(0,46)
+"####" J 1 Offset(0,32)
+"####" J 0 A_TakeInventory("StopShield",1)
+"####" J 0 A_GunFlash
+Ready1:
+"####" J 0 A_Jumpifinventory("AbilityCharge_2",1,"Ready2")
+"####" J 1 A_WeaponReady(WRF_NOSECONDARY)
+goto Ready1
+Ready2:
+"####" J 1 A_WeaponReady(WRF_ALLOWZOOM|WRF_NOSECONDARY)
+goto Ready1
+
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,0.5*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" B 1 A_Raise
+Loop
+
+Deselect:
+PROC D 0 A_GiveInventory("StopShield",1)
+"####" J 1 Offset(0,32)
+"####" J 1 Offset(0,46)
+"####" J 1 Offset(0,58)
+"####" J 1 Offset(0,70)
+"####" J 1 Offset(0,82)
+"####" J 1 Offset(0,96)
+"####" J 1 Offset(0,110)
+TNT1 A 0 A_TakeInventory("AbilityActiveFlag",9)
+TNT1 A 0 A_TakeInventory("StopShield",1)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" B 1 A_Lower
+Loop
+
+Fire:
+PROC D 0 A_Jumpifinventory("StopShield",1,"Fire2")
+PROC D 0 A_GiveInventory("StopShield",1)
+PROC KLD 1 
+Fire2:
+PROC D 0 A_PlaySoundEx("weapon/mbuster","Weapon")
+PROC D 0 A_Giveinventory("StandardBuster_RoundHandler")
+PROC D 0 A_Giveinventory("StandardBusterCST")
+PROC D 0 A_Giveinventory("StandardBusterFSPD")
+PROC EF 1
+Hold:
+"####" D 1 //A_WeaponReady(WRF_ALLOWONLYINPUTS)
+"####" D 0 A_Jumpifinventory("isBot",1,"BotRefire")
+"####" D 0 A_Refire
+"####" D 5
+"####" DDDDDD 1 A_WeaponReady(WRF_NOSECONDARY)
+PROC D 0 A_TakeInventory("StopShield",1)
+PROC D 0 A_GunFlash
+PROC LK 3
+goto Ready1
+
+//ProtoBlaster
+Zoom:
+PROC D 0 A_Jumpifinventory("StopShield",1,"Fire2")
+PROC D 0 A_GiveInventory("StopShield",1)
+PROC KLD 1 
+"####" C 0 A_PlaySoundEx("weapon/pshot","Weapon")
+"####" B 0 A_FireCustomMissile("ProtoBlasterUnderthrow",0,1,0,-20,0,Aim_ArcUnderhand+(Aim_ArcUnderhandScale*Sin(-pitch)))
+"####" E 0 A_TakeInventory("AbilityCharge_2",1)
+PROC EFDDD 1 
+
+PROC D 0 A_TakeInventory("StopShield",1)
+PROC D 0 A_GunFlash
+PROC LK 3
+goto Ready1
+
+End:
+"####" C 1 A_TakeInventory("AbilityActiveFlag",9)
+"####" B 0 
+Goto End
+
+Flash:
+TNT1 A 0 A_SpawnItemEx("ProtoShieldHitbox1_MT",28,-16,8,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("ProtoShieldHitbox2_MT",28,-8,8,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("ProtoShieldHitbox3_MT",28,0,8,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("ProtoShieldHitbox4_MT",28,8,8,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("ProtoShieldHitbox5_MT",28,16,8,0,0,0,0,1)
+FlashLoop:
+TNT1 A 0 A_SpawnItemEx("ProtoShieldFX",23,0,8,momx,momy,momz,0,9,0)
+TNT1 A 1 A_JumpIfInventory("StopShield",1,"NoFlash")
+TNT1 A 0 A_JumpIfInventory("IsDead",1,"NoFlash")
+loop
+NoFlash:
+TNT1 A 0 
+Stop
+}
+}
+//====
+
+actor UseAbility1_Protoman : CustomInventory
+{
+states
+{
+Use:
+WEA2 A 0 A_GiveInventory("ProtoShieldAbility",1)
+fail
+}
+}
+
+actor ProtoShieldAbility : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",1,"Pickup2")
+stop
+
+Pickup2:
+TNT1 A 0 ACS_NamedExecuteAlways("RunClassAbility",0,1)
+stop
+}
+}
+
+
+
+
+
+actor BasicShieldHitbox_MT : BasicShieldHitbox
+{
+Meleerange 28 // Warp X
+Accuracy 0 // Warp Y 
+Mass 8 // Warp Z
+//RenderStyle "Normal"
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("core_targetexists")==0,"Death2")
+TNT1 A 0 A_JumpIfInTargetInventory("StopShield",1,"SpawnStop")
+HEAT A 1 A_Warp(2,Meleerange,Accuracy,Mass,0,24)
+loop
+SpawnStop:
+TNT1 A 0 //A_Log("SpawnStop")
+HEAT A 1
+stop
+Pain:
+TNT1 A 0 A_PlaySound("item/protoreflect")//A_Pain
+TNT1 A 0 A_SpawnItemEx("ProtoShieldDeathFX")
+goto Spawn
+Death:
+TNT1 A 0 //A_PlaySound("item/protoreflect")
+HEAT A 1
+stop
+Death2:
+TNT1 A 0 //A_Log("Death2")
+HEAT A 1
+stop
+}
+}
+
+actor ProtoShieldHitbox1_MT : BasicShieldHitbox_MT
+{
+Meleerange 28
+Accuracy -16
+Mass 8
+}
+actor ProtoShieldHitbox2_MT : BasicShieldHitbox_MT
+{
+Accuracy -8
+}
+actor ProtoShieldHitbox3_MT : BasicShieldHitbox_MT
+{
+Accuracy 0
+}
+actor ProtoShieldHitbox4_MT : BasicShieldHitbox_MT
+{
+Accuracy 8
+}
+actor ProtoShieldHitbox5_MT : BasicShieldHitbox_MT
+{
+Accuracy 16
+}

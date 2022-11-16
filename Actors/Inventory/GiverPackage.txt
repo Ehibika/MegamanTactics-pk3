@@ -1,0 +1,66 @@
+actor GivePackage : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+//TNT1 A 1 A_Jumpifinventory("PackageID",5,"ForceBlast")
+TNT1 A 1 A_Jumpifinventory("PackageID",9,"MegaHeal")
+TNT1 A 1 A_Jumpifinventory("PackageID",8,"BeaconTag")
+TNT1 A 1 A_Jumpifinventory("PackageID",7,"Barrier")
+TNT1 A 1 A_Jumpifinventory("PackageID",6,"Rally")
+TNT1 A 1 A_Jumpifinventory("PackageID",5,"ForceBlast")
+TNT1 A 1 A_Jumpifinventory("PackageID",4,"HealFlare")
+TNT1 A 1 A_Jumpifinventory("PackageID",2,"Barrier")
+//TNT1 A 1 A_Jumpifinventory("PackageID",1,"Clearspray")
+TNT1 A 0
+stop
+MegaHeal:
+TNT1 A 0 //A_Giveinventory("MegaHeal",1)
+TNT1 A 0 A_TakeInventory("PackageID",999)
+stop
+BeaconTag:
+TNT1 A 0 //A_Giveinventory("ReconTag")
+TNT1 A 0 A_TakeInventory("PackageID",999)
+stop
+Barrier:
+TNT1 A 0 //A_Giveinventory("BarrierShooter")
+TNT1 A 0 A_TakeInventory("PackageID",999)
+stop
+Rally:
+TNT1 A 0 //A_Giveinventory("RallyItem")
+TNT1 A 0 A_TakeInventory("PackageID",999)
+stop
+ForceBlast:
+TNT1 A 0 //A_Giveinventory("ForceBlastItem")
+TNT1 A 0 A_TakeInventory("PackageID",999)
+stop
+HealFlare:
+TNT1 A 0 //A_Giveinventory("HealPatchHeal")
+TNT1 A 0 A_TakeInventory("PackageID",999)
+stop
+Clearspray:
+TNT1 A 0 //A_Giveinventory("CureSprayHeal")
+TNT1 A 0 A_TakeInventory("PackageID",999)
+stop
+Mediscan:
+TNT1 A 0 //A_Giveinventory("TinyBarSpawner")
+TNT1 A 0 A_TakeInventory("PackageID",999)
+stop
+Nope:
+//BUST B 0 A_PlaySoundEx("weapon/heat3","Item")
+TNT1 A 0
+stop
+}
+}
+
+actor PackageID : Inventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
+}

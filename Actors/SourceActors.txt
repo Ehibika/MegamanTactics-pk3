@@ -1,0 +1,1066 @@
+/*
+This file contains all the actors most main objects inherit from, typically 
+common things like projectiles and explosionactors and such that all use the same
+states code, this can help with reducing script size all around
+*/
+
+
+actor ProjectileBase
+{
+PROJECTILE
++SKYEXPLODE
++DONTBLAST
++MTHRUSPECIES
++BLOODSPLATTER
+//damagetype "Buster"
+Speed 40
+Damage (5)
+radius 2
+height 6
+scale 2.5
+States
+{
+Spawn:
+TNT1 A 0 
+BUST T 1 
+loop
+Death:
+BUST T 1 //A_Spawnitemex("MilitaryPuff1",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+actor FastProjectileBase : Fastprojectile
+{
+PROJECTILE
++SKYEXPLODE
++DONTBLAST
++MTHRUSPECIES
++BLOODSPLATTER
+damagetype "Buster"
+MissileHeight 8
+Speed 360
+reactiontime 15
+Damage (5)
+radius 2
+height 6
+scale 2.5
+States
+{
+Spawn:
+TNT1 A 0 
+BUST T 1 
+loop
+Death:
+BUST T 1 //A_Spawnitemex("MilitaryPuff1",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+
+actor BasicExplosion
+{
+Obituary "%o told %k they are OP and should be nerfed."
+DamageType "Normal"
+-SOLID
++DONTBLAST
++NOGRAVITY
++MISSILE
++RIPPER
++SKYEXPLODE
++NOINTERACTION
++DONTSPLASH
++THRUGHOST
++THRUACTORS
++DONTREFLECT
++CANNOTPUSH
+height 1
+radius 1
+Damage(0)
+Speed 210
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 1 A_Explode(5000,32,0)
+stop
+}
+}
+
+actor BasicExplosion2 : BasicExplosion
+{
++SPECTRAL //version with spectral breeching
+}
+
+
+actor HitscanBulletBase : FastprojectileBase
+{
+damagetype "Buster"
+Damage (5 + CallACS("DamageRate",4,360,150))
+speed 255
+height 5
+radius 5
+scale 1
+States
+{
+Spawn:
+TNT1 A 0 
+TNT1 A 0
+TNT1 A 1 
+goto spawn+2
+Death:
+TNT1 A 1 A_PlaySound("weapon/mirrordeflect")
+TNT1 A 1 A_Spawnitemex("MilitaryPuff1",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+actor FXActor_A
+{
+PROJECTILE
++NOINTERACTION
++NOCLIP
++CLIENTSIDEONLY
+radius 8
+height 8
+Damage (0)
+scale 3.0
+Reactiontime 35
+Renderstyle "Translucent"
+Alpha 1.0
+States
+{
+Spawn:
+ICMS A 0
+ICMS ABCD 2
+stop
+}
+}
+
+actor FXActor_B
+{
+PROJECTILE
++NOINTERACTION
++NOCLIP
++CLIENTSIDEONLY
+radius 8
+height 8
+Damage (0)
+scale 3.0
+Reactiontime 35
+Renderstyle "Add"
+Alpha 1.0
+States
+{
+Spawn:
+ICMS A 0
+ICMS ABCD 2
+stop
+}
+}
+
+actor WatcherBase 
+//Watchers area type of actor that is invisible and handles tasks in the background.
+{
++MISSILE
++RIPPER
++NOGRAVITY
++NOINTERACTION
++NOTARGETSWITCH
++NONETID
++SERVERSIDEONLY
+renderstyle none
+States
+{
+Spawn:
+TNT1 A 1
+Death:
+DeathTake:
+TNT1 A 0
+stop
+}
+}
+
+actor LinearBullet : fastProjectileBase
+{
+//these are used for guns that utilize generic rounds.
+Speed 10
+Damage (6 + CallACS("DamageRate",6,300,65))
+radius 3
+height 3
+Reactiontime 14
+scale 1.0
+Var Int User_TrailCount;
+Var Int User_TP; //TrailPosition
+States
+{
+Spawn:
+TNT1 A 0 
+TNT1 AA 1 ACS_NamedExecuteAlways("PitchMatch",0)
+//TNT1 A 0 A_Jump(256,"SpeedSet")
+//Goto SpeedSet
+//SpeedSet:
+TNT1 A 0 A_ScaleVelocity(10)
+Goto Spawn2
+Spawn2:
+//TNT1 A 0 A_SetUserVar("User_TP",3*User_TrailCount)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-3,0,(sin(pitch)*3),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-6,0,(sin(pitch)*6),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-9,0,(sin(pitch)*9),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-12,0,(sin(pitch)*12),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-15,0,(sin(pitch)*15),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-18,0,(sin(pitch)*18),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-21,0,(sin(pitch)*21),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-24,0,(sin(pitch)*24),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-27,0,(sin(pitch)*27),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-30,0,(sin(pitch)*30),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-33,0,(sin(pitch)*33),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-36,0,(sin(pitch)*36),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-39,0,(sin(pitch)*39),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-42,0,(sin(pitch)*42),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-45,0,(sin(pitch)*45),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SetUserVar("User_TrailCount",User_TrailCount+1)
+//TNT1 A 0 A_Jumpif(User_TrailCount >= 20,1)
+//loop
+//TNT1 A 0 
+TNT1 A 1 //A_SetUserVar("User_TrailCount",1)
+TNT1 A 0 A_Countdown
+Goto Spawn2
+Death:
+TNT1 A 1 A_Spawnitemex("LinearBulletPuff",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+actor LinearBullet2 : fastProjectileBase
+{
+//these are used for guns that utilize generic rounds.
+Speed 100
+Damage (6 + CallACS("DamageRate",6,300,65))
+radius 3
+height 3
+Reactiontime 12
+scale 1.0
+Var Int User_TrailCount;
+Var Int User_TP; //TrailPosition
+States
+{
+Spawn:
+TNT1 A 0 
+TNT1 A 0 ACS_NamedExecuteAlways("PitchMatch",0)
+//TNT1 A 0 A_Jump(256,"SpeedSet")
+//Goto SpeedSet
+//SpeedSet:
+//TNT1 A 0 A_ScaleVelocity(16)
+
+Goto Spawn2
+Spawn2:
+//TNT1 A 0 A_SetUserVar("User_TP",3*User_TrailCount)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-3,0,(sin(pitch)*3),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-6,0,(sin(pitch)*6),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-9,0,(sin(pitch)*9),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-12,0,(sin(pitch)*12),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-15,0,(sin(pitch)*15),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-18,0,(sin(pitch)*18),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-21,0,(sin(pitch)*21),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-24,0,(sin(pitch)*24),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-27,0,(sin(pitch)*27),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-30,0,(sin(pitch)*30),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-33,0,(sin(pitch)*33),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-36,0,(sin(pitch)*36),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-39,0,(sin(pitch)*39),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-42,0,(sin(pitch)*42),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("LinearBulletTrail",cos(pitch)*-45,0,(sin(pitch)*45),MomX,MomY,MomZ,0,SXF_TRANSFERPITCH|SXF_ABSOLUTEMOMENTUM|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SetUserVar("User_TrailCount",User_TrailCount+1)
+//TNT1 A 0 A_Jumpif(User_TrailCount >= 20,1)
+//loop
+//TNT1 A 0 
+TNT1 A 1 //A_SetUserVar("User_TrailCount",1)
+TNT1 A 0 A_Countdown
+Goto Spawn2
+Death:
+TNT1 A 1 A_Spawnitemex("LinearBulletPuff",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+actor LinearBulletTrail : FXActor_B
+{
+MissileHeight 8
+scale 1.0
+States
+{
+Spawn:
+BASB U 2
+stop
+}
+}
+
+actor LinearBulletPuff : FXActor_A
+{
+scale 0.4
+States
+{
+Spawn:
+BIM1 AABCDEF 1
+stop
+}
+}
+
+actor BarrierPartBase
+{
+  Radius 14
+  Height 12
+  Scale 0.5
+  RenderStyle None
+  Alpha 0.25
+  //Bloodtype "ShieldHit"
+  //Species "BLUEMember"
+  DamageFactor "Explosion", 0.1
+  DamageFactor "Voltspear", 3.0
+  Health 900
+  Painchance 256
+  //Designatedteam 0
+  +MISSILE
+  +SHOOTABLE
+  +NOTARGETSWITCH
+  +NOGRAVITY
+  +NOTELEPORT
+  +NOTARGETSWITCH
+  +THRUSPECIES
+  +DONTRIP
+  +DONTSPLASH
+  +FLOORCLIP
+  //+REFLECTIVE
+  +DONTREFLECT
+  +NODAMAGETHRUST
+  //+DONTTHRUST 
+  +DONTBLAST
+  +GHOST	//Give projectiles that you wish to pass through the shield THRUGHOST flag
+  States
+  {
+  Spawn:
+	TNT1 A 0
+	TNT1 A 0 A_SpawnItemEx ("ScreenPartVisual", 0, 0, 16, 0, 0, 0, 0,SXF_NOCHECKPOSITION|SXF_TRANSFERTRANSLATION)
+    HEXA A 2 
+    stop
+	Pain:
+	TNT1 A 0  A_PlaySoundEX ("item/protoreflect","Soundslot5")
+	stop
+  Death:
+    TNT1 A 2
+    stop
+  }
+}
+
+actor ShieldHit
+{
+  Radius 1
+  Height 1
+  Scale 0.5
+  Renderstyle Add
+  +NOGRAVITY
+  +NOINTERACTION
+  States
+  {
+  Spawn:
+    MMFX A 0 bright
+    MMFX A 1 bright A_Stop
+    MMFX A 0 bright A_PlaySound ("weapon/MirrorDeflect")
+    MMFX A 1 bright
+    stop
+  }
+}
+
+actor ScreenPartVisual
+{
+  Radius 8
+  Height 8
+  Scale 0.5
+  RenderStyle Add	//Fuzzy looks great in software mode
+  Alpha 0.35
+  +NOINTERACTION
+  //+CLIENTSIDEONLY
+  +FLOORCLIP
+  States
+  {
+  Spawn:
+  TNT1 A 0
+    HEXA AAAA 1 bright 
+    //HEXA AA 1 bright A_Fadeout(0.4)
+    stop
+  Death:
+    TNT1 A 2
+    stop
+  }
+}
+
+
+
+actor BasicClientSide
+{
++CLIENTSIDEONLY
++NOINTERACTION
++NOGRAVITY
+-SOLID
+radius 2
+height 2
+scale 2.5
+}
+
+actor BasicNotClientSide : BasicClientSide
+{
+-CLIENTSIDEONLY
+}
+
+
+Actor BasicHelper
+{
++NOINTERACTION
+-SOLID
++MISSILE
+radius 1
+height 1
++NOGRAVITY
++DONTBLAST
++DONTREFLECT
++DONTSPLASH
+renderstyle none
+States
+{
+Spawn:
+TNT1 A 1
+stop
+Death:
+TNT1 A 1
+stop
+Perish:
+TNT1 A 1
+stop
+}
+}
+
+Actor BasicServerSideHelper : BasicHelper
+{+SERVERSIDEONLY}
+
+
+actor BasicGuideDot
+{
++CLIENTSIDEONLY
++NOINTERACTION
++NOGRAVITY
+-SOLID
+radius 2
+height 2
+Scale 1.0
+Renderstyle Stencil
+StencilColor "#FBFF00"
+States
+{
+Spawn:
+BASB U 0
+BASB U 1
+stop
+}
+}
+
+
+actor BasicWarper
+{//Used for Warpers
++NOINTERACTION
++CLIENTSIDEONLY
+-SOLID
++MISSILE
++THRUACTORS
++NOGRAVITY
++DONTBLAST
++DONTREFLECT
+Height 2
+Radius 2
+Scale 2.5
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 ACS_NamedExecuteAlways("GeneralWarper",0)
+TNT1 A 0 A_GiveInventory("ProjectileCodeSyncTarget",1)
+TNT1 A 0 A_Jump(256,"Shield")
+Goto Shield
+Shield:
+STAR AABBCCDD 1 A_Warp(AAPTR_TARGET, 0, 0, 16, 0, 24)//WARPF_INTERPOLATE|WARPF_NOCHECKPOSITION
+loop
+}
+}
+
+
+actor BasePowerDamage : PowerDamage
+{//Make sure damage increases don't increase these
+Powerup.Duration 0x7FFFFFFC
+damagefactor "Normal", 1.0
+}
+
+actor BasePowerWeak : PowerProtection
+{//Make sure taking more damage doesn't increase these
+Powerup.Duration 0x7FFFFFFC
+damagefactor "Normal", 1.0
+}
+
+actor BasePowerPro : PowerProtection
+{//Make sure damage reduction doesn't reduce these
+Powerup.Duration 0x7FFFFFFC
+damagefactor "Normal", 1.0
+damagefactor "Crush", 1.0
+
+damagefactor "Drowning", 1.0
+damagefactor "Fire", 1.0
+damagefactor "Falling", 1.0
+damagefactor "BurnWave", 1.0
+damagefactor "Beam", 1.0
+damagefactor "Spiney", 1.0
+damagefactor "Ice", 1.0
+damagefactor "Slime", 1.0
+
+DamageFactor "Instagib", 1.0
+DamageFactor "Telefrag", 1.0
+DamageFactor "Suicide", 1.0
+DamageFactor "Poison", 1.0
+
+DamageFactor "PoisonDamage", 1.0
+
+
+//damagefactor "FlameSwordSpark", 1.0
+}
+
+actor EvasionState : BasePowerPro 
+{
+    -PICKUP
+    inventory.amount 1 
+    Powerup.Duration -3
+    damagefactor "Normal", 0.0
+    /*
+    no point in defining painstates, the spectral flag protects from all harm except
+    for missiles with spectral. so attacks that breech the evasion state of detect
+    just need to have that flag
+
+    I think I may use this for dig and dive to make them succeptible to surf, where there,
+    I do use a painstate that blocks all spectral breeching moves but those.
+    */
+}
+
+actor BreakWeakness : BasePowerPro 
+{
+damagefactor "DrillHead", 10.0
+damagefactor "CrushingSpray", 10.0
+damagefactor "SuperAdaptor", 10.0
+damagefactor "KnightWrecker", 10.0
+damagefactor "GutsPunch", 10.0
+damagefactor "KnightWreckerSwing", 10.0
+damagefactor "DashPunch", 10.0
+}
+
+
+Actor WallJumperX
+{
+-SOLID
++NOGRAVITY
++NOBLOCKMAP
++NOINTERACTION
++NOTARGETSWITCH
+Height 0
+Radius 0
+scale 2.5
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 1 A_JumpIfInTargetInventory("IsDead",1,"Death")
+TNT1 A 0 A_JumpIfInTargetInventory("WallJump",1,"Boost")
+TNT1 A 1 A_JumpIfInTargetInventory("AdaptorFlag",1,"Spawn")
+stop
+Boost:
+TNT1 A 0 A_TakeFromTarget("WallJump",1)
+Goto BoostLoop1
+BoostLoop1:
+TNT1 A 1 A_GiveToTarget("WallJumpGive")
+TNT1 A 1 A_GiveToTarget("NoWallJump",1)
+TNT1 A 0 A_JumpIfInTargetInventory("AdaptorFlag",1,"BoostLoop2")
+stop
+BoostLoop2:
+TNT1 A 0 A_GiveInventory("WallJumpCount",1)
+TNT1 A 0 A_JumpIfInventory("WallJumpCount",34,"BoostEnd")
+TNT1 A 1 A_TakeFromTarget("NoWallJump",999)
+TNT1 A 0 A_JumpIfInventory("WallJumpCount",9,"BoostLoop2")
+TNT1 A 0 A_JumpIfInTargetInventory("AdaptorFlag",1,"BoostLoop2")
+stop
+BoostEnd:
+TNT1 A 7 A_TakeInventory("WallJumpCount",999)
+TNT1 A 1 A_TakeFromTarget("NoWallJump",999)
+TNT1 A 0 A_TakeFromTarget("WallJump",1)
+GoTo Spawn
+Death:
+TNT1 A 0
+Stop
+}
+}
+
+actor PowerWallJumpSpeed : PowerSpeed
+{
+powerup.duration 12
+Speed 4.05
++POWERSPEED.NOTRAIL
+}
+
+actor WallJumpGive : CustomInventory
+{
+States
+{
+Pickup:
+TNT1 A 0 
+TNT1 A 0 A_JumpIfInventory("WallN",1,"Jump")
+TNT1 A 0 A_JumpIfInventory("WallE",1,"Jump")
+TNT1 A 0 A_JumpIfInventory("WallS",1,"Jump")
+TNT1 A 0 A_JumpIfInventory("WallW",1,"Jump")
+stop
+No:
+TNT1 A 0 
+stop
+Jump:
+TNT1 A 0 A_GiveInventory("PowerWallJumpSpeed",1)
+TNT1 A 0 ACS_NamedExecuteAlways("MT_WallJump",0,10)
+TNT1 A 0 A_PlaySoundEx("Misc/WallKick","Voice")
+TNT1 A 0 A_GiveInventory("WallJumped", 1)
+stop
+}
+}
+
+actor WallJumping : CustomInventory
+{
+inventory.amount 1
+inventory.maxamount 1
++INVENTORY.AUTOACTIVATE
+-INVBAR
+States
+{
+Spawn:
+TNT1 A 1
+//loop
+Use:
+TNT1 A 0 A_SpawnItemEx("WallCheckN",23,0,8,momx, momy, momz, 0, SXF_ABSOLUTEMOMENTUM, 0)
+TNT1 A 0 A_SpawnItemEx("WallCheckS",-23,0,8,momx, momy, momz, 0, SXF_ABSOLUTEMOMENTUM, 0)
+TNT1 A 0 A_SpawnItemEx("WallCheckE",0,23,8,momx, momy, momz, 0, SXF_ABSOLUTEMOMENTUM, 0)
+TNT1 A 0 A_SpawnItemEx("WallCheckW",0,-23,8,momx, momy, momz, 0, SXF_ABSOLUTEMOMENTUM, 0)
+TNT1 A 1
+TNT1 A 0 A_SpawnItemEx("WallJumpMan")
+TNT1 A 1
+//fail
+stop
+}
+}
+
+actor WallJumpMan
+{
+-SOLID
++NOGRAVITY
++MISSILE
++NOTARGETSWITCH
++NOBLOCKMAP
+Height 0
+Radius 0
+scale 2.5
++NOINTERACTION
+States
+{
+Spawn:
+TNT1 A 0 A_JumpIfInTargetInventory("WallJump",1,"Boost")
+Goto Boost
+Boost:
+TNT1 A 0 A_TakeFromTarget("WallJump",1)
+Goto BoostLoop1
+BoostLoop1:
+TNT1 A 1 A_GiveToTarget("WallJumpGive")
+TNT1 A 1 A_GiveToTarget("NoWallJump",1)
+TNT1 A 0 A_JumpIfInTargetInventory("AdaptorFlag",1,"BoostLoop2")
+stop
+BoostLoop2:
+TNT1 A 0 A_GiveInventory("WallJumpCount",1)
+TNT1 A 0 A_JumpIfInventory("WallJumpCount",34,"BoostEnd")
+TNT1 A 1 A_TakeFromTarget("NoWallJump",999)
+TNT1 A 0 A_JumpIfInventory("WallJumpCount",9,"BoostLoop2")
+TNT1 A 0 A_JumpIfInTargetInventory("AdaptorFlag",1,"BoostLoop2")
+stop
+BoostEnd:
+TNT1 A 0// A_Print("BoostEnd")
+TNT1 A 7 A_TakeInventory("WallJumpCount",999)
+TNT1 A 1 A_TakeFromTarget("NoWallJump",999)
+TNT1 A 1 A_TakeFromTarget("WallJumping",1)
+TNT1 A 0 A_TakeFromTarget("WallJump",1)
+stop
+Death:
+TNT1 A 0
+stop
+}
+}
+
+actor WallCheckN 
+{
+PROJECTILE
++RIPPER
++PAINLESS
+Height 10
+Radius 10
+Speed 0
+damage (0)
+States
+{
+Spawn:
+TNT1 A 0 
+TNT1 A 0 A_TakeFromTarget("WallN",1)
+TNT1 A 1
+stop
+Death:
+TNT1 A 0
+TNT1 A 0 A_GiveToTarget("WallN",1)
+TNT1 A 1
+stop
+}
+}
+
+actor WallCheckS : WallCheckN
+{
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_TakeFromTarget("WallS",1)
+TNT1 A 1
+stop
+Death:
+TNT1 A 0
+TNT1 A 0 A_GiveToTarget("WallS",1)
+TNT1 A 1
+stop
+}
+}
+
+actor WallCheckE : WallCheckN
+{
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_TakeFromTarget("WallE",1)
+TNT1 A 1
+stop
+Death:
+TNT1 A 0
+TNT1 A 0 A_GiveToTarget("WallE",1)
+TNT1 A 1
+stop
+}
+}
+
+actor WallCheckW : WallCheckN
+{
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_TakeFromTarget("WallW",1)
+TNT1 A 1
+stop
+Death:
+TNT1 A 0
+TNT1 A 0 A_GiveToTarget("WallW",1)
+TNT1 A 1
+stop
+}
+}
+
+actor WallN : Inventory
+{
+inventory.amount 1
+inventory.maxamount 1
+}
+
+actor WallS : WallN
+{
+}
+actor WallE : WallN
+{
+}
+actor WallW : WallN
+{
+}
+
+actor CanWallJump : CustomInventory
+{
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0 A_JumpIfInventory("CanWallJumpFlag", 1, "No")
+TNT1 A 0 A_GiveInventory("CanWallJumpFlag", 1)
+TNT1 A 0 ACS_NamedExecuteAlways("CSCACS_WallJump", 0)
+stop
+No:
+TNT1 A 0 
+stop
+}
+}
+ 
+actor CanDoubleJump : Once{}
+
+actor CanAirJump : Once{}
+
+actor CanAirJumpLimit : Inventory
+{
+inventory.amount 1
+inventory.maxamount 99
+}
+
+actor WallJumpThrust : Inventory
+{
+inventory.amount 1
+inventory.maxamount 999 //Ok, but why though?
+}
+
+actor WallJumpLimit : Inventory
+{
+inventory.amount 1
+inventory.maxamount 999 //Ok, but why though?...again
+}
+
+actor WallJumped : Powerup { Powerup.Duration 5 }
+actor CanAirJumpStack : CanAirJumpLimit{}
+actor CanWallJumpLimit : CanAirJumpLimit{}
+actor CanWallJumpStack : CanAirJumpLimit{}
+
+
+
+
+actor BasicThrowable 
+{
+PROJECTILE
+damagetype "Explosion"
+Obituary "$OB_Hyperbomb"
+radius 4
+height 4
+scale 2.0
+-NOGRAVITY
++DOOMBOUNCE
++BOUNCEONCEILINGS
++ALLOWBOUNCEONACTORS
++BOUNCEONACTORS
++MTHRUSPECIES
++USEBOUNCESTATE
++NOTARGETSWITCH
++NOEXPLODEFLOOR
++SLIDESONWALLS
++MBFBOUNCER
+speed 48
+gravity 1.0
+Damage (0)
+reactiontime 35
+
+WallBounceFactor 0.7
+BounceFactor 0.3
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 1 A_Jump(256,"Spawn2")
+Goto Spawn2
+
+Spawn2:
+MBAL B 1 A_SpawnItemEX("BasicThrowableTrail",0,0,5,0,0,0,0,SXF_TRANSFERTRANSLATION,0)
+MBAL B 0 A_CountDown
+TNT1 A 1 A_Jump(256,"Spawn2")
+Goto Spawn2
+
+Spawn.Bounced:
+BOMB S 1 A_SpawnItemEX("BasicThrowable2",0,0,0,momx,momy,momz,0,SXF_TRANSFERTRANSLATION|SXF_ABSOLUTEMOMENTUM,0)
+stop
+
+Bounce.Floor:
+Bounce.Ceiling:
+MINB A 0 A_ChangeFlag("NOGRAVITY",false)
+MINB A 0 A_ChangeFlag("USEBOUNCESTATE",false)
+TNT1 A 1 A_Jump(256,"Spawn.Bounced")
+Goto Spawn.Bounced
+
+Death:
+MINB A 0 A_SpawnItemEx("ExplosionEffect3",0,0,0,0,0,0,0,1)
+stop
+}
+}
+
+actor BasicThrowable2 : BasicThrowable
+{
+-USEBOUNCESTATE
+-NOGRAVITY
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 1 A_Jump(256,"Spawn2")
+Goto Spawn2
+
+Spawn2:
+MBAL B 0 A_PlaySoundEX("weapon/Heat1","Soundslot6")
+MBAL B 1 A_CountDown
+MBAL B 0 A_CheckFloor("SlowDown")
+loop
+SlowDown:
+MBAL B 0 A_ScaleVelocity(0.3)
+Goto Spawn2
+	
+Death:
+MINB A 0 A_SpawnItemEx("ExplosionEffect3",0,0,0,0,0,0,0,1)
+stop
+}
+}
+
+actor BasicThrowableTrail : BasicClientside
+{
+scale 1.5
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 2
+MINB IIIIII 1
+MINB IIIIII 1 A_Fadeout
+stop
+}
+}
+
+
+actor RoundHandlerBase : CustomInventory
+{
+States
+{
+Pickup:
+"####" A 0 A_Jumpifinventory("AimStagger",1,"BadAcc")
+"####" B 0 A_JumpIf(abs(momx*momx)+abs(momy+momy) > 15 || z-floorz>8  ,"BadAcc")
+"####" B 0 A_Jump(256,"GoodAcc")
+goto GoodAcc
+
+GoodAcc:
+"####" B 0 A_Jumpifinventory("ShotCount",4,"DefaultAcc")
+"####" B 0 //FireCustomMissile
+stop
+
+DefaultAcc:
+"####" B 0 //FireCustomMissile
+stop
+
+BadAcc:
+"####" B 0 //FireCustomMissile
+stop
+}
+}
+
+
+
+actor PingRadiusEffect 
+{
+PROJECTILE
++NOINTERACTION
++NOCLIP
+//+CLIENTSIDEONLY
++NOTARGETSWITCH
+
+ReactionTime 9
+var int user_angle;
+var int user_Pitch;
+var int user_Flags;
+mass 150
+Args 0
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCodeSyncTarget",1)
+TNT1 A 0 A_Setarg(1,mass)//A_SetSpecial(0,0,mass)
+TNT1 A 0 A_SetPitch(90)
+TNT1 A 0 A_SetUserVar("user_Flags", SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION|SXF_TRANSFERSPECIAL)
+TNT1 A 1
+SpawnLoop:
+
+TNT1 A 0 A_SpawnItemEx("PingRadiusEffect2",0,0,0,0,0,0,user_angle,user_Flags)
+
+//TNT1 A 0 A_SpawnItemEx("PingRadiusFX",cos(user_Pitch)*Mass,0,(sin(user_Pitch)*Mass),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("PingRadiusFX",cos(user_Pitch)*-Mass,0,(sin(user_Pitch)*-Mass),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+
+//TNT1 A 0 A_SpawnItemEx("PingRadiusFX",cos(-user_Pitch)*Mass,0,(sin(-user_Pitch)*Mass),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+//TNT1 A 0 A_SpawnItemEx("PingRadiusFX",cos(-user_Pitch)*-Mass,0,(sin(-user_Pitch)*-Mass),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+
+TNT1 A 1 A_SetPitch(Pitch-10)
+TNT1 A 0 A_SetUserVar("user_angle", user_angle + 15)
+TNT1 A 0 A_CountDown
+
+loop
+
+Death:
+TNT1 A 0 
+stop
+}
+}
+
+actor PingRadiusEffect2 : PingRadiusEffect
+{
++CLIENTSIDEONLY
+ReactionTime 9
+var int user_angle;
+var int user_Pitch;
+mass 150
+Args 0
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCodeSyncTarget",1)
+TNT1 A 1
+SpawnLoop:
+TNT1 A 0 A_SpawnItemEx("PingRadiusFX",cos(pitch)*Args[1],0,(sin(pitch)*Args[1]),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("PingRadiusFX",cos(pitch)*-Args[1],0,(sin(pitch)*-Args[1]),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+
+TNT1 A 0 A_SpawnItemEx("PingRadiusFX",cos(-pitch)*Args[1],0,(sin(-pitch)*Args[1]),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("PingRadiusFX",cos(-pitch)*-Args[1],0,(sin(-pitch)*-Args[1]),0,0,0,user_angle,SXF_TRANSFERPITCH|SXF_ABSOLUTEANGLE|SXF_NOCHECKPOSITION|SXF_TRANSFERPOINTERS|SXF_TRANSFERTRANSLATION)
+
+TNT1 A 0 A_SetUserVar("user_angle", user_angle + angle + 30)
+TNT1 A 0 A_CountDown
+loop
+
+Death:
+TNT1 A 0 
+stop
+}
+}
+
+actor PingRadiusFX : BasicGraphicEffect
+{
+scale 1.0
+Alpha 0.5
+ReactionTime 8
+renderstyle "Translucent"
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+BASB WWW 1 A_SetScale(Scalex+1.0)
+BASB WWWWWW 1 A_SetScale(Scalex-0.5)
+Death:
+TNT1 A 0
+stop
+}
+}
+
+
+actor PingCrystal_Rad : PingRadiusEffect
+{mass 280}

@@ -1,0 +1,142 @@
+
+Actor FlameMan : ClassBase //replaces FlameMan
+{
+Player.DisplayName "FlameMan"
+Player.SoundClass "FlameMan"
+
+Player.Startitem "IsFlameMan"
+Player.Startitem "FlameMan_ClassSet"
+
+player.startitem "SetupShop"
+player.startitem "LoadShopInventory"
+player.startitem "RoundSignatureGive"
+player.startitem "AbilityAmmo"
++NOSKIN
+States
+{
+Spawn: 
+FLAM A 0
+FLAM B 1 
+FLAM A 1
+GoTo Spawn+2
+See:
+FLAM BCDE 5
+GoTo Spawn+1
+Missile:
+FLAM F 5
+FLAM G 4
+GoTo Spawn+2
+PainFix:
+FLAM H 0 
+GoTo PainFrames
+}
+}
+
+
+
+Actor IsFlameMan : Once{}
+Const int Cap_FlameBlast = 2;
+Const int Cap_FlameManAbility2 = 2;
+
+actor FlameManStarterSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("Zapper",1)
+TNT1 A 0 //ACS_NamedExecuteAlways("GiveSignatureCharge",0,Cap_FlameBlast)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor FlameMan_Melee : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("BasicKnife",1)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor FlameMan_ClassSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("UseAbility1_FlameMan",1)
+TNT1 A 0 A_GiveInventory("Ability1_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_1",Cap_FlameBlast)
+
+//==
+// TNT1 A 0 A_GiveInventory("UseAbility2_FlameMan",1)
+// TNT1 A 0 A_GiveInventory("Ability2_ChargeFlag",1)
+// TNT1 A 0 A_GiveInventory("AbilityChargeCap_2",Cap_FlameManAbility2)
+//==
+Done:
+TNT1 A 0
+stop
+}
+}
+
+//=========|Class Shop|============
+
+actor FlameMan_ClassShop : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("BuyFlameBlast",1)
+TNT1 A 0 A_GiveInventory("BuyFlameManAbility2",1)
+stop
+}
+}
+
+Const int Cost_FlameBlast = 350;
+Const int Cost_FlameManAbility2 = 450;
+
+actor BuyFlameBlast : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_FlameBlast),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_FlameBlast)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",Cap_FlameBlast,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_1",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyFlameManAbility2 : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_FlameManAbility2),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_FlameManAbility2)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",Cap_FlameManAbility2,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_2",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}

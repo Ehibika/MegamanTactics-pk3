@@ -1,0 +1,21 @@
+addkeysection "Extra Controls" ExtraKeys
+addmenukey "Ability 2 Command" +Zoom
+addmenukey "Reload" +Reload
+
+ClearPlayerClasses
+addplayerclass TactMegaman
+addplayerclass Prototyper
+addplayerclass Protoman
+addplayerclass IceMan
+addplayerclass Fireman
+addplayerclass BombMan
+addplayerclass CrystalMan
+addplayerclass Snakeman
+addplayerclass Shadowman
+addplayerclass Brightman
+addplayerclass Crashman
+addplayerclass Flameman
+
+alias !MT_justjoin "closemenu;join"
+
+alias OpenMainShop "CloseMenu; Use ItemShopStartItem;"

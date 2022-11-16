@@ -1,0 +1,250 @@
+actor Ability1_Flameman : AbilityMasterBase
+{
+Weapon.AmmoUse2 1
+Weapon.AmmoGive2 0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+Obituary "$OB_MEGABUSTER"
+Tag "HyperBomb Ability"
+weapon.ammotype1 "AbilityAmmo"
+inventory.icon "FLMBSI"
+Dropitem ""
++WEAPON.NOAUTOFIRE
++WEAPON.ALLOW_WITH_RESPAWN_INVUL
+Weapon.SlotPriority 5
+States
+{
+
+Ready:
+FLAB A 0 
+"####" A 1 Offset(0,110)
+"####" A 1 Offset(0,96)
+"####" A 1 Offset(0,82)
+"####" A 1 Offset(0,70)
+"####" A 1 Offset(0,58)
+"####" A 1 Offset(0,46)
+"####" A 1 Offset(0,32)
+Ready1:
+"####" A 0 A_FireCustomMissile("FlameBlastAimPath",0,0,0,0,0,Aim_ArcOverHead+(Aim_ArcScale*Sin(-pitch)))
+"####" A 1 A_WeaponReady
+goto Ready1
+
+
+Fire:
+"####" C 0 A_PlaySoundEx("weapon/crackerthrow","Weapon")
+"####" A 0 A_FireCustomMissile("FlameBlastBoss",0,0,0,0,0,Aim_ArcOverHead+(Aim_ArcScale*Sin(-pitch)))
+"####" B 0 A_TakeInventory("AbilityCharge_1",1)
+"####" B 0 
+"####" E 0 A_GiveInventory("SignatureRecharge_20") //
+"####" BC 2
+"####" A 0 A_JumpIfInventory("AbilityCharge_1",1,"Fire.Reset")
+
+"####" A 1 Offset(0,32)
+"####" A 1 Offset(0,46)
+"####" A 1 Offset(0,58)
+"####" A 1 Offset(0,70)
+"####" A 1 Offset(0,82)
+"####" A 1 Offset(0,96)
+"####" A 1 Offset(0,110)
+"####" B 0 A_Jump(256,"End")
+goto End
+
+AltFire:
+"####" C 0 A_PlaySoundEx("weapon/crackerthrow","Weapon")
+"####" A 0 A_FireCustomMissile("FlameBlastBoss2",0,0,0,0,0,Aim_ArcOverHead+(Aim_ArcScale*Sin(-pitch)))
+"####" B 0 A_TakeInventory("AbilityCharge_1",1)
+"####" B 0 
+"####" E 0 A_GiveInventory("SignatureRecharge_20") //
+"####" BC 2
+"####" A 0 A_JumpIfInventory("AbilityCharge_1",1,"Fire.Reset")
+
+"####" A 1 Offset(0,32)
+"####" A 1 Offset(0,46)
+"####" A 1 Offset(0,58)
+"####" A 1 Offset(0,70)
+"####" A 1 Offset(0,82)
+"####" A 1 Offset(0,96)
+"####" A 1 Offset(0,110)
+"####" B 0 A_Jump(256,"End")
+goto End
+
+Fire.Reset:
+"####" A 1
+goto Ready1
+
+End:
+"####" A 1 A_TakeInventory("AbilityActiveFlag",9)
+"####" A 0 
+Goto End
+}
+}
+//====
+
+actor UseAbility1_Flameman : CustomInventory
+{
+states
+{
+Use:
+WEA2 A 0 A_GiveInventory("FlameBlastAbility",1)
+fail
+}
+}
+
+actor FlameBlastAbility : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",1,"Pickup2")
+stop
+
+Pickup2:
+TNT1 A 0 ACS_NamedExecuteAlways("RunClassAbility",0,1)
+stop
+}
+}
+//=================
+//=================
+
+actor FlameBlastAimPath : GolfBallAimInstantStarter3 { Speed 48}
+
+Actor FlameBlastBosshitDelay : powerprotection
+{
+Powerup.duration 8
+Damagefactor "FlameBlastBoss", 0
+}
+
+actor FlameBlastBoss : BasicThrowable
+{
+States
+{
+
+Spawn2:
+FLMB H 1 A_SpawnItemEX("FlameBlastShotTrail",0,0,5,0,0,0,0,SXF_TRANSFERTRANSLATION,0)
+TNT1 A 1 A_Jump(256,"Spawn2")
+Goto Spawn2
+
+Spawn.Bounced:
+FLMB H 1 A_SpawnItemEX("FlameBlastShotTrail",0,0,5,0,0,0,0,SXF_TRANSFERTRANSLATION,0)
+Goto Spawn2
+
+Bounce.Floor:
+FLMB H 1 A_SpawnItemEX("FlameBlastSpawner",0,0,0,0,0,0,0,1,0)
+stop
+
+Death:
+FLMB H 0 A_SpawnItemEx("ExplosionEffect1",0,0,0,0,0,0,0,1)
+stop
+}
+}
+
+
+actor FlameBlastBoss2 : FlameBlastBoss
+{
+States
+{
+Bounce.Floor:
+FLMB H 1 A_SpawnItemEX("FlameBlastSpawner",0,0,0,0,0,0,90,SXF_TRANSFERTRANSLATION,0)
+stop
+
+}
+}
+
+
+actor FlameBlastSpawner
+{
+PROJECTILE
+-NOGRAVITY
+Damage(0)
+Scale 3.0
+ReactionTime 50
+States
+{
+Spawn:
+ICEW B 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_SpawnItemEx("FlameBlastWave",16,0,-(z-floorz),0,0,0,0,SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("FlameBlastWave",-16,0,-(z-floorz),0,0,0,0,SXF_TRANSFERTRANSLATION)
+TNT1 A 0 A_SpawnItemEx("FlameBlastLeader",0,0,-(z-floorz),0,1,0,0,SXF_TRANSFERTRANSLATION|SXF_MULTIPLYSPEED)
+TNT1 A 1 A_SpawnItemEx("FlameBlastLeader",0,0,-(z-floorz),0,-1,0,0,SXF_TRANSFERTRANSLATION|SXF_MULTIPLYSPEED)
+stop
+}
+}
+
+actor FlameBlastLeader
+{
++MISSILE
++RIPPER
++DONTREFLECT
++FLOORHUGGER
++SLIDESONWALLS
+Damage (0)
+Speed 32
+Height 48
+Radius 10
+Scale 2.5
+ReactionTime 5
+States
+{
+Spawn:
+TNT1 A 0
+Spawn2:
+TNT1 A 0 A_SpawnItemEx("FlameBlastWave",16)
+TNT1 A 0 A_SpawnItemEx("FlameBlastWave",-16)
+TNT1 A 0 A_PlaySoundEx("weapon/Firestorm","Weapon")
+TNT1 A 1 A_CountDown
+Goto Spawn2
+Death:
+TNT1 A 0 
+stop
+}
+}
+
+
+actor FlameBlastWave
+{
+PROJECTILE
+Obituary "$OB_FLAMEBLAST"
+DamageType "FlameBlastBoss"
++DONTBLAST
++DONTREFLECT
++RIPPER
++FLOORHUGGER
+Radius 20
+Height 26
+Damage (6)
+Speed 0
+YScale 6.5
+XScale 5.0
+reactiontime 280
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_SpawnItemEx("OilPitIgnite",0,0,8)
+FWVE X 0 A_PlaySoundEx("weapon/FireManWave","Weapon")
+Spawn2:
+TNT1 A 1 A_SpawnItemEx("MolotovParticleSpawner",32,0,-(z-floorz)+random(0,5),0,0,6,Random(1,360),SXF_NOCHECKPOSITION|SXF_TRANSFERTRANSLATION)
+FWVE X 0 A_Countdown
+loop
+Death:
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+FWVE W 0 A_SpawnItemEx("OilPitIgnite",0,0,8)
+TNT1 A 1
+stop
+}
+}
+
+actor FlameBlastShotTrail : BasicGraphicEffect
+{
+    +FORCEXYBILLBOARD
+    +BRIGHT
+    Scale 2.5
+    States
+    {
+	Spawn:
+		TNT1 A 0
+        FLMB HHHH 1 A_Fadeout
+        stop
+    }
+}

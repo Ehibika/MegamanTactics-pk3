@@ -1,0 +1,79 @@
+/* -=- Shop Database -=-
+ * Variables and functions for A_Shop
+ *
+ * 
+
+*/
+
+#library "DB_Shop"
+#include "zcommon.acs"
+
+
+#LIBDEFINE SHOP_MAX_PLAYERS 64
+#LIBDEFINE SHOP_MAX_SLOTS 10
+#LIBDEFINE MAX_TEAMS 4
+#LIBDEFINE MAX_SHOP 25
+#LIBDEFINE MAX_GEAR 10
+#LIBDEFINE MAX_ABLSHOP MAX_GEAR+2
+#LIBDEFINE GEARSTART MAX_SHOP-MAX_GEAR
+
+
+#LIBDEFINE PLAYERSTARTCASH 900
+#LIBDEFINE WINAWARD 3000
+#LIBDEFINE LOSEAWARD 1900
+#LIBDEFINE LOSESTREAKAWARD 500
+#LIBDEFINE LOSESTREAKCAP 3
+#LIBDEFINE FRAGAWARD 200
+#LIBDEFINE CASHCAP 9000
+
+bool thePlayerPlayed[SHOP_MAX_PLAYERS];
+int thePlayerTeam[SHOP_MAX_PLAYERS];
+bool theTeamPlayed[MAX_TEAMS];
+
+str ShopItemList[MAX_SHOP][4] = {
+	//Busters round weps
+    {"StandardBusterWep", "Mega Buster", -1.0 ,""},
+	{"WindPressureBusterWep", "WindPresr Buster", 450.0 ,""},
+	{"AquaBusterWep", "Aqua Buster", 150.0 ,""},
+	{"MilitaryBusterWep", "Military Buster", 500.0 ,""},
+
+	//Budget weps
+    {"ShotgunWep", "Shotgun", 800.0 ,""},
+	{"ArrowBusterWep", "Arrow Buster", 1600.0 ,""},
+	{"TriangleGunWep", "Triangle Gun", 1800.0 ,""},
+	{"HighSpeedRifleWep", "Hi-SPD Rifle", 1800.0 ,""},
+
+	//Ideal weps
+	{"HoserWep", "Lazer Rifle", 1850 ,""},
+	{"VioletZapperWep", "Violet Zapper", 2400.0 ,""},
+	{"FireBrandWep", "Lazer Rifle", 2400 ,""},
+	{"ColdFrontWep", "Lazer Rifle", 2000 ,""},
+	{"LazerRifleWep", "Lazer Rifle", 2900 ,""},
+
+	//Specialty
+	{"HawkPrecisionBusterWep", "HawkPrec Buster", 3600.0 ,""},
+	{"SpikeGatlingWep", "Spike Gatling", 3200.0 ,""},
+
+
+	//{"FireballBusterWep", "Fireball Buster", 400.0 ,""},
+	//{"ShadowBusterWep", "ShadowB uster", 400.0 ,""},
+	//{"StandardSaberWep", "Standard Saber", 1000.0 ,""},
+	//{"ElectriggerVWep", "ElectriggerV", 1600.0 ,""},
+	//{"MegaCannonWep", "Mega Cannon", 4500.0 ,""},
+
+	//===
+	//===
+	{"LightArmor", "Light Armor", 400.0,"NOSELL"},
+	{"HeavyArmor", "Heavy Armor", 1000.0,"NOSELL"},
+	{"MiniSmoke", "Mini Smoke", 150.0,"NOSELL"},
+	{"MiniNade", "Mini Nade", 150.0,"NOSELL"},
+	{"MiniMolly", "Mini Molly", 150.0,"NOSELL"},
+	{"MiniFlash", "Mini Flash", 150.0,"NOSELL"},
+	{"Dynamite", "Dynamite", 150.0,"NOSELL"},
+	{"ConcreteNade", "Concrete Nade", 250.0,"NOSELL"},
+	{"WireAdaptor", "Wire Adaptor", 350.0,"NOSELL"},
+	{"Item1", "Item 1", 350.0,"NOSELL"},
+
+};
+
+#LIBDEFINE ITEMSPAWNERTID 74000

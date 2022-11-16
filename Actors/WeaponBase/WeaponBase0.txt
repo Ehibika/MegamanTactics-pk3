@@ -1,0 +1,63 @@
+actor NeumodianWepBase0 : Weapon
+{
+Weapon.AmmoUse 1
+Weapon.AmmoGive 3
+Weapon.SlotNumber 1
+Weapon.SlotPriority 0
+scale 2.0
+Obituary "OB_GENERIC"
+inventory.icon "BUSTI"
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "BusterAmmo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.ALT_AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+BUST B 1 
+"####" "#" 1 A_Jump(256,"Ready.Core")
+Goto Ready.Core
+Ready.Core:
+"####" "#" 1 A_WeaponReady(WRF_ALLOWINPUTS)
+//"####" "#" 0 A_Jumpif(CallACS("MT_CheckAbilityInput",1)==1,"User1")
+Goto Ready.Core
+Deselect:
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" B 1 A_Lower
+Loop
+Select:
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" B 1 A_Raise
+Loop
+Fire:
+"####" B 1 
+goto Ready
+
+Altfire:
+"####" B 1 
+goto Ready
+
+NoAmmo:
+"####" "#" 1
+"####" "#" 1 A_Jump(256,"Ready.Wep")
+Goto Ready.Wep
+
+BotRefire:
+"####" B 5
+"####" B 1 A_Refire("Fire")
+goto Ready
+
+Flash:
+TNT1 A 1
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}

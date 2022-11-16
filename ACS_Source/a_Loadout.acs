@@ -1,0 +1,522 @@
+/* -=- Loadout System -=-
+ * Code that handles the distribution of loadout elements, 
+ *
+ * 
+
+*/
+#library "A_Loadout"
+#include "zcommon.acs"
+#import "A_Core.acs"
+#import "db_Loadout.acs"
+#import "db_Shop.acs"
+
+Function int STD_WhichWeapon(void) // Which STD weapon is the player currently using.  From MasterWepList array
+{
+For(int i = 0; i < WEAPONLIST; i++)
+	{
+	If(CheckWeapon2(MasterWepList[i][1]))
+		{
+		If(MasterWepList[i][3] > 0.0){Return i;}
+		}
+	}
+Return -1;
+}
+
+Function str STD_WhichWeaponName(void) //Find the weapon the player is currently using and return the name of it
+{
+For(int i = 0; i < WEAPONLIST; i++)
+	{
+	If(CheckWeapon2(MasterWepList[i][1]))
+		{
+		If(MasterWepList[i][3] > 0.0){Return MasterWepList[i][1];}
+		}
+	}
+Return "";
+}
+
+Function int STD_WhichWeaponFlags(void) //Find the weapon the player is currently using and return Their BitFlags
+{
+For(int i = 0; i < WEAPONLIST; i++)
+	{
+	If(CheckWeapon2(MasterWepList[i][1]))
+		{
+		If(MasterWepList[i][3] > 0.0){Return MasterWepList[i][3];}
+		}
+	}
+Return 0;
+}
+
+Function int GetThisWeaponType(void) //Checks for the current weapon type by checking for it's bitflag
+{
+int WepFlags = STD_WhichWeaponFlags();
+if(WepFlags & WF_BUSTER) return WF_BUSTER;
+else if(WepFlags & WF_MACHINEGUN) return WF_MACHINEGUN;
+else if(WepFlags & WF_SPRAYER) return WF_SPRAYER;
+else if(WepFlags & WF_LAUNCHER) return WF_LAUNCHER;
+else if(WepFlags & WF_MELEE) return WF_MELEE;
+return 0.0;
+}
+
+//#region -=- Extra Weapon Functions
+#region -=- Extra Weapon Functions
+
+function bool CheckWeapon2(str weapon) {
+	//return (CheckWeapon(weapon)||CheckWeapon(AddSuffix(weapon,"2")));
+	return (CheckWeapon(weapon)||(StrIcmp(weapon,SubtractSuffix(GetWeapon()))==0));
+}
+
+function str SubtractSuffix(str string)  {
+	return StrLeft(string,StrLen(string)-1);
+}
+
+function bool CheckInventory2(str inventory_item) {
+	return (CheckInventory(inventory_item)
+		||CheckInventory(AddSuffix(inventory_item,"1"))
+		||CheckInventory(AddSuffix(inventory_item,"2"))
+		||CheckInventory(AddSuffix(inventory_item,"3"))
+		||CheckInventory(AddSuffix(inventory_item,"4"))
+		);
+}
+
+function str AddSuffix(str string, str suffix)  {
+	return StrParam(s:string,s:suffix);
+}
+#endregion
+//#endregion
+
+
+
+Script "DropYourWeapons" (int Exclude)
+{
+    GiveInventory("PickupOff",1);
+    int InvCount;
+
+    for (int i=0; i<Exclude; i++) 
+    {
+    InvCount = CheckInventory(the_items[i]);
+    while(InvCount){DropWepFunc(the_items[i],6.0,6.0); InvCount = CheckInventory(the_items[i]);}
+    }
+    //==
+    for (i=Exclude+1; i<WEAPONLIST; i++) 
+    {
+    InvCount = CheckInventory(the_items[i]);
+    while(InvCount){DropWepFunc(the_items[i],6.0,6.0); InvCount = CheckInventory(the_items[i]);}
+    }  
+
+    ACS_NamedExecuteAlways("Write_Inventory",0,1);
+    delay(1);
+    GiveInventory("PickupOn",1);
+}
+
+Script "DropYourSidearm" (int Exclude)
+{
+    GiveInventory("PickupOff",1);
+    int InvCount;
+
+    for (int i=0; i<Exclude; i++) 
+    {
+    InvCount = CheckInventory(the_items[i]);
+    while(InvCount){DropWepFunc(the_items[i],6.0,6.0); InvCount = CheckInventory(the_items[i]);}
+    }
+    //==
+	/*
+    for (i=Exclude+1; i<MAINWEPSTART; i++) 
+    {
+    InvCount = CheckInventory(the_items[i]);
+    while(InvCount){DropWepFunc(the_items[i],6.0,6.0); InvCount = CheckInventory(the_items[i]);}
+    }  */
+
+    ACS_NamedExecuteAlways("Write_Inventory",0,1);
+    delay(1);
+    GiveInventory("PickupOn",1);
+}
+
+Script "DropYourMainWep" (int Exclude)
+{
+    GiveInventory("PickupOff",1);
+    int InvCount;
+
+	/*
+    for (int i=MAINWEPSTART; i<Exclude; i++) 
+    {
+    InvCount = CheckInventory(the_items[i]);
+    while(InvCount){DropWepFunc(the_items[i],6.0,6.0); InvCount = CheckInventory(the_items[i]);}
+    }
+	*/
+    //==
+    for (int i=Exclude+1; i<WEAPONLIST; i++) 
+    {
+    InvCount = CheckInventory(the_items[i]);
+    while(InvCount){DropWepFunc(the_items[i],6.0,6.0); InvCount = CheckInventory(the_items[i]);}
+    }  
+
+    ACS_NamedExecuteAlways("Write_Inventory",0,1);
+    delay(1);
+    GiveInventory("PickupOn",1);
+}
+
+Function void DropWepFunc (str WepName, int XSpeed, int Zspeed)
+{
+    int Angle = GetActorAngle(0) >> 8;
+    str DroppedItem = StrParam(s:WepName,s:"DropItem");
+    int DropTID = UniqueTID(DROPITEMTID,DROPITEMTID+100);
+    SpawnSpotForced(DroppedItem,ActivatorTID(),DropTID,Angle+(128+Random(-64,64)));
+    SetActorVelocity(DropTID,XSpeed,0,Zspeed,FALSE, FALSE);
+    //if(XSpeed && Zspeed){SpawnProjectile (0,DroppedItem, Angle+(128+Random(-64,64)), XSpeed, Zspeed, 0.5, UniqueTID(DROPITEMTID,DROPITEMTID+100));}
+    //else{}
+    TakeInventory(WepName,1);
+    //log(i:Angle,s:" ",f:Angle);
+}
+
+Function void DropScrewFunc (int XSpeed, int Zspeed)
+{
+    int Angle = GetActorAngle(0) >> 8;
+    str DroppedItem = "BigHealth_MSTD";
+    int DropTID = UniqueTID(DROPITEMTID,DROPITEMTID+100);
+    SpawnSpotForced(DroppedItem,ActivatorTID(),DropTID,Angle+(128+Random(-64,64)));
+    SetActorVelocity(DropTID,XSpeed,0,Zspeed,FALSE, FALSE);
+}
+
+script "InventoryEvents" (int type, int arg1, int arg2) EVENT
+{
+
+    if(GetRoundGame(1)==1){
+    Switch(type)
+        {
+        //case 0: player_inv_Death(arg1); break;
+        Case 5: LoadAllPlayerInventory(); break;
+        Case 6: SaveAllPlayerInventory(); break;
+        }
+    }
+}
+
+/*
+Script "ClassStarter" (Void)
+{
+Str ClassName,StarterItem;
+ClassName = GetActorClass(0);
+StarterItem = StrParam(s:ClassName,s:"StarterSet");
+
+    if(GetRoundGame(1)==1) 
+	{
+	if (GetGameModeState() != 2)
+		{
+		GiveInventory(StarterItem,1);
+		ACS_NamedExecuteAlways("Read_Inventory",0,0);
+		}	
+    }
+}
+
+Script "InvRespawn" RESPAWN
+{
+//ACS_NamedExecuteAlways("ClassMelee",0,1);
+}
+
+Script "ClassMelee" (Void)
+{
+
+Str ClassName,MeleeItem;
+ClassName = GetActorClass(0);
+MeleeItem = StrParam(s:ClassName,s:"_Melee");
+
+
+		GiveInventory(MeleeItem,1);
+
+}
+
+Script "ClassSignature" (void)
+{
+Str ClassName,SigChargeItem;
+ClassName = GetActorClass(0);
+SigChargeItem = StrParam(s:ClassName,s:"_SignatureCharge");
+
+GiveInventory(SigChargeItem,1);
+}
+*/
+
+//#region -=- Inventory Data scripts
+#region -=- Inventory Data scripts
+
+    /* -=-=-=-=-=-=-=-=-=-= 
+    * Okay, time for some advance stuff again. so my plan is to save player inventories withing a single string.
+    * 
+    * The idea is this: each item is represented by a 4 character hex value, like A105. the first two characters
+    * are the item ID, and the second two characters are the quantity
+    * 
+    * -=-=-=-=-=-=-=-=-=-=-=
+    */
+
+Script "Write_Inventory" (int WriteDelay)
+{
+Delay(WriteDelay);
+Str PlayerInv = StrParam(s:"Player",i:PlayerNumber(),s:"_INV");
+str InvStr = "";
+str InvStrCache = "";
+
+Int InvCount;
+str ItemID; //hex value of item ID
+str ItemQ; //hex value of item quantity
+
+int ItemCount; //number of different items found
+    /* -=-=-=-=-=-=-=-=-=-= 
+    * So what we are going to do here is go down the the_items and see
+    * if you have that item, if you do. then we count the quantity, and create
+    * the inventory block. and then append it to the end of INVSTR
+    * -=-=-=-=-=-=-=-=-=-=-=
+    */
+
+   for (int i=0; i<MAX_ITEMS; i++) 
+   {
+    InvCount = CheckInventory(the_items[i]);
+    if(InvCount)
+        {
+            if(i<16){ItemID = StrParam(s:"0",x:i);}
+            else{ItemID = StrParam(x:i);}
+
+            if(InvCount<16){ItemQ = StrParam(s:"0",x:InvCount);}
+            else{ItemQ = StrParam(x:InvCount);}  
+            //log(s:ItemID,s:ItemQ);
+
+            if(ItemCount>0){InvStrCache = StrParam(s:InvStr,s:ItemID,s:ItemQ);}
+            else{InvStrCache = StrParam(s:ItemID,s:ItemQ);}
+            InvStr = InvStrCache;
+            ItemCount++;
+        }
+   }
+
+   if(ItemCount){SetCvarString(PlayerInv,InvStr);}
+    else{SetCvarString(PlayerInv,"0001");}
+}
+
+Script "Read_Inventory" (void)
+{
+    //log(s:"Begin Inventory read");
+
+     /* -=-=-=-=-=-=-=-=-=-= 
+    * now we're going to take the inventory string, read it block by block,
+    * and hand out the inventory items.
+    * 
+    * Each block is a 4 character long hex value. so we will read the string that way.
+    * -=-=-=-=-=-=-=-=-=-=-=
+    */
+
+Str PlayerInv = StrParam(s:"Player",i:PlayerNumber(),s:"_INV");
+Str PlayerInvStr = GetCvarString(PlayerInv);
+int BStart = 0; //Brefresh.
+int BLen = 4;
+int BlockCount = strLen(PlayerInvStr)/4;
+str HexBlock;
+int ItemID;
+int ItemQ;
+
+//log(s:"Total inventory blocks : ",i:BlockCount);
+
+    for (int i=0; i<BlockCount; i++) 
+    {
+        HexBlock = StrMid(PlayerInvStr,BStart,BLen);
+        ItemID = HextoInt(StrLeft(HexBlock,2));
+        ItemQ = HextoInt(StrRight(HexBlock,2));
+        if(ItemQ>0)
+            {
+            //log(s:"get ",i:ItemQ,s:" ",s:the_items[ItemID]);
+            GiveInventory(the_items[ItemID],ItemQ);
+            }
+        
+
+        BStart += 4;
+    }
+
+}
+
+script "Clear_Inventory" (void)
+{
+Str PlayerInv = StrParam(s:"Player",i:PlayerNumber(),s:"_INV");
+SetCvarString(PlayerInv,"0001");
+log(s:"Cleared inv for player ",i:PlayerNumber());
+}
+
+script "Clear_PlayerInventory" (int P)
+{
+Str PlayerInv = StrParam(s:"Player",i:P,s:"_INV");
+SetCvarString(PlayerInv,"0001");
+}
+
+
+script "Load_AllPlayerInventory" (void)
+{
+LoadAllPlayerInventory();
+}
+
+function void LoadAllPlayerInventory(void)
+{
+for(int i = 0; i < SHOP_MAX_PLAYERS; i++) GiveActorInventory(i+1000,"LoadShopInventory",1);
+}
+
+script "Save_AllPlayerInventory" (void)
+{
+SaveAllPlayerInventory();
+}
+
+function void SaveAllPlayerInventory(void)
+{
+for(int i = 0; i < SHOP_MAX_PLAYERS; i++) GiveActorInventory(i+1000,"SaveShopInventory",1);
+}
+
+function void ClearAllPlayerInventory(void)
+{
+Str PlayerInv; 
+for(int i = 0; i < SHOP_MAX_PLAYERS; i++) 
+	{
+	PlayerInv = StrParam(s:"Player",i:i,s:"_INV");
+	SetCvarString(PlayerInv,"0001");
+	}
+}
+
+str HexArray[16] = {
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    };
+    
+    Function int HextoInt (str HexVal)
+    {
+    int len = StrLen(HexVal);
+    int base = 1;
+    int output;
+    int HexDigit;
+    for (int i=len-1; i>=0; i--) 
+        { 
+            HexDigit = HexCharToInt(strparam(c:GetChar(HexVal,i)));
+            output += HexDigit*base;
+            base = base*16;
+            //log(i:Hex);
+            //log(i:output);
+        }
+    
+    return output;
+    }
+    
+    
+    Function int HexCharToInt (str HexChar)
+    {
+    int output;
+    for(Int i;i<16;i++)
+        {
+        if(HexArray[i] == HexChar){output = i; break;}    
+        }
+    return output;
+    }
+    
+    
+    Script "HexTest" (int A)
+    
+    {
+    log(x:A);
+    log(i:HextoInt("A"));
+    log(i:HextoInt("AB"));
+    log(i:HextoInt("0A02"));
+    }
+
+#endregion
+//#endregion
+
+
+script "Inventory_GameStart" OPEN
+{
+if(!GetCVar("INV_INIT")) {
+	ClearAllPlayerInventory();
+	SetCvar("INV_INIT",true);
+}
+}
+
+
+script "Inventory_GameOver" UNLOADING
+{
+ClearAllPlayerInventory();
+}
+
+script "Inventory_Disconnect" (int p) DISCONNECT
+{
+ACS_NamedExecuteWithResult("Clear_PlayerInventory",p);
+}
+
+script "Inventory_Death" DEATH
+{
+
+int InvCount;
+str ItemName;
+    for (int i=0; i<MAX_ITEMS; i++) 
+    {
+    ItemName = the_items[i];
+    InvCount = CheckInventory(ItemName);
+    //if(InvCount){DropWepFunc(ItemName,6.0,6.0); InvCount = CheckInventory(ItemName); /*log(s:"Dropped ",s:ItemName);*/}
+    }
+/*
+if (!GetPlayerLivesLeft(PlayerNumber()))
+	{
+	GiveInventory("MT_TakeWeps",1);
+	GiveInventory("MT_TakeItems",1);
+	//GiveInventory("MT_TakeAbilities",1);
+	GiveInventory("Zapper",1);
+	}
+ACS_NamedExecuteWithResult("Write_Inventory");
+*/
+//ACS_NamedExecuteAlways("Clear_Inventory",0);
+player_inv_Death(PlayerNumber());
+if(GetCvar("MT_EconMode") == 0 && GetRoundGame(1)){DropScrewFunc(6.0,6.0);}
+}
+
+function void player_inv_Death(int P)
+{
+if (!GetPlayerLivesLeft(P))
+	{
+	if(!getCvar("MT_DeathKeepWeapons")){GiveInventory("MT_TakeWeps",1); GiveInventory("StandardBusterWep",1);}
+	if(!getCvar("MT_DeathKeepItems"))GiveInventory("MT_TakeItems",1);
+	if(!getCvar("MT_DeathKeepAbilities"))GiveInventory("MT_TakeAbilities",1);
+	
+	}
+ACS_NamedExecuteWithResult("Write_Inventory");
+}
+
+
+
+script "Inventory_Reload" (void)
+{
+int InvCount;
+str ItemName;
+    for (int i=0; i<MAX_ITEMS; i++) 
+    {
+    ItemName = the_items[i];
+    InvCount = CheckInventory(ItemName);
+	if(InvCount){TakeInventory(ItemName,InvCount);}
+    }
+
+ACS_NamedExecuteWithResult("Clear_Inventory");
+ACS_NamedExecuteWithResult("Read_Inventory");
+}
+
+Script "RefundWep" (void)
+{
+//Grabs your current weapon and lets you get the money back for it.
+str WepName = STD_WhichWeaponName();
+str WepName2 = StrLeft(WepName,StrLen(WepName)-StrLen("Wep"));
+
+    for(int i; i <MAX_SHOP; i++)
+    {
+    if(StrIcmp(WepName,ShopItemList[i][0])==0)
+        {ACS_NamedExecuteAlways("GiveCash",0,ShopItemList[i][2]>>16);}
+    }
+}

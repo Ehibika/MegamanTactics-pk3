@@ -1,0 +1,248 @@
+const float HSR_SPD = 3.2; 
+const float HSR_SPD2 = 3.8; 
+
+
+actor HighSpeedRifleWep : WepMasterBase
+{
+Tag "HighSpeedRifle"
+Weapon.AmmoUse 1
+Weapon.AmmoGive 20
+
+Obituary "$OB_HIGHSPEEDRIFLE"
+inventory.icon "REPII"
+scale 2.0
+Inventory.Pickupmessage "$PU_MEGABUSTER"
+weapon.ammotype "HighSpeedRifle_Ammo"
++WEAPON.AMMO_OPTIONAL
++WEAPON.DONTBOB
+//+WEAPON.NOAUTOFIRE
++WEAPON.NOAUTOAIM
+Var int User_Spread;
+States
+{
+Spawn:
+WEAP X 1
+stop
+Ready:
+Ready.Wep:
+DW06 A 1 A_WeaponReady(WRF_ALLOWINPUTS)
+"####" A 0 A_Jumpifinventory("HighSpeedRifle_Ammo",1,"Ready.Core")
+Goto Reload
+//===============
+Deselect:
+TNT1 A 0 A_TakeInventory("NoClipBar",9)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Lower
+"####" A 1 A_Lower
+Loop
+Select:
+TNT1 A 0 ACS_NamedExecuteAlways("WepSpeedMod",0,0.9*FVM)
+TNT1 AAAAAAAAAAAAAAAAAAAAAA 0 A_Raise
+"####" A 1 A_Raise
+Loop
+Fire:
+"####" A 0 A_JumpIfNoAmmo("NoAmmo")
+"####" A 0 A_Jumpifinventory("ConShotTimer",1,"NoAmmo")
+"####" A 0 A_PlaySoundEx("weapon/Rapidbuster","Weapon")
+
+"####" A 0 A_Giveinventory("HighSpeedRifle_RoundHandler")
+"####" A 0 A_Giveinventory("HighSpeedRifleCST")
+"####" A 0 A_Giveinventory("HighSpeedRifleFSPD")
+"####" B 0 A_Giveinventory("WepRecoil")
+"####" BC 1 A_WeaponReady(WRF_FIRING)
+"####" C 0 A_REfire
+goto Ready.Wep
+
+NoAmmo:
+"####" A 1
+"####" A 0 A_Jumpifinventory("HighSpeedRifle_Ammo",1,"Ready")
+Goto Reload
+
+Reload.Hold:
+"####" A 0 A_PlaySoundEx("weapon/rminestick","Weapon")
+"####" A 35 A_WeaponReady(WRF_RELOADING)
+"####" A 0 A_PlaySoundEx("weapon/Crashland","Weapon")
+goto Reload.Rise
+
+Flash:
+TNT1 A 5 
+stop
+NoFlash:
+TNT1 A 1
+stop
+}
+}
+
+actor HighSpeedRifle_RoundHandler : RoundHandlerBase
+{
+States
+{
+GoodAcc:
+"####" B 0 A_Jumpifinventory("ShotCount",4,"DefaultAcc")
+"####" B 0 A_FireCustomMissile("HighSpeedRifleShot",fRandom(-(Aim_GoodSpread),(Aim_GoodSpread)),1,Aim_WepHor,Aim_WepHei,0,fRandom(-(Aim_GoodSpread),(Aim_GoodSpread)))
+stop
+//===============
+DefaultAcc:
+"####" A 0 A_FireCustomMissile("HighSpeedRifleShot",fRandom(-(HSR_SPD),(HSR_SPD)),1,AIM_WEPHOR,AIM_WEPHEI,0,fRandom(-(HSR_SPD),(HSR_SPD)))
+Stop
+BadAcc:
+"####" A 0 A_FireCustomMissile("HighSpeedRifleShot",fRandom(-(HSR_SPD2),(HSR_SPD2)),1,AIM_WEPHOR,AIM_WEPHEI,0,fRandom(-(HSR_SPD2),(HSR_SPD2)))
+stop
+}
+}
+//[+]========================================================================[+]
+//--------------------------------|Ammo & inventory|---------------------------
+//[+]========================================================================[+]
+actor HighSpeedRifle_Ammo : Ammo
+{
+inventory.amount 1
+inventory.maxamount 20
+Ammo.BackpackMaxAmount 40
+}
+
+actor HighSpeedRifleCST : PowerupGiver
+{
++INVENTORY.AUTOACTIVATE
+Powerup.Duration 3
+powerup.type "ConShotTimer"
+}
+
+actor HighSpeedRifleFSPD : FiringSpeed
+{
+Powerup.Duration 12
+speed 1.0
+}
+//[+]========================================================================[+]
+//--------------------------------|Projectiles |--------------------------------
+//[+]========================================================================[+]
+actor HighSpeedRiflePuff : BulletPuff
+{
+scale 1
+Obituary "$OB_HIGHSPEEDRIFLE"
+DamageType "HighSpeedRifle"
+
++PUFFONACTORS
++ALWAYSPUFF
++PUFFGETSOWNER
++MTHRUSPECIES
+alpha 1.0
+States
+{
+Spawn:
+CRBM A 0
+CRBM A 0 A_GiveInventory("ProjectileCode",1)
+CRBM A 0 //A_Explode(16,10,0,0,10)
+BIM1 AABCDEF 1
+stop
+}
+}
+
+
+actor HighSpeedRifleTracer : fastProjectileBase
+{
+Speed 210
+Damage (0)
+radius 2
+height 6
+scale 1.0
+reactiontime 15
+States
+{
+Spawn:
+TNT1 A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+Goto Spawn2
+Spawn2:
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrail",0,0,0,momx,momy,momz,0,9)
+Spawn3:
+TNT1 A 0 A_CountDown
+TNT1 A 1 
+Goto Spawn2
+Death:
+TNT1 A 0 
+TNT1 A 1 
+stop
+}
+}
+
+actor HighSpeedRifleTracer2 : HighSpeedRifleTracer
+{Speed 192}
+
+
+actor HighSpeedRifleShot : fastProjectileBase
+{
+Obituary "$OB_HIGHSPEEDRIFLE"
+DamageType "HighSpeedRifle"
+Damage (11)
+States
+{
+Spawn:
+TNT1 A 0 
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+Goto Spawn2
+Spawn2:
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrail",0,0,0,momx,momy,momz,0,9)
+Spawn3:
+TNT1 A 0 A_CountDown
+TNT1 A 1 
+Goto Spawn2
+Death:
+TNT1 A 0 A_GiveInventory("ProjectileDCode",1)
+TNT1 A 1 A_Spawnitemex("BasicShotPuff",0,0,0,0,0,0,0,SXF_TRANSFERTRANSLATION)
+stop
+}
+}
+
+
+actor HighSpeedRifleTrail : BasicExplosion
+{
+Obituary "$OB_HIGHSPEEDRIFLE"
+States
+{
+Spawn:
+TNT1 A 0
+AQBA L 0 A_GiveInventory("ProjectileCode",1)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX1",0,0,0,0,0,0,0,1)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.1,-momy*0.1,-momz*0.1,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.15,-momy*0.15,-momz*0.1,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.2,-momy*0.25,-momz*0.25,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.25,-momy*0.25,-momz*0.25,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.3,-momy*0.3,-momz*0.3,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.35,-momy*0.35,-momz*0.35,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.4,-momy*0.4,-momz*0.4,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.5,-momy*0.5,-momz*0.5,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.55,-momy*0.55,-momz*0.55,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.6,-momy*0.6,-momz*0.6,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.65,-momy*0.65,-momz*0.65,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.7,-momy*0.7,-momz*0.7,0,9)
+TNT1 A 0 A_SpawnItemEx("HighSpeedRifleTrailX",0,0,0,-momx*0.75,-momy*0.75,-momz*0.75,0,9)
+TNT1 A 1 
+stop
+}
+}
+
+actor HighSpeedRifleTrailX : FXActor_B
+{
+scale 1.0
+Alpha 0.9
+States
+{
+Spawn:
+CRBM A 0
+BASH B 1
+BASH BB 1 A_Fadeout
+stop
+}
+}
+
+actor HighSpeedRifleTrailX1 : FXActor_A
+{
+scale 1.0
+Alpha 0.9
+States
+{
+Spawn:
+BUST A 0
+BASH B 1
+stop
+}
+}

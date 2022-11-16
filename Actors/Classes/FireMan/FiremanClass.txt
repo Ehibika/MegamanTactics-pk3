@@ -1,0 +1,142 @@
+
+Actor Fireman : ClassBase //replaces Fireman
+{
+Player.DisplayName "Fireman"
+Player.SoundClass "Fireman"
+
+Player.Startitem "IsFireman"
+Player.Startitem "Fireman_ClassSet"
+
+player.startitem "SetupShop"
+player.startitem "LoadShopInventory"
+player.startitem "RoundSignatureGive"
+player.startitem "AbilityAmmo"
++NOSKIN
+States
+{
+Spawn: 
+FIRM A 0
+FIRM B 1 
+FIRM A 1
+GoTo Spawn+2
+See:
+FIRM BCDE 5
+GoTo Spawn+1
+Missile:
+FIRM F 5
+FIRM G 4
+GoTo Spawn+2
+PainFix:
+FIRM H 0 
+GoTo PainFrames
+}
+}
+
+
+
+Actor IsFireman : Once{}
+Const int Cap_FireField = 3;
+Const int Cap_MeltCreeper = 2;
+
+actor FiremanStarterSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("Zapper",1)
+TNT1 A 0 //ACS_NamedExecuteAlways("GiveSignatureCharge",0,Cap_FireField)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor Fireman_Melee : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 //A_GiveInventory("BasicKnife",1)
+TNT1 A 0
+Done:
+TNT1 A 0
+stop
+}
+}
+
+actor Fireman_ClassSet : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("UseAbility1_Fireman",1)
+TNT1 A 0 A_GiveInventory("Ability1_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_1",Cap_FireField)
+
+//==
+TNT1 A 0 A_GiveInventory("UseAbility2_Fireman",1)
+TNT1 A 0 A_GiveInventory("Ability2_ChargeFlag",1)
+TNT1 A 0 A_GiveInventory("AbilityChargeCap_2",Cap_MeltCreeper)
+//==
+Done:
+TNT1 A 0
+stop
+}
+}
+
+//=========|Class Shop|============
+
+actor Fireman_ClassShop : CustomInventory
+{
+states
+{
+Pickup:
+TNT1 A 0 A_GiveInventory("BuyFireField",1)
+TNT1 A 0 A_GiveInventory("BuyMeltCreeper",1)
+stop
+}
+}
+
+Const int Cost_FireField = 450;
+Const int Cost_MeltCreeper = 200;
+
+actor BuyFireField : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_FireField),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_FireField)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_1",Cap_FireField,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_1",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}
+
+actor BuyMeltCreeper : BuyThing
+{
+states
+{
+Use1:
+TNT1 A 0 A_JumpIf(CallACS("CashCheck",Cost_MeltCreeper),"Use2")
+goto NoMoney
+CostPay:
+TNT1 A 0 ACS_NamedExecuteWithResult("CashPay",Cost_MeltCreeper)
+goto BuySuccess
+//===
+Use2:
+TNT1 A 0 A_JumpIfInventory("AbilityCharge_2",Cap_MeltCreeper,"FullCapacity")
+TNT1 A 0 A_GiveInventory("AbilityCharge_2",1)
+TNT1 A 0 ACS_NamedExecuteAlways("Write_Inventory",0)
+
+goto CostPay
+}
+}

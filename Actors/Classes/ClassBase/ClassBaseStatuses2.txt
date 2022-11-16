@@ -1,0 +1,320 @@
+Const Int StatusDrainRate = 5;
+
+Const Int Poison_DrainRate = StatusDrainRate;
+Const Int Burn_DrainRate = StatusDrainRate;
+Const Int FrostBite_DrainRate = StatusDrainRate;
+
+//[+]=========================[+]
+//----------|Poison|-------------
+//[+]=========================[+]
+
+actor PoisonBuildRate : Inventory{inventory.amount 1 Inventory.MaxAmount 100}
+
+actor PoisonStatusBuild : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0 A_Jumpifinventory("PoisonMark",1,"Sustain")
+TNT1 A 0 A_Jumpif(CallACS("CheckStatusGuard",0,STATUS_MAJOR),"Nope") 
+TNT1 A 0 A_Jumpifinventory("Pro_ToxicResistance",1,"Nope")
+//==
+TNT1 A 0 A_Jumpifinventory("PoisonBuildRate",1,"Build")
+TNT1 A 0 A_GiveInventory("PoisonBuildRate",5)
+TNT1 A 0 A_SpawnItemEX("PoisonBuilder")
+goto Build
+
+Build:
+TNT1 A 0 A_GiveInventory("PoisonBuildRate",random(35,45))
+stop
+Sustain:
+TNT1 A 0 A_GiveInventory("PoisonMark",1)
+stop
+Nope:
+TNT1 A 0
+stop
+}
+}
+
+actor PoisonStatusFastBuild : PoisonStatusBuild
+{
+States
+{
+Build:
+TNT1 A 0 A_GiveInventory("PoisonBuildRate",random(75,100))
+stop
+}
+}
+
+actor PoisonStatusSlowBuild : PoisonStatusBuild
+{
+States
+{
+Build:
+TNT1 A 0 A_GiveInventory("PoisonBuildRate",random(20,35))
+stop
+}
+}
+
+actor PoisonStatus_50Per : PoisonStatusBuild
+{
+States
+{
+    Pickup:
+    TNT1 A 0 A_Jumpifinventory("PoisonMark",1,"Sustain")
+    TNT1 A 0 A_Jumpif(CallACS("CheckStatusGuard",0,STATUS_MAJOR),"Nope") 
+    TNT1 A 0 A_Jumpifinventory("Pro_ToxicResistance",1,"Nope") 
+    //==
+    TNT1 A 0 A_Jump(128,"Insta")
+    //==
+    TNT1 A 0 A_Jumpifinventory("PoisonBuildRate",1,"Build")
+    TNT1 A 0 A_GiveInventory("PoisonBuildRate",5)
+    TNT1 A 0 A_SpawnItemEX("PoisonBuilder")
+    goto Build
+
+Build:
+TNT1 A 0 A_GiveInventory("PoisonBuildRate",random(75,100))
+stop
+
+Insta:
+TNT1 A 0 A_GiveInventory("PoisonStatusProc")
+stop
+}
+}
+
+
+actor PoisonBuilder //: CustomInventory
+{
++MISSILE
++RIPPER
++NOGRAVITY
++NOINTERACTION
+Reactiontime 5
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 5 
+
+TNT1 A 1 A_JumpIfInTargetInventory("PoisonBuildRate",100,"FullBuild")
+Goto PartBuild
+
+PartBuild:
+TNT1 A 1 A_JumpIfInTargetInventory("PoisonBuildRate",1,"BuildCycle")
+Goto Death
+
+FullBuild:
+TNT1 A 1 A_GiveToTarget("PoisonStatusProc")
+Goto Death
+
+BuildCycle:
+TNT1 A 1 A_TakefromTarget("PoisonBuildRate",Poison_DrainRate)
+TNT1 A 0 A_JumpIfInTargetInventory("PoisonBuildRate",1,"Spawn")
+Goto Death
+
+Death:
+DeathTake:
+TNT1 A 0
+TNT1 A 1 A_TakefromTarget("PoisonBuildRate",999)
+stop
+}
+}
+
+//[+]=========================[+]
+//----------|Burn|-------------
+//[+]=========================[+]
+
+actor BurnBuildRate : Inventory{inventory.amount 1 Inventory.MaxAmount 100}
+
+actor BurnStatusBuild : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0 A_Jumpifinventory("BurnMark",1,"Sustain")
+TNT1 A 0 A_Jumpifinventory("Pro_FireResistance",1,"Nope")
+TNT1 A 0 A_Jumpif(CallACS("CheckStatusGuard",0,STATUS_MAJOR),"Nope") 
+//==
+TNT1 A 0 A_Jumpifinventory("BurnBuildRate",1,"Build")
+TNT1 A 0 A_GiveInventory("BurnBuildRate",5)
+TNT1 A 0 A_SpawnItemEX("BurnBuilder")
+goto Build
+
+Build:
+TNT1 A 0 A_GiveInventory("BurnBuildRate",random(35,45))
+stop
+Sustain:
+TNT1 A 0 A_GiveInventory("BurnMark",1)
+stop
+
+Nope:
+TNT1 A 0
+stop
+}
+}
+
+actor BurnStatusFastBuild : BurnStatusBuild
+{
+States
+{
+Build:
+TNT1 A 0 A_GiveInventory("BurnBuildRate",random(75,100))
+stop
+}
+}
+
+actor BurnStatusSlowBuild : BurnStatusBuild
+{
+States
+{
+Build:
+TNT1 A 0 A_GiveInventory("BurnBuildRate",random(20,35))
+stop
+}
+}
+
+actor BurnBuilder //: CustomInventory
+{
++MISSILE
++RIPPER
++NOGRAVITY
++NOINTERACTION
+Reactiontime 5
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 5 
+
+TNT1 A 1 A_JumpIfInTargetInventory("BurnBuildRate",100,"FullBuild")
+Goto PartBuild
+
+PartBuild:
+TNT1 A 1 A_JumpIfInTargetInventory("BurnBuildRate",1,"BuildCycle")
+Goto Death
+
+FullBuild:
+TNT1 A 1 A_GiveToTarget("BurnStatusProc")
+Goto Death
+
+BuildCycle:
+TNT1 A 1 A_TakefromTarget("BurnBuildRate",Burn_DrainRate)
+TNT1 A 0 A_JumpIfInTargetInventory("BurnBuildRate",1,"Spawn")
+Goto Death
+
+Death:
+DeathTake:
+TNT1 A 0
+TNT1 A 1 A_TakefromTarget("BurnBuildRate",999)
+stop
+}
+}
+
+
+//[+]=========================[+]
+//----------|Frostbite|-------------
+//[+]=========================[+]
+
+actor FrostbiteBuildRate : Inventory{inventory.amount 1 Inventory.MaxAmount 100}
+
+actor FrostbiteStatusBuild : CustomInventory
+{
+inventory.amount 1
+Inventory.MaxAmount 100
++AUTOACTIVATE
+States
+{
+Spawn:
+TNT1 A 0
+stop
+Pickup:
+TNT1 A 0 A_Jumpifinventory("FrostbiteMark",1,"Sustain")
+TNT1 A 0 A_Jumpifinventory("Pro_IceResistance",1,"Nope")
+TNT1 A 0 A_Jumpif(CallACS("CheckStatusGuard",0,STATUS_MAJOR),"Nope") 
+//==
+TNT1 A 0 A_Jumpifinventory("FrostbiteBuildRate",1,"Build")
+TNT1 A 0 A_GiveInventory("FrostbiteBuildRate",5)
+TNT1 A 0 A_SpawnItemEX("FrostbiteBuilder")
+goto Build
+
+Build:
+TNT1 A 0 A_GiveInventory("FrostbiteBuildRate",random(35,45))
+stop
+Sustain:
+TNT1 A 0 A_GiveInventory("FrostbiteMark",1)
+stop
+
+Nope:
+TNT1 A 0
+stop
+}
+}
+
+actor FrostbiteStatusFastBuild : FrostbiteStatusBuild
+{
+States
+{
+Build:
+TNT1 A 0 A_GiveInventory("FrostbiteBuildRate",random(75,100))
+stop
+}
+}
+
+actor FrostbiteStatusSlowBuild : FrostbiteStatusBuild
+{
+States
+{
+Build:
+TNT1 A 0 A_GiveInventory("FrostbiteBuildRate",random(20,35))
+stop
+}
+}
+
+actor FrostbiteBuilder //: CustomInventory
+{
++MISSILE
++RIPPER
++NOGRAVITY
++NOINTERACTION
+Reactiontime 5
+States
+{
+Spawn:
+TNT1 A 0
+TNT1 A 5 
+
+TNT1 A 1 A_JumpIfInTargetInventory("FrostbiteBuildRate",100,"FullBuild")
+Goto PartBuild
+
+PartBuild:
+TNT1 A 1 A_JumpIfInTargetInventory("FrostbiteBuildRate",1,"BuildCycle")
+Goto Death
+
+FullBuild:
+TNT1 A 1 A_GiveToTarget("FrostbiteStatusProc")
+Goto Death
+
+BuildCycle:
+TNT1 A 1 A_TakefromTarget("FrostbiteBuildRate",FrostBite_DrainRate)
+TNT1 A 0 A_JumpIfInTargetInventory("FrostbiteBuildRate",1,"Spawn")
+Goto Death
+
+Death:
+DeathTake:
+TNT1 A 0
+TNT1 A 1 A_TakefromTarget("FrostbiteBuildRate",999)
+stop
+}
+}
